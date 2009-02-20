@@ -1,12 +1,14 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import java.util.Arrays;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
-// TODO: Auto-generated Javadoc
 /**
- * A simple Click UGen which makes one click and then stops.
+ * A very simple {@link UGen} that generates one click and then kills itself.
  */
 public class Clicker extends UGen {
 
@@ -14,14 +16,15 @@ public class Clicker extends UGen {
 	private float strength;
 	
 	/**
-	 * Instantiates a new clicker.
+	 * Instantiates a new Clicker.
 	 * 
 	 * @param context
-	 *            the context
+	 *            the AudioContext.
+	 * @param strength the volume of the click (max = 1).
 	 */
 	public Clicker(AudioContext context, float strength) {
 		super(context, 0, 1);
-		this.strength = strength;
+		this.strength = Math.min(1f, Math.abs(strength));
 		done = false;
 	}
 
