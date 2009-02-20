@@ -1,0 +1,8 @@
+com.olliebown.beads.analysis
+com.olliebown.beads.analysis.featureextractors
+com.olliebown.beads.analysis.segmenters
+com.olliebown.beads.core
+com.olliebown.beads.data
+com.olliebown.beads.data.buffers
+com.olliebown.beads.events
+com.olliebown.beads.ugens
