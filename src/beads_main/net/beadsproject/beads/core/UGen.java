@@ -1,25 +1,26 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import net.beadsproject.beads.ugens.Clock;
 
-// TODO: Auto-generated Javadoc
 /**
- * A UGen is the main class for signal generation and processing. It inherits
- * start(), kill() and pause() methods and the self-deleting behaviour from
- * Bead, as well as the messaging system. UGens are constructed using an
- * AudioContext to determine the buffer size and have to be specified with a
- * given number of inputs and outputs. By connecting a UGen's output to another
- * UGen's input the UGen is automatically added to a call chain that propagates
+ * A UGen is the main base class for implementing signal generation and processing units (unit generators). UGens can have any number of audio input and output channels, which adopt the audio format of the {@link AudioContext} used to construct the UGen. Any UGen output can be connected to any other UGen input, using {@link #addInput(int, UGen, int)} (or use {@link #addInput(UGen)} to connect all outputs of one UGen to all inputs of another). UGens are constructed using an
+ * AudioContext to determine the correct buffer size for audio processing. By connecting a UGen's output to another
+ * UGen's input the source UGen is automatically added to a call chain that propagates
  * through subsequent UGens from the root UGen of the AudioContext. UGens that
- * do not have outputs (such as Clocks and FrameFeatureExtractors) can be added
+ * do not have outputs (such as {@link Clock}) can be added
  * manually to the call chain using {@link #addDependent(UGen)} from any UGen
- * that is part of the call chain (such as the root of the AudioContext).</p>
+ * that is part of the call chain (such as the root UGen of the {@link AudioContext}).
  * 
- * When this call chain is propagated, each UGen checks to make sure that its
- * input UGens are not deleted. It deletes references to any that are. Since
- * Beads are set by default to self-delete, killing a UGen will therefore cause
- * it to get dropped from the call chain.
+ * </p>UGen inherits the
+ * {@link Bead#start()}, {@link Bead#kill()} and {@link Bead#pause(boolean)} behaviour, and messaging system from
+ * {@link Bead}. Importantly, when UGens are paused, they cease audio processing, and when they are killed, they are automatically removed from any audio chains. This allows for very easy removal of elements from the call chain.
+ * 
+ * </p>The method {@link #calculateBuffer()} must be implemented by subclasses of UGen that actually do something. Each UGen has two 2D arrays of floats, {@link #bufIn}, {@link #bufOut}, holding the current input and output audio buffers (this is stored in the form float[numChannels][bufferSize]). The goal of a {@link UGen#calculateBuffer()} method, therefore, is to fill {@link #bufOut} with appropriate data for the current audio frame. Examples can be found in the source code of classes in the {@link net.beadsproject.beads.ugens} package.
  * 
  * @author ollie
  */
@@ -37,30 +38,29 @@ public abstract class UGen extends Bead {
 	/** The buffer used internally to store input data. */
 	protected float[][] bufIn;
 	
-	/** The buffer that will be grabbed by others. */
+	/** The buffer that will be grabbed by other UGens connected to this one. */
 	protected float[][] bufOut;
 	
-	/** The buffer size. This is set to be the AudioContext bufferSize when the AudioContext is set.*/
+	/** The buffer size. This is specified by {@link AudioContext}. */
 	protected int bufferSize;
 	
-	/** Pointers to the input buffers. */
+	/** An collection of pointers to the output buffers of UGens connected to this UGen's inputs. */
 	private ArrayList<BufferPointer>[] inputs;
 	
-	/** Other UGens that should be triggered by this one. */
+	/** A collection of UGens that should be triggered by this one. */
 	private ArrayList<UGen> dependents;
 	
-	/** Used to avoid calling pullInputs unless required. */
+	/** Flag used to avoid calling {@link #pullInputs()} unless required. */
 	private boolean noInputs;
 	
-	/** Keep track of whether we've updated at this timeStep. */
+	/** Counter to track of whether this UGen has been updated at this timeStep (determined by {@link AudioContext}). */
 	private int lastTimeStep;
 
 	/**
 	 * Create a new UGen from the given AudioContext but with no inputs or
 	 * outputs.
 	 * 
-	 * @param context
-	 *            AudioContext to use.
+	 * @param context AudioContext to use.
 	 */
 	public UGen(AudioContext context) {
 		this(context, 0, 0);
@@ -70,10 +70,8 @@ public abstract class UGen extends Bead {
 	 * Create a new UGen from the given AudioContext with no inputs and the
 	 * given number of outputs.
 	 * 
-	 * @param context
-	 *            AudioContext to use.
-	 * @param outs
-	 *            number of outputs.
+	 * @param context AudioContext to use.
+	 * @param outs number of outputs.
 	 */
 	public UGen(AudioContext context, int outs) {
 		this(context, 0, outs);
@@ -83,12 +81,9 @@ public abstract class UGen extends Bead {
 	 * Create a new UGen from the given AudioContext with the given number of
 	 * inputs and outputs.
 	 * 
-	 * @param context
-	 *            AudioContext to use.
-	 * @param ins
-	 *            number of inputs.
-	 * @param outs
-	 *            number of outputs.
+	 * @param context AudioContext to use.
+	 * @param ins number of inputs.
+	 * @param outs number of outputs.
 	 */
 	public UGen(AudioContext context, int ins, int outs) {
 		dependents = new ArrayList<UGen>();
@@ -103,7 +98,7 @@ public abstract class UGen extends Bead {
 	/**
 	 * Sets the AudioContext used by this UGen. Resetting the AudioContext after initialization could have unexpected consequences.
 	 * 
-	 * @param context
+	 * @param context the AudioContext.
 	 */
 	private void setContext(AudioContext context) {
 		this.context = context;
@@ -120,7 +115,7 @@ public abstract class UGen extends Bead {
 	/**
 	 * Gets the AudioContext used by this UGen.
 	 * 
-	 * @return the AudioContext
+	 * @return the AudioContext.
 	 */
 	public AudioContext getContext() {
 		return context;
@@ -129,8 +124,7 @@ public abstract class UGen extends Bead {
 	/**
 	 * Set the number of inputs.
 	 * 
-	 * @param ins
-	 *            number of inputs.
+	 * @param ins number of inputs.
 	 */
 	private void setIns(int ins) {
 		this.ins = ins;
@@ -152,8 +146,7 @@ public abstract class UGen extends Bead {
 	/**
 	 * Sets the number of outputs.
 	 * 
-	 * @param outs
-	 *            number of outputs.
+	 * @param outs number of outputs.
 	 */
 	private void setOuts(int outs) {
 		this.outs = outs;
@@ -168,14 +161,19 @@ public abstract class UGen extends Bead {
 		return outs;
 	}
 	
+	
+	/**
+	 * Sets up the input buffer. Called when number of inputs or buffer size is changed.
+	 */
 	private void setupInputBuffer() {
 		bufIn = new float[ins][bufferSize];
-		zeroIns();
 	}
 	
+	/**
+	 * Sets up output buffer. Called when number of outputs or buffer size is changed.
+	 */
 	private void setupOutputBuffer() {
 		bufOut = new float[outs][bufferSize];
-		zeroOuts();
 	}
 	
 	/**
@@ -188,7 +186,7 @@ public abstract class UGen extends Bead {
 	}
 
 	/**
-	 * Set the input buffers to zero.
+	 * Sets the input buffers to zero.
 	 */
 	public void zeroIns() {
 		for(int i = 0; i < ins; i++) {
@@ -197,7 +195,7 @@ public abstract class UGen extends Bead {
 	}
 	
 	/**
-	 * Pull inputs.
+	 * Tells all UGens up the call chain, and all UGens that are dependents of this UGen, to calculate their ouput buffers.
 	 */
 	private synchronized void pullInputs() {
 		ArrayList<UGen> dependentsClone = (ArrayList<UGen>) dependents.clone();
@@ -230,9 +228,9 @@ public abstract class UGen extends Bead {
 	}
 
 	/**
-	 * Updates the UGen. If the UGen is muted or has already been updated at
-	 * this time step (according to the AudioContext) then this method does nothing. If the UGen does update, it
-	 * will also call the update() method on all UGens connected to its inputs or depending on it.
+	 * Updates the UGen. If the UGen is paused or has already been updated at
+	 * this time step (according to the {@link AudioContext}) then this method does nothing. If the UGen does update, it
+	 * will firstly propagate the {@link #update()} call up the call chain using {@link #pullInputs()}, and secondly, call its own {@link #calculateBuffer()} method.
 	 */
 	public synchronized void update() {
 		if (!isUpdated() && !isPaused()) {
@@ -244,7 +242,7 @@ public abstract class UGen extends Bead {
 	}
 
 	/**
-	 * Prints the UGens connected to this UGen's inputs to the Standard Output.
+	 * Prints a list of UGens connected to this UGen's inputs to System.out.
 	 */
 	public synchronized void printInputList() {
 		for (int i = 0; i < inputs.length; i++) {
@@ -256,13 +254,12 @@ public abstract class UGen extends Bead {
 	}
 
 	/**
-	 * Maximally connect another UGen to the inputs of this UGen. If the number
+	 * Connect another UGen's outputs to the inputs of this UGen. If the number
 	 * of outputs is greater than the number of inputs then the extra outputs are not connected. If the number of inputs is greater than the number of outputs then the outputs are cycled to fill all inputs. If
 	 * multiple UGens are connected to any one input then the outputs from those
 	 * UGens are summed on their way into the input.
 	 * 
-	 * @param sourceUGen
-	 *            the UGen to connect to this UGen.
+	 * @param sourceUGen the UGen to connect to this UGen.
 	 */
 	public synchronized void addInput(UGen sourceUGen) {
 		if(ins != 0 && sourceUGen.outs != 0) {
@@ -276,27 +273,21 @@ public abstract class UGen extends Bead {
 	 * Connect a specific output from another UGen to a specific input of this
 	 * UGen.
 	 * 
-	 * @param inputIndex
-	 *            the input of this UGen to connect to.
-	 * @param sourceUGen
-	 *            the UGen to connect to this UGen.
-	 * @param sourceOutputIndex
-	 *            the output of the connecting UGen with which to make the
-	 *            connection.
+	 * @param inputIndex the input of this UGen to connect to.
+	 * @param sourceUGen the UGen to connect to this UGen.
+	 * @param sourceOutputIndex the output of the connecting UGen with which to make the
+	 * connection.
 	 */
-	public synchronized void addInput(int inputIndex, UGen sourceUGen,
-			int sourceOutputIndex) {
-		inputs[inputIndex]
-				.add(new BufferPointer(sourceUGen, sourceOutputIndex));
+	public synchronized void addInput(int inputIndex, UGen sourceUGen, int sourceOutputIndex) {
+		inputs[inputIndex].add(new BufferPointer(sourceUGen, sourceOutputIndex));
 		noInputs = false;
 	}
 
 	/**
 	 * Adds a UGen to this UGen's dependency list, causing the dependent UGen to
-	 * get updated when this one does.
+	 * get updated when this one does. This is used to add UGens without outputs (such as {@link Clock} to the call chain. As will UGens in the regular call chain, if a dependent UGen gets killed, this UGen will remove it from its dependency list.
 	 * 
-	 * @param dependent
-	 *            the dependent UGen.
+	 * @param dependent the dependent UGen.
 	 */
 	public void addDependent(UGen dependent) {
 		dependents.add(dependent);
@@ -305,19 +296,17 @@ public abstract class UGen extends Bead {
 	/**
 	 * Removes the specified UGen from this UGen's dependency list.
 	 * 
-	 * @param dependent
-	 *            UGen to remove.
+	 * @param dependent UGen to remove.
 	 */
 	public void removeDependent(UGen dependent) {
 		dependents.remove(dependent);
 	}
 
 	/**
-	 * Gets the number of UGen outputs connected at the specified input index of
+	 * Gets the number of UGens connected at the specified input index of
 	 * this UGen.
 	 * 
-	 * @param index
-	 *            index of input to inspect.
+	 * @param index index of input to inspect.
 	 * 
 	 * @return number of UGen outputs connected to that input.
 	 */
@@ -328,8 +317,7 @@ public abstract class UGen extends Bead {
 	/**
 	 * Disconnects the specified UGen from this UGen at all inputs.
 	 * 
-	 * @param sourceUGen
-	 *            the UGen to disconnect.
+	 * @param sourceUGen the UGen to disconnect.
 	 */
 	public void removeAllConnections(UGen sourceUGen) {
 		if (!noInputs) {
@@ -350,6 +338,9 @@ public abstract class UGen extends Bead {
 		}
 	}
 	
+	/**
+	 * Clear all of this UGen's input connections.
+	 */
 	public void clearInputConnections() {
 		for(int i = 0; i < inputs.length; i++) {
 			ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputs[i].clone();
@@ -362,8 +353,7 @@ public abstract class UGen extends Bead {
 	}
 
 	/**
-	 * Prints the contents of the output buffers to the Standard Input. Could be
-	 * a lot of data.
+	 * Prints the contents of the output buffers to System.out. 
 	 */
 	public void printOutBuffers() {
 		for (int i = 0; i < bufOut.length; i++) {
@@ -378,28 +368,26 @@ public abstract class UGen extends Bead {
 	 * Determines whether this UGen has no UGens connected to its inputs.
 	 * 
 	 * @return true if this UGen has no UGens connected to its inputs, false
-	 *         otherwise.
+	 * otherwise.
 	 */
 	public boolean noInputs() {
 		return noInputs;
 	}
 
 	/**
-	 * Called by the signal chain to update this UGen's ouput data. Subclassses of UGen should put the UGen's DSP perform routine in here. In
+	 * Called by the signal chain to update this UGen's ouput data. Subclassses of UGen should implement the UGen's DSP perform routine here. In
 	 * general this involves grabbing data from {@link #bufIn} and putting data
 	 * into {@link #bufOut} in some way. {@link #bufIn} and {@link #bufOut} are 2D arrays of floats of the form float[numChannels][bufferSize]. The length of the buffers is given by
 	 * {@link #bufferSize}, and the number of channels of the input and output buffers are given by {@link #ins} and {@link #outs} respectively.
 	 */
-	public abstract void calculateBuffer(); // must be implemented by subclasses
+	public abstract void calculateBuffer(); /* Must be implemented by subclasses.*/
 
 	/**
 	 * Gets a specific specified value from the output buffer, with indices i (channel)
 	 * and j (offset into buffer).
 	 * 
-	 * @param i
-	 *            channel index.
-	 * @param j
-	 *            buffer frame index.
+	 * @param i channel index.
+	 * @param j buffer frame index.
 	 * 
 	 * @return value of specified sample.
 	 */
@@ -408,32 +396,38 @@ public abstract class UGen extends Bead {
 	}
 	
 	/**
-	 * Gets the value of the buffer, assuming that the buffer only has one value. This is mainly a convenience method for use with {@link #Static} type UGens.
+	 * Gets the value of the buffer, assuming that the buffer only has one value. This is mainly a convenience method for use with {@link #Static} type UGens. It is equivalent to {@link #getValue(0, 0)}.
 	 * 
-	 * @return the value
+	 * @return the value.
 	 */
 	public float getValue() {
 		return bufOut[0][0];
 	}
 	
 	/**
-	 * Sets the value of the buffer, assuming that the buffer only has one value. This is mainly a convenience method for use with {@link #Static} and {@link #Envelope} type UGens.
+	 * Sets the value of {@link #bufOut[0][0]}. This is mainly a convenience method for use with {@link #Static} and {@link #Envelope} type UGens.
 	 * 
-	 * @param value
-	 *            the new value
+	 * @param value the new value.
 	 */
 	public void setValue(float value) {
 	}
 
 	/**
-	 * Checks if is updated.
+	 * Checks if this UGen has been updated in the current timeStep.
 	 * 
-	 * @return true, if is updated
+	 * @return true if the UGen has been updated in the current timeStep.
 	 */
 	private boolean isUpdated() {
 		return lastTimeStep == context.getTimeStep();
 	}
 	
+	/**
+	 * Pauses/un-pauses the current UGen. When paused, a UGen does not perform an audio calculations and does not respond to messages.
+	 * 
+	 * @see Bead#pause(boolean)
+	 * 
+	 * @param true if paused.
+	 */
 	public void pause(boolean paused) {
 		if(!isPaused() && paused) {
 			zeroOuts();
@@ -442,23 +436,21 @@ public abstract class UGen extends Bead {
 	}
 
 	/**
-	 * The Class BufferPointer.
+	 * BufferPointer is a private nested class used by UGens to keep track of the output buffers of other UGens connected to their inputs.
 	 */
 	private class BufferPointer {
 
-		/** The ugen. */
+		/** The UGen that owns the output buffer. */
 		UGen ugen;
 		
-		/** The index. */
+		/** The index of the output buffer. */
 		int index;
 
 		/**
 		 * Instantiates a new buffer pointer.
 		 * 
-		 * @param ugen
-		 *            the ugen to point to.
-		 * @param index
-		 *            the index of the output of that ugen.
+		 * @param ugen the ugen to point to.
+		 * @param index the index of the output of that ugen.
 		 */
 		BufferPointer(UGen ugen, int index) {
 			this.ugen = ugen;
@@ -468,24 +460,22 @@ public abstract class UGen extends Bead {
 		/**
 		 * Gets the buffer.
 		 * 
-		 * @return the buffer
+		 * @return the buffer.
 		 */
 		float[] getBuffer() {
 			return ugen.bufOut[index];
 		}
 		
 		/**
-		 * Gets the value at the given time point.
+		 * Gets the value at the given sample offset into the buffer.
 		 * 
-		 * @param point
-		 *            the point
+		 * @param point the sample offset.
 		 * 
-		 * @return the float
+		 * @return the value at the given sample offset.
 		 */
 		float get(int point) {
 			return ugen.getValue(index, point);
 		}
 	
 	}
-
 }

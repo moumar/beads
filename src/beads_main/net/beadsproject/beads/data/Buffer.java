@@ -1,34 +1,48 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.data;
 
 import java.io.Serializable;
 import java.util.Hashtable;
 
-// TODO: Auto-generated Javadoc
 /**
- * A StaticBuffer stores a one-dimensional buffer of floats statically so that
- * it can be accessed by multiple classes without need for a reference to an
- * object. Users can request the buffer to be regenerated with different buffer
- * lengths. The assumption is that one buffer length will suffice across a whole
- * program.
+ * A Buffer stores a one-dimensional buffer of floats for use as a wavetable or a window.
  * 
+ * @see Sample BufferFactory
  * @author ollie
  */
 public class Buffer implements Serializable {
 	
+	
+	/**
+	 * Default serialVersionUID.
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/** 
+	 * A static storage area for common buffers, such as a sine wave. Used by {@link BufferFactory} to keep track of common buffers.
+	 */
 	public final static Hashtable<String, Buffer> staticBufs = new Hashtable<String, Buffer>();
 	
+	/** 
+	 * The buffer data. 
+	 */
 	public final float[] buf;
 	
+	/**
+	 * Instantiates a new buffer.
+	 * 
+	 * @param size the size of the buffer.
+	 */
 	public Buffer(int size) {
 		buf = new float[size];
 	}
 	
 	/**
-	 * Returns the value of the buffer at the given fraction along its length (0
-	 * = start, 1 = end).
+	 * Returns the value of the buffer at the given fraction along its length (0 = start, 1 = end).
 	 * 
-	 * @param fraction
-	 *            the point along the buffer to inspect.
+	 * @param fraction the point along the buffer to inspect.
 	 * 
 	 * @return the value at that point.
 	 */
@@ -39,8 +53,7 @@ public class Buffer implements Serializable {
 	/**
 	 * Returns the value of the buffer at a specific index.
 	 * 
-	 * @param index
-	 *            the index to inspect.
+	 * @param index the index to inspect.
 	 * 
 	 * @return the value at that point.
 	 */

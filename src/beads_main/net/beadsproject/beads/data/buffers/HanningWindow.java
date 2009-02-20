@@ -1,18 +1,22 @@
-
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.data.buffers;
 
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.BufferFactory;
 
-// TODO: Auto-generated Javadoc
 /**
- * A BufferFactory that gives you a Hanning Window.
+ * A {@link BufferFactory} that generates Hanning windows.
  * 
+ * @see Buffer BufferFactory
  * @author ollie
- * @see Buffer
  */
 public class HanningWindow extends BufferFactory {
 
+    /* (non-Javadoc)
+     * @see net.beadsproject.beads.data.BufferFactory#generateBuffer(int)
+     */
     public Buffer generateBuffer(int bufferSize) {
     	Buffer b = new Buffer(bufferSize);
     	int lowerThresh = bufferSize / 4;
@@ -27,8 +31,11 @@ public class HanningWindow extends BufferFactory {
     	return b;
     }
     
+    /* (non-Javadoc)
+     * @see net.beadsproject.beads.data.BufferFactory#getName()
+     */
     public String getName() {
-    	return "HanningWindow";
+    	return "Hanning";
     }
 
 

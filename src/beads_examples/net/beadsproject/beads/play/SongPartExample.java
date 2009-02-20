@@ -7,7 +7,7 @@ import net.beadsproject.beads.core.BeadArray;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
 import net.beadsproject.beads.data.buffers.SineBuffer;
-import net.beadsproject.beads.events.StopTrigger;
+import net.beadsproject.beads.events.KillTrigger;
 import net.beadsproject.beads.gui.BeadsWindow;
 import net.beadsproject.beads.play.DefaultEnvironmentFactory;
 import net.beadsproject.beads.play.Environment;
@@ -52,7 +52,7 @@ public class SongPartExample {
 			WavePlayer wp = new WavePlayer(context, Pitch.mtof(rng.nextInt(127)), wave);
 			Envelope e = new Envelope(context, 0.1f);
 			Gain g = new Gain(context, 1, e);
-			e.addSegment(0f, 100f, new StopTrigger(g));
+			e.addSegment(0f, 100f, new KillTrigger(g));
 			g.addInput(wp);
 			addInput(g);
 		}

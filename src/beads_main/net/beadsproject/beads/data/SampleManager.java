@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.data;
 
 import java.io.File;
@@ -9,28 +12,25 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-// TODO: Auto-generated Javadoc
 /**
- * SampleManager keeps a central store for samples that are being loaded into
- * memory and can be used to organise samples into groups.
+ * SampleManager provides a static repository for {@link Sample} data and provides methods to organise samples into groups.
  */
 public class SampleManager {
 
-	/** The samples. */
-	private static Hashtable<String, Sample> samples = new Hashtable<String, Sample>();
+	/** List of all Samples, indexed by name. */
+	private final static Hashtable<String, Sample> samples = new Hashtable<String, Sample>();
 	
-	/** The groups. */
-	private static Hashtable<String, ArrayList<Sample>> groups = new Hashtable<String, ArrayList<Sample>>();
+	/** List of Sample groups, indexed by group name. */
+	private final static Hashtable<String, ArrayList<Sample>> groups = new Hashtable<String, ArrayList<Sample>>();
 
 	/**
 	 * Returns a new Sample from the given filename. If the Sample has already
-	 * been loaded, it will not be loaded twice, but will simply be retrieved
-	 * from the central store.
+	 * been loaded, it will not be loaded again, but will simply be retrieved
+	 * from the static repository.
 	 * 
-	 * @param fn
-	 *            the filename
+	 * @param fn the file path.
 	 * 
-	 * @return the sample
+	 * @return the sample.
 	 */
 	public static Sample sample(String fn) {
 		Sample sample = samples.get(fn);
@@ -39,25 +39,21 @@ public class SampleManager {
 				sample = new Sample(fn);
 				samples.put(fn, sample);
 			} catch (UnsupportedAudioFileException e) {
-				// TODO Auto-generated catch block
-				 //e.printStackTrace();
+				 e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				 //e.printStackTrace();
+				 e.printStackTrace();
 			}
 		}
 		return sample;
 	}
 	
 	/**
-	 * Sample.
+	 * Like {@link SampleManager#sample(String)} but with the option to specify the name with which this {@link Sample} is indexed.
 	 * 
-	 * @param ref
-	 *            the ref
-	 * @param fn
-	 *            the fn
+	 * @param ref the name with which to index this Sample.
+	 * @param fn the file path.
 	 * 
-	 * @return the sample
+	 * @return the sample.
 	 */
 	public static Sample sample(String ref, String fn) {
 		Sample sample = samples.get(ref);
@@ -66,11 +62,9 @@ public class SampleManager {
 				sample = new Sample(fn);
 				samples.put(ref, sample);
 			} catch (UnsupportedAudioFileException e) {
-				// TODO Auto-generated catch block
-				 //e.printStackTrace();
+				 e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				 //e.printStackTrace();
+				 e.printStackTrace();
 			}
 		}
 		return sample;
@@ -80,10 +74,8 @@ public class SampleManager {
 	 * Generates a new group with the given group name and list of Samples to be
 	 * added to the group.
 	 * 
-	 * @param groupName
-	 *            the group name
-	 * @param sampleList
-	 *            the sample list
+	 * @param groupName the group name.
+	 * @param sampleList the sample list.
 	 */
 	public static void group(String groupName, Sample[] sampleList) {
 		ArrayList<Sample> group;
@@ -98,13 +90,11 @@ public class SampleManager {
 	}
 
 	/**
-	 * Generates a new group with the given group name and a folder that
-	 * specifies where to load samples to be added to the group.
+	 * Generates a new group with the given group name and a string that
+	 * specifies where to load samples to be added to the group. The string is interpreted firstly as a URL, and if that fails, as a folder path.
 	 * 
-	 * @param groupName
-	 *            the group name
-	 * @param folderName
-	 *            the folder name
+	 * @param groupName the group name.
+	 * @param folderName the folder address (URL or file path).
 	 */
 	public static void group(String groupName, String folderName) {
 		//first try interpreting the folderName as a system resource
@@ -132,10 +122,8 @@ public class SampleManager {
 	 * Generates a new group with the given group name and a list of file names
 	 * to be added to the group.
 	 * 
-	 * @param groupName
-	 *            the group name
-	 * @param fileNameList
-	 *            the file name list
+	 * @param groupName the group name.
+	 * @param fileNameList the file name list.
 	 */
 	public static void group(String groupName, String[] fileNameList) {
 		ArrayList<Sample> group;
@@ -152,12 +140,11 @@ public class SampleManager {
 	}
 
 	/**
-	 * Gets the specified group as a Sample ArrayList.
+	 * Gets the specified group in the form ArrayList&lt;Sample&gt;.
 	 * 
-	 * @param groupName
-	 *            the group name
+	 * @param groupName the group name.
 	 * 
-	 * @return the group
+	 * @return the group.
 	 */
 	public static ArrayList<Sample> getGroup(String groupName) {
 		return groups.get(groupName);
@@ -166,10 +153,9 @@ public class SampleManager {
 	/**
 	 * Gets a random sample from the specified group.
 	 * 
-	 * @param groupName
-	 *            the group
+	 * @param groupName the group.
 	 * 
-	 * @return a random Sample
+	 * @return a random Sample.
 	 */
 	public static Sample randomFromGroup(String groupName) {
 		ArrayList<Sample> group = groups.get(groupName);
@@ -177,14 +163,12 @@ public class SampleManager {
 	}
 
 	/**
-	 * From group.
+	 * Gets the Sample at the specified index from the specified group.
 	 * 
-	 * @param groupName
-	 *            the group name
-	 * @param index
-	 *            the index
+	 * @param groupName the group name.
+	 * @param index the index.
 	 * 
-	 * @return the sample
+	 * @return the Sample.
 	 */
 	public static Sample fromGroup(String groupName, int index) {
 		ArrayList<Sample> group = groups.get(groupName);
@@ -192,20 +176,18 @@ public class SampleManager {
 	}
 	
 	/**
-	 * Removes the sample.
+	 * Removes the named {@link Sample}.
 	 * 
-	 * @param sampleName
-	 *            the sample name
+	 * @param sampleName the sample name.
 	 */
 	public static void removeSample(String sampleName) {
 		samples.remove(sampleName);
 	}
 
 	/**
-	 * Removes the sample.
+	 * Removes the {@link Sample}.
 	 * 
-	 * @param sample
-	 *            the sample
+	 * @param sample the Sample.
 	 */
 	public static void removeSample(Sample sample) {
 		for (String str : samples.keySet()) {
@@ -219,19 +201,17 @@ public class SampleManager {
 	/**
 	 * Removes the specified group, without removing the samples.
 	 * 
-	 * @param groupName
-	 *            the group name
+	 * @param groupName the group name.
 	 */
 	public static void removeGroup(String groupName) {
 		groups.remove(groupName);
 	}
 
 	/**
-	 * Removes the specified group, and removes all of the samples from the
-	 * group.
+	 * Removes the specified group, and removes all of the samples found in the
+	 * group from the sample repository.
 	 * 
-	 * @param groupName
-	 *            the group name
+	 * @param groupName the group name.
 	 */
 	public static void destroyGroup(String groupName) {
 		ArrayList<Sample> group = groups.get(groupName);
@@ -241,9 +221,13 @@ public class SampleManager {
 		removeGroup(groupName);
 	}
 
-	public static void print() {
+	
+	/**
+	 * Prints a list of all {@link Sample}s to System.out.
+	 */
+	public static void printSampleList() {
 		for(String s : samples.keySet()) {
-			System.out.println(s + " " + samples.get(s).getFileName());
+			System.out.println(s + " " + samples.get(s));
 		}
 	}
 }

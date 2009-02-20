@@ -100,7 +100,7 @@ public class Recorder extends UGen {
 	 * @param position
 	 *            the new position
 	 */
-    public void setPosition(float position) {
+    public void setPosition(double position) {
         position = sample.msToSamples(position);
     }
     

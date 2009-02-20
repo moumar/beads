@@ -1,45 +1,30 @@
-
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.data;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.PrintStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Hashtable;
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import net.beadsproject.beads.analysis.FeatureFrame;
-import net.beadsproject.beads.analysis.FeatureLayer;
-import net.beadsproject.beads.analysis.SampleAnalyser;
-import net.beadsproject.beads.analysis.featureextractors.Frequency;
-import net.beadsproject.beads.analysis.featureextractors.MelSpectrum;
-import net.beadsproject.beads.analysis.featureextractors.Power;
-import net.beadsproject.beads.analysis.featureextractors.PowerSpectrum;
-import net.beadsproject.beads.analysis.segmenters.SimplePowerOnsetDetector;
-import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.AudioUtils;
-import net.beadsproject.beads.events.AudioContextStopTrigger;
-import net.beadsproject.beads.ugens.SamplePlayer;
 
-// TODO: Auto-generated Javadoc
 /**
- * A Sample is a buffer for audio data which can be loaded from a file or
- * recorded into the buffer.
+ * A Sample is a multi-channel buffer of audio data which can be read from a file or
+ * recorded from a UGen and written to a file.
  * 
- * @see SampleManager
+ * @see SampleManager Recorder
+ * 
+ * @author ollie
  */
 public class Sample {
     
-	/** The name. */
+	/** The file name of the Sample. */
 	private String fileName;
 	
     /** The audio format. */
@@ -48,52 +33,45 @@ public class Sample {
     /** The number of channels. */
     public final int nChannels;
     
-    /** The number of frames. */
+    /** The number of sample frames. */
     public final long nFrames;
     
-    /** The length. */
+    /** The length in milliseconds. */
     public final float length;
     
-    /** The audio data. */
+    /** The buffer containing the audio data. The data is stored in the form float[{@link #nChannels}][{@link #nFrames}] */
     public final float[][] buf;
     
-    /** The result. */
-    private float[] result;
-    
     /**
-	 * Instantiates a new empty buffer with the specified audio format and
-	 * number of frames.
-	 * 
-	 * @param audioFormat
-	 *            the audio format
-	 * @param totalFrames
-	 *            the number frames
-	 */
+     * Instantiates a new empty buffer with the specified audio format and
+     * number of frames.
+     * 
+     * @param audioFormat the audio format.
+     * @param totalFrames the number of sample frames.
+     */
     public Sample(AudioFormat audioFormat, long totalFrames) {
         this.audioFormat = audioFormat;
         nChannels = audioFormat.getChannels();
         this.nFrames = totalFrames;
-        buf = new float[nChannels][(int)totalFrames]; //??
+        buf = new float[nChannels][(int)totalFrames]; //TODO
         for(int i = 0; i < nChannels; i++) {
             for(int j = 0; j < totalFrames; j++) {
                 buf[i][j] = 0.0f;
             }
         }
-        result = new float[nChannels];
         length = totalFrames / audioFormat.getSampleRate() * 1000f;
     }
 
     /**
-	 * Creates a new Sample from the specified file.
-	 * 
-	 * @param fn
-	 *            the file name
-	 * 
-	 * @throws UnsupportedAudioFileException
-	 *             the unsupported audio file exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 */
+     * Creates a new Sample from the specified file.
+     * 
+     * <p/>In many cases it is preferable to use {@link SampleManager#sample(String)}, which adds the data to a static repository once it is loaded. 
+     * 
+     * @param fn the file path.
+     * 
+     * @throws UnsupportedAudioFileException Signals that the file format is not supported.
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public Sample(String fn) throws UnsupportedAudioFileException, IOException {
     	this.fileName = fn;
     	AudioInputStream audioInputStream = null;
@@ -134,19 +112,17 @@ public class Sample {
             framesRead += frameHop;
         }
         audioInputStream.close();
-        result = new float[nChannels];
         length = nFrames / audioFormat.getSampleRate() * 1000f;
         System.out.println("loaded sample " + this + " with length " + length + "ms.");
     } 
     
     /**
-	 * Deinterleaves an interleaved array.
-	 * 
-	 * @param source
-	 *            the interleaved array
-	 * 
-	 * @return the de-interleaved array (channels x frames)
-	 */
+     * Deinterleaves an interleaved array.
+     * 
+     * @param source the interleaved array.
+     * 
+     * @return the de-interleaved array (channels x frames).
+     */
     private float[][] deinterleave(float[] source) {
     	int nFrames = source.length / nChannels;
         float[][] result = new float[nChannels][nFrames];   
@@ -159,13 +135,12 @@ public class Sample {
     }
     
     /**
-	 * Interleaves a de-interleaved (channels x frames) array.
-	 * 
-	 * @param source
-	 *            the source array
-	 * 
-	 * @return the interleaved array (frame by frame, alternating channels)
-	 */
+     * Interleaves a de-interleaved (channels x frames) array.
+     * 
+     * @param source the source array.
+     * 
+     * @return the interleaved array (frame by frame, alternating channels).
+     */
     private float[] interleave(float[][] source) {
         float[] result = new float[nChannels * (int)nFrames]; //??
         for(int i = 0, counter = 0; i < nFrames; i++) {
@@ -177,42 +152,39 @@ public class Sample {
     }
     
     /**
-	 * Converts from millieconds to samples.
-	 * 
-	 * @param msTime
-	 *            the time in milliseconds
-	 * 
-	 * @return the time in samples
-	 */
-    public float msToSamples(float msTime) {
+     * Converts from milliseconds to samples based on the sample rate specified by {@link #audioFormat}.
+     * 
+     * @param msTime the time in milliseconds.
+     * 
+     * @return the time in samples.
+     */
+    public double msToSamples(double msTime) {
         return msTime * audioFormat.getSampleRate() / 1000.0f;
     }
 
     /**
-	 * Converts from samples to milliseconds.
-	 * 
-	 * @param sampleTime
-	 *            the time in samples
-	 * 
-	 * @return the time in milliseconds
-	 */
-    public float samplesToMs(float sampleTime) {
+     * Converts from samples to milliseconds based on the sample rate specified by {@link #audioFormat}.
+     * 
+     * @param sampleTime the time in samples.
+     * 
+     * @return the time in milliseconds.
+     */
+    public double samplesToMs(double sampleTime) {
         return sampleTime / audioFormat.getSampleRate() * 1000.0f;
     }
     
     /**
-	 * Retrieves a frame of audio using linear interpolation.
-	 * 
-	 * @param currentSample
-	 *            the current sample
-	 * @param fractionOffset
-	 *            the offset from the current sample as a fraction of the time
-	 *            to the next sample
-	 * 
-	 * @return the interpolated frame
-	 */
+     * Retrieves a frame of audio using linear interpolation.
+     * 
+     * @param currentSample the current sample.
+     * @param fractionOffset the offset from the current sample as a fraction of the time
+     * to the next sample.
+     * 
+     * @return the interpolated frame.
+     */
     public float[] getFrameLinear(int currentSample, float fractionOffset) {
-        if(currentSample >= 0 && currentSample < nFrames) {
+        float[] result = new float[nChannels];
+    	if(currentSample >= 0 && currentSample < nFrames) {
             for (int i = 0; i < nChannels; i++) {
                 if(currentSample < (nFrames - 1)) {
                     result[i] = (1f - fractionOffset) * buf[i][currentSample] +
@@ -230,16 +202,14 @@ public class Sample {
     }
     
     /**
-	 * Retrieves a frame of audio using cubic interpolation.
-	 * 
-	 * @param currentSample
-	 *            the current sample
-	 * @param fractionOffset
-	 *            the offset from the current sample as a fraction of the time
-	 *            to the next sample
-	 * 
-	 * @return the interpolated frame
-	 */
+     * Retrieves a frame of audio using cubic interpolation.
+     * 
+     * @param currentSample the current sample.
+     * @param fractionOffset the offset from the current sample as a fraction of the time
+     * to the next sample.
+     * 
+     * @return the interpolated frame.
+     */
     public float[] getFrameCubic(int currentSample, float fractionOffset) {
         float[] result = new float[nChannels];
         float a0,a1,a2,a3,mu2;
@@ -279,9 +249,9 @@ public class Sample {
     }
 
     /**
-	 * Post audio format info.
-	 */
-    public void postAudioFormatInfo() {
+     * Prints audio format info to System.out.
+     */
+    public void printAudioFormatInfo() {
         System.out.println("Sample Rate: " + audioFormat.getSampleRate());
         System.out.println("Channels: " + nChannels);
         System.out.println("Frame size in Bytes: " + audioFormat.getFrameSize());
@@ -290,14 +260,12 @@ public class Sample {
     }   
     
     /**
-	 * Write to a file.
-	 * 
-	 * @param fn
-	 *            the file name
-	 * 
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 */
+     * Write Sample to a file.
+     * 
+     * @param fn the file name.
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public void write(String fn) throws IOException {
         byte[] bytes = new byte[(int)nFrames * audioFormat.getFrameSize()]; //??
         AudioUtils.floatToByte(bytes, interleave(buf), audioFormat.isBigEndian());
@@ -317,23 +285,14 @@ public class Sample {
     	return fileName;
     }
     
-    public String getFileName() {
-    	return fileName;
-    }
     
     /**
-	 * The main method.
-	 * 
-	 * @param args
-	 *            the arguments
-	 * 
-	 * @throws Exception
-	 *             the exception
-	 */
-    public static void main(String[] args) throws Exception {
-    	Sample s1 = new Sample("/Users/ollie/Music/Audio/output5.aif");	
-//    	Sample s1 = new Sample("audio/1234.aif");	
-//    	s1.loadFeatures();
+     * Gets the file name.
+     * 
+     * @return the file name
+     */
+    public String getFileName() {
+    	return fileName;
     }
     
 }

@@ -1,15 +1,17 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.events;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Interface IntegerBead.
+ * Interface used to indicate a Bead that stores a single integer value.
  */
 public interface IntegerBead {
 
 	/**
-	 * Gets the int.
+	 * Gets the intger value.
 	 * 
-	 * @return the int
+	 * @return the integer value.
 	 */
 	public int getInt();
 	

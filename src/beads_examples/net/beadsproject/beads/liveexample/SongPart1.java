@@ -10,7 +10,7 @@ import net.beadsproject.beads.data.buffers.SineBuffer;
 import net.beadsproject.beads.events.IntegerBead;
 import net.beadsproject.beads.events.Pattern;
 import net.beadsproject.beads.events.PauseTrigger;
-import net.beadsproject.beads.events.StopTrigger;
+import net.beadsproject.beads.events.KillTrigger;
 import net.beadsproject.beads.gui.Slider;
 import net.beadsproject.beads.play.Environment;
 import net.beadsproject.beads.play.SongPart;
@@ -75,7 +75,7 @@ public class SongPart1 extends SongPart {
 	
 	public void messageReceived(Bead message) {
 		int time = ((IntegerBead)message).getInt();
-		Integer eventIndex = pattern.getEventAtTime(time);
+		Integer eventIndex = pattern.getEventAtIndex(time);
 		if(eventIndex != null) playEvent(events.get(eventIndex));
 		if(Math.random() < 0.1) {
 			if(Math.random() < 0.5f) {
@@ -91,7 +91,7 @@ public class SongPart1 extends SongPart {
 		Envelope e = new Envelope(context, eventData.get("gain"));
 		Gain g = new Gain(context, 1, e);
 		e.addSegment(eventData.get("gain"), eventData.get("sustain"));
-		e.addSegment(0f, eventData.get("decay"), new StopTrigger(g));
+		e.addSegment(0f, eventData.get("decay"), new KillTrigger(g));
 		g.addInput(wp);
 		addInput(g);
 	}

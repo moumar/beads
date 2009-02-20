@@ -1,24 +1,30 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.core;
 
-import javax.swing.JPanel;
-
-// TODO: Auto-generated Javadoc
 /**
- * Bead is an abstract class which defines basic behaviour such as starting and
- * stopping, pausing and handling messages. A Bead can send a message to another Bead using the message() method. Beads handle these messages by subclassing the messageReceived() method. {@link #BeadArray} can be used to organise Beads into groups such that if a Bead gets deleted it will be removed from the array automatically. When a Bead is paused, it stops receiving messages. Beads are not paused by default. The main subclass of Bead is {@link #UGen},
- * which is where most of the action happens. When a UGen is paused, it stops passing audio to its outputs. When a Bead is killed a deleted flag is switched on. Killed Beads will then be removed from any BeadArrays, and Killed UGens will be deleted from any signal chains. You can add another Bead to this Bead as a killListener, and
+ * Bead is an abstract class which defines basic behaviour such as starting and stopping, pausing and handling messages. 
+ * 
+ * <p/>Messages: A Bead can send a message to another Bead using the {@link #message(Bead)} method. Implementations of Bead handle these messages by subclassing the {@link #messageReceived(Bead)} method. {@link BeadArray} can be used to gather Beads into groups, which is useful for defining message channels in a system. 
+ * 
+ * <p/>Pausing: the method {@link #pause(boolean)} toggles the pause mode of a Bead. Beads are unpaused by default. A paused Bead will no longer respond to incoming messages. 
+ * 
+ * <p/>Deleting: The method {@link #kill()} deletes a Bead. Deleted Beads are automatically removed from {@link BeadArray}s. The method {@link Bead#setKillListener(Bead)} allows you to specify another Bead that gets notified when this Bead is killed. 
+ * 
+ * <p/>UGens: An important subclass of Bead is {@link UGen}. When a UGen is paused, it does not calculate audio. When it is deleted, it is automatically removed from any signal chains. 
  * 
  * @author ollie
  */
 public abstract class Bead {
 
-	/** The paused. */
+	/** True if the Bead is paused. */
 	private boolean paused;
 	
-	/** The deleted. */
+	/** True if the Bead is marked for deletion. */
 	private boolean deleted;
 	
-	/** The kill listener. */
+	/** A Bead that gets informed when this Bead gets killed. */
 	private Bead killListener;
 	
 	/** The name. */
@@ -31,40 +37,42 @@ public abstract class Bead {
 	public Bead() {
 		 paused = false;
 		 deleted = false;
-		 killListener = null;
-		 name = null;
 	}
 	
 	/**
-	 * Gets the name.
+	 * Gets the Bead's name.
 	 * 
-	 * @return the name
+	 * @return the name.
 	 */
 	public String getName() {
 		return name;
 	}
 	
 	/**
-	 * Sets the name.
+	 * Sets the Bead's name.
 	 * 
-	 * @param name the new name
+	 * @param name the new name.
 	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
 	/**
-	 * Returns the class of the Bead as a String.
+	 * Returns a String specifying the Bead's class and it's name.
 	 * 
-	 * @return String denoting the class of the Bead.
+	 * @return String describing the Bead.
 	 */
 	@Override
 	public String toString() {
-		return getClass().toString() + " " + "name=" + name;
+		if(name != null) {
+			return getClass().toString() + " name=" + name;
+		} else {
+			return getClass().toString();
+		}
 	}
 
 	/**
-	 * Send this Bead a message.
+	 * Send this Bead a message. Typically if another Bead was sending the message, it would send itself as the argument.
 	 * 
 	 * @param message the Bead is the message.
 	 */
@@ -73,23 +81,25 @@ public abstract class Bead {
 	}
 	
 	/**
-	 * Subclasses should override this in order to handle incoming messages. Typically a Bead would send a message to another Bead with itself as the arugment.
+	 * Responds to an incoming message. Subclasses can override this in order to handle incoming messages. Typically a Bead would send a message to another Bead with itself as the arugment.
 	 * 
 	 * @param message the message
 	 */
-	public void messageReceived(Bead message) {
+	protected void messageReceived(Bead message) {
+		/*
+		 * To be subclassed, but not compulsory.
+		 */
 	}
 	
 	/**
-	 * Equivalent to pause(false).
+	 * Shortcut for pause(false).
 	 */
 	public void start() {
 		paused = false;
 	}
 
 	/**
-	 * Stops this Bead, and sets its state to deleted if this Bead is
-	 * self-deleting. Means different things for different subclasses of Bead.
+	 * Stops this Bead, and flags it as deleted. This means that the Bead will automatically be removed from any {@link BeadArray}s. 
 	 */
 	public void kill() {
 		deleted = true;
@@ -99,36 +109,36 @@ public abstract class Bead {
 	}
 	
 	/**
-	 * Checks if is paused.
+	 * Checks if this Bead is paused.
 	 * 
-	 * @return true, if is paused
+	 * @return true if paused
 	 */
 	public boolean isPaused() {
 		return paused;
 	}
 	
 	/**
-	 * Pause.
+	 * Toggle the paused state of the Bead.
 	 * 
-	 * @param paused the paused
+	 * @param paused true to pause Bead.
 	 */
 	public void pause(boolean paused) {
 		this.paused = paused;
 	}
 	
 	/**
-	 * Sets the kill listener.
+	 * Sets this Bead's kill listener. The kill listener will receive a message containing this Bead as an argument when this Bead is killed.
 	 * 
-	 * @param killListener the new kill listener
+	 * @param killListener the new kill listener. 
 	 */
 	public void setKillListener(Bead killListener) {
 		this.killListener = killListener;
 	}
 	
     /**
-     * Gets the kill listener.
+     * Gets this Bead's kill listener.
      * 
-     * @return the kill listener
+     * @return the kill listener.
      */
     public Bead getKillListener() {
     	return killListener;

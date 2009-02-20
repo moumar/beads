@@ -244,7 +244,7 @@ public class SamplePlayer extends UGen {
 	 * @return the loop cross fade
 	 */
     public float getLoopCrossFade() {
-        return buffer.samplesToMs(loopCrossFade);
+        return (float)buffer.samplesToMs(loopCrossFade);
     }
 
     /**
@@ -254,7 +254,7 @@ public class SamplePlayer extends UGen {
 	 *            the new loop cross fade
 	 */
     public void setLoopCrossFade(float loopCrossFade) {
-        this.loopCrossFade = buffer.msToSamples(loopCrossFade);
+        this.loopCrossFade = (float)buffer.msToSamples(loopCrossFade);
     }
 
     /**

@@ -1,17 +1,25 @@
-/**
- * This class is taken from JASS TODO: Proper credits and license
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ * CREDIT: This class uses portions of code taken from JASS. See readme/CREDITS.txt.
  * 
  */
 package net.beadsproject.beads.core;
 
+import java.util.Random;
+
 /**
- * AudioUtils is used for basic conversion of buffers of audio data between
- * different formats.
+ * AudioUtils provides basic conversion of buffers of audio data between
+ * different formats, interleaving, and some other miscellaneous audio functions.
  * 
  * @author ollie
  */
 public final class AudioUtils {
 
+	/**
+	 * A handy random number generator.
+	 */
+	public static Random rng = new Random();
+	
 	/**
 	 * Converts a buffer of shorts to a buffer of floats.
 	 * 
@@ -50,8 +58,7 @@ public final class AudioUtils {
 	 * @param bigEndian
 	 *            true for big endian byte order, false otherwise.
 	 */
-	static final public void floatToByte(byte[] out, float[] in,
-			boolean bigEndian) {
+	static final public void floatToByte(byte[] out, float[] in, boolean bigEndian) {
 		int bufsz = in.length;
 		int ib = 0;
 		if (bigEndian) {
@@ -80,8 +87,7 @@ public final class AudioUtils {
 	 * @param bigEndian
 	 *            true for big endian byte order, false otherwise.
 	 */
-	static final public void byteToFloat(float[] out, byte[] in,
-			boolean bigEndian) {
+	static final public void byteToFloat(float[] out, byte[] in, boolean bigEndian) {
 		if (bigEndian) {
 			int ib = 0;
 			for (int i = 0; i < out.length; ++i) {
@@ -112,8 +118,7 @@ public final class AudioUtils {
 	 * @param result
 	 *            the result
 	 */
-	static final public void deinterleave(float[] source, int nChannels,
-			int nFrames, float[][] result) {
+	static final public void deinterleave(float[] source, int nChannels, int nFrames, float[][] result) {
 		for (int i = 0, count = 0; i < nFrames; ++i) {
 			for (int j = 0; j < nChannels; ++j) {
 				result[j][i] = source[count++];
@@ -143,10 +148,10 @@ public final class AudioUtils {
 		}
 	}
 
-	//copied directly from http://martin.ankerl.com/2007/10/04/optimized-pow-approximation-for-java-and-c-c/
-	
 	/**
 	 * Does a freaky shortcut for calculating pow, faster but less accurate than regular Math.pow().
+	 * 
+	 * <p/>CREDIT: this method is copied directly from <a href="http://martin.ankerl.com/2007/10/04/optimized-pow-approximation-for-java-and-c-c/">http://martin.ankerl.com/2007/10/04/optimized-pow-approximation-for-java-and-c-c/</a>
 	 * 
 	 * @param a the base.
 	 * @param b the exponent.

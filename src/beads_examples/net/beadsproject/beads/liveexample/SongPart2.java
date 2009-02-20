@@ -7,7 +7,7 @@ import net.beadsproject.beads.data.Pitch;
 import net.beadsproject.beads.data.buffers.SawBuffer;
 import net.beadsproject.beads.events.IntegerBead;
 import net.beadsproject.beads.events.PauseTrigger;
-import net.beadsproject.beads.events.StopTrigger;
+import net.beadsproject.beads.events.KillTrigger;
 import net.beadsproject.beads.play.Environment;
 import net.beadsproject.beads.play.SongPart;
 import net.beadsproject.beads.ugens.Envelope;
@@ -32,7 +32,7 @@ public class SongPart2 extends SongPart {
 			WavePlayer wp = new WavePlayer(context, Pitch.mtof(rng.nextInt(127)), wave);
 			Envelope e = new Envelope(context, 0.1f);
 			Gain g = new Gain(context, 1, e);
-			e.addSegment(0f, 100f, new StopTrigger(g));
+			e.addSegment(0f, 100f, new KillTrigger(g));
 			g.addInput(wp);
 			addInput(g);
 		}

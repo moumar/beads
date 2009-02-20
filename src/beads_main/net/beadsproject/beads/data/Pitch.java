@@ -1,16 +1,17 @@
-
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.data;
 
-// TODO: Auto-generated Javadoc
 /**
- * A set of static methods for manipulations associated with pitch.
+ * A set of static fields and utility methods associated with pitch.
  * 
  * @author ollie
  */
 public abstract class Pitch {
 	
-	/** The Constant LOG2. */
-	public final static float LOG2 = (float)Math.log(2);
+	/** The constant log(2) = 0.6931472. */
+	public final static float LOG2 = 0.6931472f;
     
 	/**
 	 * Convert frequency to MIDI note number.
@@ -30,22 +31,22 @@ public abstract class Pitch {
 	 * @param midi
 	 *            the required MIDI note number.
 	 * 
-	 * @return the resuling frequency.
+	 * @return the resulting frequency.
 	 */
 	public static final float mtof(float midi) {
         return 440.0f * (float)Math.pow(2.0f, (midi - 69f) / 12.0f);
     }
 	
-	/** The dorian. */
-	public static int[] dorian = {0, 2, 3, 5, 7, 9, 10};
+	/** The dorian scale relative to root. */
+	public static final int[] dorian = {0, 2, 3, 5, 7, 9, 10};
 
-	/** The major key. */
-	public static int[] major = {0, 2, 4, 5, 7, 9, 11};
+	/** The major scale relative to root. */
+	public static final int[] major = {0, 2, 4, 5, 7, 9, 11};
 	
-	/** The minor key. */
-	public static int[] minor = {0, 2, 3, 5, 7, 8, 10};
+	/** The minor scale relative to root. */
+	public static final int[] minor = {0, 2, 3, 5, 7, 8, 10};
     
-    /** The circle of fifths. */
+    /** The circle of fifths relative to root. */
     public static final int[] circleOfFifths = {0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7};
 
 }

@@ -1,11 +1,12 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.core;
 
 import java.util.ArrayList;
 
-// TODO: Auto-generated Javadoc
 /**
- * An array of Beads (but also a subclass of Bead). Its
- * purpose is to forward messages to its array members. A BeadArray detects whether or not its members are deleted, and removes links to them if they are. For this reason it should be used in any situations where a Bead needs to be automatically disposed of. Note, however, that a BeadArray does not forward kill(), start() and pause() messages to its component Beads unless told to do so by setting the flags forwardKillCommand and forwardPauseCommand respectively. 
+ * BeadArray represents an array of Beads (and is itself a subclass of Bead). Its purpose is to forward messages to its array members. A BeadArray detects whether or not its members are deleted, and removes them if they are. For this reason it should be used in any situations where a Bead needs to be automatically disposed of. Note, however, that a BeadArray does not forward {@link Bead#kill()}, {@link Bead#start()} and {@link Bead#pause(boolean)} messages to its component Beads unless told to do so by setting {@link #setForwardKillCommand(boolean)} and {@link BeadArray#setForwardPauseCommand(boolean)} respectively.
  * 
  * @author ollie
  */
@@ -13,7 +14,11 @@ public class BeadArray extends Bead {
 
 	/** The beads. */
 	private ArrayList<Bead> beads;
+	
+	/** Flag to forward kill commands. */
 	private boolean forwardKillCommand;
+	
+	/** Flag to forward pause commands. */
 	private boolean forwardPauseCommand;
 
 	/**
@@ -28,8 +33,7 @@ public class BeadArray extends Bead {
 	/**
 	 * Adds a new Bead to the list of receivers.
 	 * 
-	 * @param bead
-	 *            Bead to add.
+	 * @param bead Bead to add.
 	 */
 	public void add(Bead bead) {
 		beads.add(bead);
@@ -38,8 +42,7 @@ public class BeadArray extends Bead {
 	/**
 	 * Removes a Bead from the list of receivers.
 	 * 
-	 * @param bead
-	 *            Bead to remove.
+	 * @param bead Bead to remove.
 	 */
 	public void remove(Bead bead) {
 		beads.remove(bead);
@@ -48,8 +51,7 @@ public class BeadArray extends Bead {
 	/**
 	 * Gets the ith Bead from the list of receivers.
 	 * 
-	 * @param i
-	 *            index of Bead to retrieve.
+	 * @param i index of Bead to retrieve.
 	 * 
 	 * @return the Bead at the ith index.
 	 */
@@ -85,8 +87,7 @@ public class BeadArray extends Bead {
 	/**
 	 * Forwards incoming message to all receivers.
 	 * 
-	 * @param message
-	 *            incoming message.
+	 * @param message incoming message.
 	 */
 	public void messageReceived(Bead message) {
 		BeadArray clone = clone();
@@ -113,22 +114,46 @@ public class BeadArray extends Bead {
 		return clone;
 	}
 
-	public boolean isForwardKillCommand() {
+	
+	/**
+	 * Checks if this BeadArray forwards kill commands.
+	 * 
+	 * @return true if this BeadArray forwards kill commands.
+	 */
+	public boolean doesForwardKillCommand() {
 		return forwardKillCommand;
 	}
 	
+	/**
+	 * Determines whether or not this BeadArray forwards kill commands.
+	 * 
+	 * @param forwardKillCommand true if this BeadArray forwards kill commands.
+	 */
 	public void setForwardKillCommand(boolean forwardKillCommand) {
 		this.forwardKillCommand = forwardKillCommand;
 	}
 
-	public boolean isForwardPauseCommand() {
+	/**
+	 * Checks if this BeadArray forwards pause commands.
+	 * 
+	 * @return true if this BeadArray forwards pause commands.
+	 */
+	public boolean doesForwardPauseCommand() {
 		return forwardPauseCommand;
 	}
 
+	/**
+	 * Determines whether or not this BeadArray forwards pause commands.
+	 * 
+	 * @param forwardPauseCommand true if this BeadArray forwards pause commands.
+	 */
 	public void setForwardPauseCommand(boolean forwardPauseCommand) {
 		this.forwardPauseCommand = forwardPauseCommand;
 	}
 
+	/* (non-Javadoc)
+	 * @see net.beadsproject.beads.core.Bead#kill()
+	 */
 	@Override
 	public void kill() {
 		super.kill();
@@ -144,6 +169,9 @@ public class BeadArray extends Bead {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see net.beadsproject.beads.core.Bead#pause(boolean)
+	 */
 	@Override
 	public void pause(boolean paused) {
 		super.pause(paused);
@@ -159,6 +187,9 @@ public class BeadArray extends Bead {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see net.beadsproject.beads.core.Bead#start()
+	 */
 	@Override
 	public void start() {
 		super.start();
