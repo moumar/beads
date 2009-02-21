@@ -6,9 +6,10 @@ package net.beadsproject.beads.ugens;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class Gain.
+ * Gain modifies the gain of a multi-channel audio signal. The gain value can be controlled by an audio signal.
+ *
+ * @author ollie
  */
 public class Gain extends UGen {
 
@@ -16,14 +17,14 @@ public class Gain extends UGen {
     private UGen gainEnvelope;
     
     /**
-	 * Instantiates a new gain.
+	 * Instantiates a new Gain.
 	 * 
 	 * @param context
-	 *            the context
+	 *            the AudioContext.
 	 * @param inouts
-	 *            the inouts
+	 *            the number of inputs (= number of outputs).
 	 * @param gainEnvelope
-	 *            the gain envelope
+	 *            the gain envelope.
 	 */
     public Gain(AudioContext context, int inouts, UGen gainEnvelope) {
        this(context, inouts);
@@ -31,12 +32,12 @@ public class Gain extends UGen {
     }
     
     /**
-	 * Instantiates a new gain.
+	 * Instantiates a new Gain with {@link Static} gain envelop set to 1.
 	 * 
 	 * @param context
-	 *            the context
+	 *            the AudioContext.
 	 * @param inouts
-	 *            the inouts
+	 *            the number of inputs (= number of outputs).
 	 */
     public Gain(AudioContext context, int inouts) {
         super(context, inouts, inouts);
@@ -46,7 +47,7 @@ public class Gain extends UGen {
     /**
 	 * Gets the gain envelope.
 	 * 
-	 * @return the gain envelope
+	 * @return the gain envelope.
 	 */
     public UGen getGainEnvelope() {
         return gainEnvelope;
@@ -56,7 +57,7 @@ public class Gain extends UGen {
 	 * Sets the gain envelope.
 	 * 
 	 * @param gainEnvelope
-	 *            the new gain envelope
+	 *            the new gain envelope.
 	 */
     public void setGainEnvelope(UGen gainEnvelope) {
         this.gainEnvelope = gainEnvelope;

@@ -6,21 +6,29 @@ package net.beadsproject.beads.ugens;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
-
 /**
- * @author ollie
+ * MonoPlug performs the simple task of channelling a single output from a multi-channel {@link UGen}.
  * 
- * Really simple class to remap one output from one UGen.
- *
+ * @author ollie
  */
 public class MonoPlug extends UGen {
 
+	/**
+	 * Instantiates a new MonoPlug.
+	 * 
+	 * @param context the AudioContext.
+	 * @param sourceUGen the source UGen.
+	 * @param outputIndex the output index of the source UGen.
+	 */
 	public MonoPlug(AudioContext context, UGen sourceUGen, int outputIndex) {
 		super(context, 1, 1);
 		addInput(0, sourceUGen, outputIndex);
 		bufOut[0] = bufIn[0];
 	}
 
+	/* (non-Javadoc)
+	 * @see net.beadsproject.beads.core.UGen#calculateBuffer()
+	 */
 	@Override
 	public void calculateBuffer() {}
 

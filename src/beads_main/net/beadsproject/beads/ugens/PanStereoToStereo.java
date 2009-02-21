@@ -6,15 +6,29 @@ package net.beadsproject.beads.ugens;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
+/**
+ * PanStereoToStereo pans a stereo source between two stereo channels.
+ * 
+ * @author ollie
+ */
 public class PanStereoToStereo extends UGen {
 
+	/** The pan envelope. */
 	private UGen panEnvelope;
 
+	/**
+	 * Instantiates a new PanStereoToStereo.
+	 * 
+	 * @param context the AudioContext.
+	 */
 	public PanStereoToStereo(AudioContext context) {
 		super(context, 2, 2);
 		panEnvelope = new Static(context, 0.5f);
 	}
 
+	/* (non-Javadoc)
+	 * @see net.beadsproject.beads.core.UGen#calculateBuffer()
+	 */
 	@Override
 	public void calculateBuffer() {
 		panEnvelope.update();
@@ -27,15 +41,24 @@ public class PanStereoToStereo extends UGen {
 				bufOut[0][i] = bufIn[0][i];
 				bufOut[1][i] = 2f * bufIn[1][i] * (1f - pan);	
 			}
-			
-			//yes I know this is a lazy panning algorithm. I am a lazy man.
+			//TODO this is a lazy panning algorithm.
 		}
 	}
 
+	/**
+	 * Gets the pan envelope.
+	 * 
+	 * @return the pan envelope.
+	 */
 	public UGen getPanEnvelope() {
 		return panEnvelope;
 	}
 
+	/**
+	 * Sets the pan envelope.
+	 * 
+	 * @param panEnvelope the new pan envelope.
+	 */
 	public void setPanEnvelope(UGen panEnvelope) {
 		this.panEnvelope = panEnvelope;
 	}

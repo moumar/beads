@@ -7,14 +7,14 @@ import java.util.ArrayList;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
-
-// TODO: Auto-generated Javadoc
 /**
- * The Class DelayLine.
+ * A DelayLine causes an audio delay on a signal.
+ *
+ * @author ollie
  */
 public class DelayLine extends UGen {
 
-	//INCOMPLETE
+	//TODO THIS CLASS IS INCOMPLETE
 	
 	/** The buffs. */
 	private ArrayList<Float>[] buffs;
@@ -29,11 +29,11 @@ public class DelayLine extends UGen {
 	 * Instantiates a new delay line.
 	 * 
 	 * @param context
-	 *            the context
+	 *            the AudioContext.
 	 * @param inouts
-	 *            the inouts
+	 *            the number of inputs (= number of outputs).
 	 * @param msLength
-	 *            the ms length
+	 *            the maximum capacity of the delay line.
 	 */
 	public DelayLine(AudioContext context, int inouts, float msLength) {
 		super(context, inouts, inouts);

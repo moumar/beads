@@ -51,12 +51,12 @@ public class OscillatorBankExample {
 		}
 		
 		public void messageReceived(Bead message) {
-			float freqs[] = new float[frequency.length];
-			for(int i = 0; i < frequency.length; i++) {
+			float freqs[] = new float[getFrequencies().length];
+			for(int i = 0; i < getFrequencies().length; i++) {
 				freqs[i] = rng.nextFloat() * 5000f + 100f;
 			}
 			setFrequencies(freqs);
-			System.out.println(frequency.length);
+			System.out.println(getFrequencies().length);
 		}
 		
 	}

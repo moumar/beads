@@ -446,7 +446,7 @@ public class AudioContext {
 		r.addInput(out);
 		out.addDependent(r);
 		r.start();
-		r.setEndListener(new AudioContextStopTrigger(this));
+		r.setKillListener(new AudioContextStopTrigger(this));
 		while(isRunning()) {}
 		s.write(filename);
 	}

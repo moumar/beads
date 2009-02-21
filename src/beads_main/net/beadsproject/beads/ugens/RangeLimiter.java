@@ -6,19 +6,18 @@ package net.beadsproject.beads.ugens;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class RangeLimiter.
+ * RangeLimiter forces a signal within the range [-1,1].
  */
 public class RangeLimiter extends UGen {
 
 	/**
-	 * Instantiates a new range limiter.
+	 * Instantiates a new RangeLimiter.
 	 * 
 	 * @param context
-	 *            the context
+	 *            the AudioContext.
 	 * @param inouts
-	 *            the inouts
+	 *            the number of inputs (= number of outputs).
 	 */
 	public RangeLimiter(AudioContext context, int inouts) {
 		super(context, inouts, inouts);
@@ -35,7 +34,6 @@ public class RangeLimiter extends UGen {
 				if(bufOut[j][i] > 1.0f) bufOut[j][i] = 1.0f;
 				else if(bufOut[j][i] < -1.0f) bufOut[j][i] = -1.0f;
 			}
-			//System.out.println(bufOut[0][i]);
 		}
 	}
 

@@ -3,104 +3,69 @@
  */
 package net.beadsproject.beads.ugens;
 
-import java.io.IOException;
-import javax.sound.sampled.UnsupportedAudioFileException;
 import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Sample;
-import net.beadsproject.beads.events.AudioContextStopTrigger;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class Recorder.
+ * Recorder records audio into a {@link Sample}. If a Recorder is not in loop mode it kills itself when it reaches the end of the {@link Sample}.
  */
 public class Recorder extends UGen {
 
-    /** The sample. */
+    /** The Sample to record into. */
     private Sample sample;
     
-    /** The position. */
-    private int position;
+    /** The position in samples. */
+    private long position;
     
-    /** The loop record. */
+    /** Flag to determine if looping is on. */
     private boolean loopRecord;
     
-    /** The end listener. */
-    private Bead endListener;
-    
     /**
-	 * Instantiates a new recorder.
+	 * Instantiates a new Recorder.
 	 * 
-	 * @param player
-	 *            the player
+	 * @param context
+	 *            the AudioContext.
 	 * @param sample
-	 *            the sample
+	 *            the Sample.
 	 */
-    public Recorder(AudioContext player, Sample sample) {
-        super(player, sample.nChannels, 0);
+    public Recorder(AudioContext context, Sample sample) {
+        super(context, sample.nChannels, 0);
         this.sample = sample;
         setLoopRecord(false);
     }
-    
-	/**
-	 * Gets the end listener.
-	 * 
-	 * @return the end listener
-	 */
-	public Bead getEndListener() {
-		return endListener;
-	}
 
 	/**
-	 * Sets the end listener.
+	 * Gets the Sample.
 	 * 
-	 * @param endListener
-	 *            the new end listener
-	 */
-	public void setEndListener(Bead endListener) {
-		this.endListener = endListener;
-	}
-
-	/**
-	 * Gets the sample.
-	 * 
-	 * @return the sample
+	 * @return the Sample.
 	 */
 	public Sample getSample() {
         return sample;
     }
 
     /**
-	 * Sets the sample.
+	 * Sets the Sample.
 	 * 
 	 * @param sample
-	 *            the new sample
+	 *            the new Sample.
 	 */
     public void setSample(Sample sample) {
         this.sample = sample;
     }
     
     /**
-	 * Reset.
+	 * Resets the Recorder to record into the beginning of the Sample.
 	 */
     public void reset() {
         position = 0;
     }
     
-    /* (non-Javadoc)
-     * @see com.olliebown.beads.core.UGen#stop()
-     */
-    public void kill() {
-    	super.kill();
-    	if(endListener != null) endListener.message(this);
-    }
-    
     /**
-	 * Sets the position.
+	 * Sets the position to record to in milliseconds.
 	 * 
 	 * @param position
-	 *            the new position
+	 *            the new position in milliseconds.
 	 */
     public void setPosition(double position) {
         position = sample.msToSamples(position);
@@ -113,7 +78,7 @@ public class Recorder extends UGen {
     public void calculateBuffer() {
         for(int i = 0; i < bufferSize; i++) {
             for(int j = 0; j < ins; j++) {
-                sample.buf[j][position] = bufIn[j][i];
+                sample.buf[j][(int)position] = bufIn[j][i];
             }
             position++;
             if(position >= sample.buf[0].length) {
@@ -136,19 +101,18 @@ public class Recorder extends UGen {
     }
 
 	/**
-	 * Checks if is loop record.
+	 * Checks if loop record mode is enabled.
 	 * 
-	 * @return true, if is loop record
+	 * @return true if loop record mode is enabled.
 	 */
 	public boolean isLoopRecord() {
 		return loopRecord;
 	}
 
 	/**
-	 * Sets the loop record.
+	 * Starts/stops loop record mode.
 	 * 
-	 * @param loopRecord
-	 *            the new loop record
+	 * @param loopRecord true to enable loop record mode.
 	 */
 	public void setLoopRecord(boolean loopRecord) {
 		this.loopRecord = loopRecord;

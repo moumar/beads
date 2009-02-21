@@ -9,50 +9,57 @@ import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.SampleManager;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class SamplePlayer.
+ * SamplePlayer plays back a {@link Sample}. Playback rate and loop points can be controlled by {@link UGen}s. The playback point in the {@link Sample} can also be directly controlled from {@link UGen} to perform scrubbing. The player can be set to a number of different loop modes. If constructed with a {@link Sample} argument, the number of outputs of SamplePlayer is determined by the number of channels of the {@link Sample}. {@link Sample} playback can use either linear or cubic interpolation.
+ *
+ * @author ollie
  */
 public class SamplePlayer extends UGen {
 
     /**
-	 * The Enum InterpolationType.
-	 */
+     * The Enum InterpolationType.
+     */
     public static enum InterpolationType {
         
-        /** The LINEAR. */
+        /** Use linear interpolation. */
         LINEAR, 
- /** The CUBIC. */
- CUBIC
+ 
+        /** Use cubic interpolation. */
+        CUBIC
     };
        
     /**
-	 * The Enum LoopType.
-	 */
+     * The Enum LoopType.
+     */
     public static enum LoopType {
         
-        /** The N o_ loo p_ forwards. */
+        /** Play forwards without looping. */
         NO_LOOP_FORWARDS, 
- /** The N o_ loo p_ backwards. */
- NO_LOOP_BACKWARDS, 
- /** The LOO p_ forwards. */
- LOOP_FORWARDS, 
- /** The LOO p_ backwards. */
- LOOP_BACKWARDS, 
- /** The LOO p_ alternating. */
- LOOP_ALTERNATING
+ 
+        /** Play backwards without looping. */
+        NO_LOOP_BACKWARDS, 
+ 
+        /** Play forwards with loop. */
+        LOOP_FORWARDS, 
+ 
+        /** Play backwards with loop. */
+        LOOP_BACKWARDS, 
+ 
+        /** Loop alternately forwards and backwards. */
+        LOOP_ALTERNATING
+       
     };
     
-    /** The buffer. */
-    protected Sample buffer = null;            
+    /** The Sample. */
+    protected Sample buffer;            
     
-    /** The sample rate. */
+    /** The sample rate, determined by the Sample. */
     protected float sampleRate;                 
     
-    /** The position. */
+    /** The position in milliseconds. */
     protected double position;                    
     
-    /** The last changed position. */
+    /** The last changed position, used to determine if the position envelope is in use. */
     protected double lastChangedPosition;
     
     /** The position envelope. */
@@ -61,11 +68,11 @@ public class SamplePlayer extends UGen {
     /** The rate envelope. */
     protected UGen rateEnvelope;               
     
-    /** The position increment. */
+    /** The millisecond position increment per sample. Calculated from the ratio of the {@link AudioContext}'s sample rate and the {@link Sample}'s sample rate. */
     protected double positionIncrement;           
     
-    /** The forwards. */
-    protected boolean forwards;                    //are we going forwards? (if not we're going backwards)
+    /** Flag for alternating loop mode to determine if playback is in forward or reverse phase. */
+    protected boolean forwards;
     
     /** The interpolation type. */
     protected InterpolationType interpolationType;
@@ -79,20 +86,30 @@ public class SamplePlayer extends UGen {
     /** The loop type. */
     protected LoopType loopType;
     
-    /** The loop cross fade. */
+    /** The loop cross fade in milliseconds. */
     protected float loopCrossFade;                 			//TODO loop crossfade behaviour
     
-    /** The start loop. */
-    protected boolean startLoop;							//TODO behaviour such that you're outside the loop points you immediately pop inside them
+    /** Flag to determine whether playback starts at the beginning of the sample or at the beginning of the loop. */
+    protected boolean startLoop;							//TODO behaviour such that if you're outside the loop points you immediately pop inside them.
 
-    protected boolean killOnLoopEnd;
+    /** Flag to determine whether the SamplePlayer should kill itself when it gets to the end of the Sample. */
+    protected boolean killOnEnd;
+    
+    /** The rate. Calculated and used internally from the rate envelope. */
+    protected float rate;
+    
+    /** The loop start. Calculated and used internally from the loop start envelope. */
+    protected float loopStart;
+    
+    /** The loop end. Calculated and used internally from the loop end envelope. */
+    protected float loopEnd;
     
     /**
-	 * Instantiates a new sample player.
-	 * 
-	 * @param context
-	 *            the context
-	 */
+     * Instantiates a new SamplePlayer with given number of outputs.
+     * 
+     * @param context the AudioContext.
+     * @param outs the number of outputs.
+     */
     protected SamplePlayer(AudioContext context, int outs) {
         super(context, outs);
         rateEnvelope = new Static(context, 1.0f);
@@ -100,17 +117,15 @@ public class SamplePlayer extends UGen {
         interpolationType = InterpolationType.LINEAR;
         loopType = LoopType.NO_LOOP_FORWARDS;
         forwards = true;
-        killOnLoopEnd = true;
+        killOnEnd = true;
     }
 
     /**
-	 * Instantiates a new sample player.
-	 * 
-	 * @param context
-	 *            the context
-	 * @param buffer
-	 *            the buffer
-	 */
+     * Instantiates a new SamplePlayer with given Sample. Number of outputs is determined by number of channels in Sample.
+     * 
+     * @param context the AudioContext.
+     * @param buffer the Sample.
+     */
     public SamplePlayer(AudioContext context, Sample buffer) {
         this(context, buffer.nChannels);
         setBuffer(buffer);
@@ -119,78 +134,97 @@ public class SamplePlayer extends UGen {
     }
 
     /**
-	 * Sets the buffer.
-	 * 
-	 * @param buffer
-	 *            the new buffer
-	 */
+     * Sets the Sample.
+     * 
+     * @param buffer the new Sample.
+     */
     protected void setBuffer(Sample buffer) {
         this.buffer = buffer;
         sampleRate = buffer.audioFormat.getSampleRate();
-        updatePosInc();
+        updatePositionIncrement();
     }
     
     /**
-	 * Gets the buffer.
-	 * 
-	 * @return the buffer
-	 */
+     * Gets the Sample.
+     * 
+     * @return the Sample.
+     */
     public Sample getBuffer() {
     	return buffer;
     }
 
     /**
-	 * Sets the to end.
-	 */
+     * Sets the playback position to the end of the Sample.
+     */
     public void setToEnd() {
-        position = buffer.nFrames;
+        position = buffer.length;
     }
     
     /**
-	 * Start.
-	 * 
-	 * @param msPosition
-	 *            the ms position
-	 */
+     * Determines whether the playback position is within the loop points.
+     * 
+     * @return true if the playback position is within the loop points.
+     */
+    public boolean inLoop() {
+    	return position < Math.max(loopStart, loopEnd) && position > Math.min(loopStart, loopEnd);
+    }
+    
+    /**
+     * Sets the playback position to the loop start point.
+     */
+    public void setToLoopStart() {
+    	position = Math.min(loopStart, loopEnd);
+    	forwards = (rate > 0);
+    }
+    
+    /**
+     * Starts the sample at the given position.
+     * 
+     * @param msPosition the position in milliseconds.
+     */
     public void start(float msPosition) {
         position = msPosition;
         start();
     }
     
     /**
-	 * Reset.
-	 */
+     * Resets the position to the start of the Sample.
+     */
     public void reset() {
         position = 0f;
     }
     
     /**
-	 * Gets the position.
-	 * 
-	 * @return the position
-	 */
+     * Gets the playback position.
+     * 
+     * @return the position in milliseconds.
+     */
     public double getPosition() {
-    	return context.samplesToMs((float)position);
+    	return position;
     }
     
+    /**
+     * Sets the playback position.
+     * 
+     * @param position the new position in milliseconds.
+     */
     public void setPosition(double position) {
-    	this.position = context.msToSamples(position);
+    	this.position = position;
     }
     
 	/**
-	 * Gets the position envelope.
+	 * Gets the position envelope. 
 	 * 
-	 * @return the position envelope
+	 * @return the position envelope.
 	 */
 	public UGen getPositionEnvelope() {
 		return positionEnvelope;
 	}
 
 	/**
-	 * Sets the position envelope.
+	 * Sets the position envelope. Setting the position envelope means that the position is then controlled by this envelope. If the envelope is null, or unchanging, the position continues to be modified by the SamplePlayer's internal playback or by calls to change the position.
 	 * 
-	 * @param positionEnvelope
-	 *            the new position envelope
+	 * @param positionEnvelope the new position envelope.
 	 */
 	public void setPositionEnvelope(UGen positionEnvelope) {
 		this.positionEnvelope = positionEnvelope;
@@ -199,137 +233,125 @@ public class SamplePlayer extends UGen {
 	/**
 	 * Gets the rate envelope.
 	 * 
-	 * @return the rate envelope
+	 * @return the rate envelope.
 	 */
 	public UGen getRateEnvelope() {
         return rateEnvelope;
     }
 
     /**
-	 * Sets the rate envelope.
-	 * 
-	 * @param rateEnvelope
-	 *            the new rate envelope
-	 */
+     * Sets the rate envelope.
+     * 
+     * @param rateEnvelope the new rate envelope.
+     */
     public void setRateEnvelope(UGen rateEnvelope) {
         this.rateEnvelope = rateEnvelope;
     }
 
     /**
-	 * Update pos inc.
-	 */
-    private void updatePosInc() {
+     * Updates the position increment. Called whenever the {@link Sample}'s sample rate or the {@link AudioContext}'s sample rate is modified.
+     */
+    private void updatePositionIncrement() {
         positionIncrement = context.samplesToMs(sampleRate / context.getSampleRate());
     }
 
     /**
-	 * Gets the interpolation type.
-	 * 
-	 * @return the interpolation type
-	 */
+     * Gets the interpolation type.
+     * 
+     * @return the interpolation type.
+     */
     public InterpolationType getInterpolationType() {
         return interpolationType;
     }
 
     /**
-	 * Sets the interpolation type.
-	 * 
-	 * @param interpolationType
-	 *            the new interpolation type
-	 */
+     * Sets the interpolation type.
+     * 
+     * @param interpolationType the new interpolation type.
+     */
     public void setInterpolationType(InterpolationType interpolationType) {
         this.interpolationType = interpolationType;
     }
 
     /**
-	 * Gets the loop cross fade.
-	 * 
-	 * @return the loop cross fade
-	 */
+     * Gets the loop cross fade.
+     * 
+     * @return the loop cross fade in milliseconds.
+     */
     public float getLoopCrossFade() {
-        return (float)buffer.samplesToMs(loopCrossFade);
+        return loopCrossFade;
     }
 
     /**
-	 * Sets the loop cross fade.
-	 * 
-	 * @param loopCrossFade
-	 *            the new loop cross fade
-	 */
+     * Sets the loop cross fade.
+     * 
+     * @param loopCrossFade the new loop cross fade in milliseconds.
+     */
     public void setLoopCrossFade(float loopCrossFade) {
-        this.loopCrossFade = (float)buffer.msToSamples(loopCrossFade);
+        this.loopCrossFade = loopCrossFade;
     }
 
     /**
-	 * Gets the loop end envelope.
-	 * 
-	 * @return the loop end envelope
-	 */
+     * Gets the loop end envelope.
+     * 
+     * @return the loop end envelope.
+     */
     public UGen getLoopEndEnvelope() {
-        //return buffer.samplesToMs(loopEnd);
     	return loopEndEnvelope;
     }
 
     /**
-	 * Sets the loop end envelope.
-	 * 
-	 * @param loopEndEnvelope
-	 *            the new loop end envelope
-	 */
+     * Sets the loop end envelope.
+     * 
+     * @param loopEndEnvelope the new loop end envelope.
+     */
     public void setLoopEndEnvelope(UGen loopEndEnvelope) {
-        //this.loopEnd = buffer.msToSamples(loopEnd);
     	this.loopEndEnvelope = loopEndEnvelope;
     }
 
     /**
-	 * Gets the loop start envelope.
-	 * 
-	 * @return the loop start envelope
-	 */
+     * Gets the loop start envelope.
+     * 
+     * @return the loop start envelope
+     */
     public UGen getLoopStartEnvelope() {
-        //return buffer.samplesToMs(loopStart);
     	return loopStartEnvelope;
     }
 
     /**
-	 * Sets the loop start envelope.
-	 * 
-	 * @param loopStartEnvelope
-	 *            the new loop start envelope
-	 */
+     * Sets the loop start envelope.
+     * 
+     * @param loopStartEnvelope the new loop start envelope.
+     */
     public void setLoopStartEnvelope(UGen loopStartEnvelope) {
-        //this.loopStart = buffer.msToSamples(loopStart);
     	this.loopStartEnvelope = loopStartEnvelope;
     }
     
     /**
-	 * Sets the loop points fraction.
-	 * 
-	 * @param start
-	 *            the start
-	 * @param end
-	 *            the end
-	 */
+     * Sets both loop points to static values as fractions of the Sample length.
+     * 
+     * @param start the start value, as fraction of the Sample length.
+     * @param end the end value, as fraction of the Sample length.
+     */
     public void setLoopPointsFraction(float start, float end) {
         loopStartEnvelope = new Static(context, start * (float)buffer.length);
         loopEndEnvelope = new Static(context, end * (float)buffer.length);
     }
 
     /**
-	 * Gets the loop type.
-	 * 
-	 * @return the loop type
-	 */
+     * Gets the loop type.
+     * 
+     * @return the loop type.
+     */
     public LoopType getLoopType() {
         return loopType;
     }
 
     /**
-	 * Sets the loop type.
-	 * 
-	 * @param loopType
-	 *            the new loop type
-	 */
+     * Sets the loop type.
+     * 
+     * @param loopType the new loop type.
+     */
     public void setLoopType(LoopType loopType) {
         this.loopType = loopType;
         if(loopType != LoopType.LOOP_ALTERNATING) {
@@ -342,10 +364,10 @@ public class SamplePlayer extends UGen {
     }
 
     /**
-	 * Gets the sample rate.
-	 * 
-	 * @return the sample rate
-	 */
+     * Gets the sample rate.
+     * 
+     * @return the sample rate, in samples per second.
+     */
     public float getSampleRate() {
         return sampleRate;
     }
@@ -355,14 +377,12 @@ public class SamplePlayer extends UGen {
      */
     @Override
     public void calculateBuffer() {
-//    	System.out.println("samplePos " + position + " rate " + positionIncrement * rateEnvelope.getValue(0, 0) + " buf " + bufferSize);
     	rateEnvelope.update();
     	positionEnvelope.update();
     	loopStartEnvelope.update();
     	loopEndEnvelope.update();
         for (int i = 0; i < bufferSize; i++) {
             //calculate the samples
-//        	double posInSamples = context.msToSamples((float)position);
         	double posInSamples = buffer.msToSamples((float)position);
             int currentSample = (int) posInSamples;
             float fractionOffset = (float)(posInSamples - currentSample);
@@ -393,25 +413,29 @@ public class SamplePlayer extends UGen {
         }
     }
     
-    /** The rate. */
-    protected float rate;
-    
-    /** The loop start. */
-    protected float loopStart;
-    
-    /** The loop end. */
-    protected float loopEnd;
-    
-    public void setKillOnLoopEnd(boolean killOnLoopEnd) {
-    	this.killOnLoopEnd = killOnLoopEnd;
+    /**
+     * Sets/unsets option for SamplePlayer to kill itself when it reaches the end of the Sample it is playing.
+     * 
+     * @param killOnEnd true to kill on end.
+     */
+    public void setKillOnEnd(boolean killOnEnd) {
+    	this.killOnEnd = killOnEnd;
     }
 
-    public boolean getKillOnLoopEnd() {
-    	return(killOnLoopEnd);
+    /**
+     * Determines whether this SamplePlayer will kill itself at the end of the Sample it is playing.
+     * 
+     * @return true of SamplePlayer will kill itself at the end of the Sample it is playing.
+     */
+    public boolean getKillOnEnd() {
+    	return(killOnEnd);
     }
     
-    private void atLoopEnd () {
-    	if (killOnLoopEnd) {
+    /**
+     * Called when at the end of the Sample, assuming the loop mode is non-looping, or beginning, if the SamplePlayer is playing backwards..
+     */
+    private void atEnd () {
+    	if (killOnEnd) {
     		kill();
     	}
     	else {
@@ -419,33 +443,35 @@ public class SamplePlayer extends UGen {
     	}
     }
     
+    /**
+     * Re trigger the SamplePlayer from the beginning.
+     */
     public void reTrigger() {
     	reset();
     	this.pause(false);
     }
     
     /**
-	 * Calculate next position.
-	 * 
-	 * @param i
-	 *            the i
-	 */
-    public void calculateNextPosition(int i) {
+     * Used at each sample in the perform routine to determine the next playback position.
+     * 
+     * @param i the index within the buffer loop.
+     */
+    protected void calculateNextPosition(int i) {
     	rate = rateEnvelope.getValue(0, i);
     	loopStart = loopStartEnvelope.getValue(0, i);
     	loopEnd = loopEndEnvelope.getValue(0, i);
     	if(lastChangedPosition != positionEnvelope.getValue(0, i)) {
     		position = positionEnvelope.getValue(0, i);
-    		lastChangedPosition = (float)position;
+    		lastChangedPosition = position;
     	}
         switch(loopType) {
             case NO_LOOP_FORWARDS:
                 position += positionIncrement * rate;
-                if(position > buffer.length || position < 0) atLoopEnd();
+                if(position > buffer.length || position < 0) atEnd();
                 break;
             case NO_LOOP_BACKWARDS:
                 position -= positionIncrement * rate;
-                if(position > buffer.length || position < 0) atLoopEnd();
+                if(position > buffer.length || position < 0) atEnd();
                 break;
             case LOOP_FORWARDS:
                 position += positionIncrement * rate;
@@ -477,14 +503,6 @@ public class SamplePlayer extends UGen {
                 break;
         }
     }
-    
-    public boolean inLoop() {
-    	return position < Math.max(loopStart, loopEnd) && position > Math.min(loopStart, loopEnd);
-    }
-    
-    public void snapToLoopStart() {
-    	position = Math.min(loopStart, loopEnd);
-    	forwards = (rate > 0);
-    }
+
     
 }

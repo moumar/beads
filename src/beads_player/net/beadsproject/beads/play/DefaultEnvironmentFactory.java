@@ -4,7 +4,6 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.BeadArray;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.Gain;
-import net.beadsproject.beads.ugens.MouseResponder;
 import net.beadsproject.beads.ugens.RTInput;
 
 public class DefaultEnvironmentFactory extends EnvironmentFactory {
@@ -21,10 +20,6 @@ public class DefaultEnvironmentFactory extends EnvironmentFactory {
 		e.pathways.put(c.getName(), clockListener);
 		//and also as an object
 		e.elements.put(c.getName(), c);
-		//set up mouse as object in environment
-		MouseResponder mouse = new MouseResponder(e.ac);
-		e.ac.out.addDependent(mouse);
-		e.elements.put("mouse", mouse);
 		//set up audio input as object in environment
 		RTInput in = new RTInput(e.ac, e.ac.getAudioFormat());
 		e.elements.put("in", in);

@@ -9,10 +9,10 @@ import net.beadsproject.beads.core.BeadArray;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.events.IntegerBead;
 
-
-// TODO: Auto-generated Javadoc
 /**
- * A sample rate Clock. Clock generates timing data at two levels: ticks and beats. Clock notifies a {@link BeadArray} of listeners at each tick. These listeners can query the Clock to find out if it is on a beat, and other timing information. The rate of ticking of the Clock is controlled by an interval envelope.
+ * A sample rate Clock. A Clock generates timing data at two levels: ticks and beats. It notifies an {@link BeadArray} of listeners at each tick. These listeners can query the Clock to find out the current tick count, if it is on a beat, and the current beat count. The rate of ticking of the Clock is controlled by an interval envelope.
+ *
+ * @author ollie
  */
 public class Clock extends UGen implements IntegerBead {
 
@@ -31,26 +31,26 @@ public class Clock extends UGen implements IntegerBead {
     /** The listeners. */
     private BeadArray listeners;
     
-    /** The click. */
+    /** Boolean to determine whether this clock makes an audible click on beats. */
     private boolean click;
     
-    /** The click strength. */
+    /** The strength (gain) of the audible click. */
     private float clickStrength;
     
     /**
-     * Instantiates a new clock.
+     * Instantiates a new Clock with a static interval of 1000ms.
      * 
-     * @param context the context
+     * @param context the AudioContext.
      */
     public Clock(AudioContext context) {
         this(context, 1000.0f);
     }
     
     /**
-     * Instantiates a new clock.
+     * Instantiates a new Clock with the given static interval in milliseconds.
      * 
-     * @param context the context
-     * @param interval the interval
+     * @param context the AudioContext.
+     * @param interval the interval in milliseconds.
      */
     public Clock(AudioContext context, float interval) {
         this(context, new Static(context, interval));
@@ -58,93 +58,78 @@ public class Clock extends UGen implements IntegerBead {
     }
     
     /**
-     * Instantiates a new clock.
+     * Instantiates a new Clock with the given interval enveliope.
      * 
-     * @param context the context
-     * @param env the env
+     * @param context the AudioContext.
+     * @param env the interval envelope.
      */
     public Clock(AudioContext context, UGen env) {
         super(context, 0, 0);
         intervalEnvelope = env;
         listeners = new BeadArray();
-        resetImmediately();
+        reset();
         ticksPerBeat = 16;
         clickStrength = 0.1f;
     }
     
 	/**
-	 * Checks if is clicking.
+	 * Checks if the Clock is set to make an audible click.
 	 * 
-	 * @return true, if is clicking
+	 * @return true if clicking.
 	 */
 	public boolean isClicking() {
 		return click;
 	}
 	
 	/**
-	 * Sets the click.
+	 * Starts/stops the audible click.
 	 * 
-	 * @param click the new click
+	 * @param click true for audible click.
 	 */
 	public void setClick(boolean click) {
 		this.click = click;
 	}
 
 	/**
-	 * Adds the message listener.
+	 * Adds a new message listener.
 	 * 
-	 * @param newListener the new listener
+	 * @param newListener the new message listener.
 	 */
 	public void addMessageListener(Bead newListener) {
         listeners.add(newListener);
     }
     
     /**
-     * Removes the message listener.
+     * Removes the given message listener.
      * 
-     * @param newListener the new listener
+     * @param newListener the listener being removed.
      */
     public void removeMessageListener(Bead newListener) {
         listeners.remove(newListener);
     }
     
     /**
-     * Pause.
+     * Resets the Clock immediately.
      */
-    public void pause() {
-    }
-    
-    /**
-     * Reset immediately.
-     */
-    public void resetImmediately() {
+    public void reset() {
         point = 0.0f;
         count = 0;
         tick();
     }
-    
-    /**
-     * Reset on next clock.
-     * 
-     * @param i the i
-     */
-    public void resetOnNextClock(int i) {
-        count = i - 1;
-    }
 
     /**
-     * Gets the count.
+     * Gets the tick count.
      * 
-     * @return the count
+     * @return the tick count.
      */
     public int getCount() {
         return count;
     }
 
     /**
-     * Sets the count.
+     * Sets the tick count.
      * 
-     * @param count the new count
+     * @param count the new tick count.
      */
     public void setCount(int count) {
         this.count = count;
@@ -153,7 +138,7 @@ public class Clock extends UGen implements IntegerBead {
     /**
      * Sets the interval envelope.
      * 
-     * @param intervalEnvelope the new interval envelope
+     * @param intervalEnvelope the new interval envelope.
      */
     public void setIntervalEnvelope(UGen intervalEnvelope) {
         this.intervalEnvelope = intervalEnvelope;
@@ -162,7 +147,7 @@ public class Clock extends UGen implements IntegerBead {
     /**
      * Gets the interval envelope.
      * 
-     * @return the interval envelope
+     * @return the interval envelope.
      */
     public UGen getIntervalEnvelope() {
     	return intervalEnvelope;    	
@@ -186,7 +171,7 @@ public class Clock extends UGen implements IntegerBead {
     }
     
     /**
-     * Tick.
+     * Trigger a tick.
      */
     private void tick() {
     	if(click && isBeat()) context.out.addInput(new Clicker(context, clickStrength));
@@ -203,7 +188,7 @@ public class Clock extends UGen implements IntegerBead {
 	/**
 	 * Gets the ticks per beat.
 	 * 
-	 * @return the ticks per beat
+	 * @return the ticks per beat.
 	 */
 	public int getTicksPerBeat() {
 		return ticksPerBeat;
@@ -212,36 +197,36 @@ public class Clock extends UGen implements IntegerBead {
 	/**
 	 * Sets the ticks per beat.
 	 * 
-	 * @param ticksPerBeat the new ticks per beat
+	 * @param ticksPerBeat the new ticks per beat.
 	 */
 	public void setTicksPerBeat(int ticksPerBeat) {
 		this.ticksPerBeat = Math.max(1, ticksPerBeat);
 	}
 	
 	/**
-	 * Checks if is beat.
+	 * Checks if the current tick is on a beat.
 	 * 
-	 * @return true, if is beat
+	 * @return true if the current tick is a beat.
 	 */
 	public boolean isBeat() {
 		return count % ticksPerBeat == 0;
 	}
 	
 	/**
-	 * Checks if is beat.
+	 * Checks if the Clock is on a beat at the given modulo level. 
 	 * 
-	 * @param mod the mod
+	 * @param mod the modulo.
 	 * 
-	 * @return true, if is beat
+	 * @return true if the clock is on a beat, and the current beat count is a multiple of mod.
 	 */
 	public boolean isBeat(int mod) {
 		return isBeat() && getBeatCount() % mod == 0;
 	}
 	
 	/**
-	 * Gets the beat count.
+	 * Gets the current beat count.
 	 * 
-	 * @return the beat count
+	 * @return the current beat count.
 	 */
 	public int getBeatCount() {
 		return count / ticksPerBeat;

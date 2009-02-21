@@ -6,22 +6,22 @@ package net.beadsproject.beads.ugens;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
-
-// TODO: Auto-generated Javadoc
 /**
- * The Class Mult.
+ * Mult multiplies two {@link UGen}s together.
+ * 
+ * @author ollie
  */
 public class Mult extends UGen {
 
 	/**
-	 * Instantiates a new mult.
+	 * Instantiates a new Mult with the two {@link UGen}s whose signals will be multiplied.
 	 * 
 	 * @param context
-	 *            the context
+	 *            the AudioContext.
 	 * @param a
-	 *            the a
+	 *            one UGen.
 	 * @param b
-	 *            the b
+	 *            another UGen.
 	 */
 	public Mult(AudioContext context, UGen a, UGen b) {
 		super(context, 2, 1);

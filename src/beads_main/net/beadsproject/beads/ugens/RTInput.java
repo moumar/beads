@@ -3,26 +3,17 @@
  */
 package net.beadsproject.beads.ugens;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
-import javax.sound.sampled.Line;
 import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.Mixer;
-import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
-import net.beadsproject.beads.analysis.segmenters.SimplePowerOnsetDetector;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.AudioUtils;
 import net.beadsproject.beads.core.UGen;
-import net.beadsproject.beads.data.SampleManager;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class RTInput.
+ * RTInput gathers audio from an audio input device.
  */
 public class RTInput extends UGen {
 
@@ -32,25 +23,27 @@ public class RTInput extends UGen {
 	/** The target data line. */
 	private TargetDataLine targetDataLine;
 	
+	/** Flag to tell whether JavaSound has been initialised. */
 	private boolean javaSoundInitialized;
 
 	/**
-	 * Instantiates a new rT input.
+	 * Instantiates a new RTInput.
 	 * 
 	 * @param context
-	 *            the context
+	 *            the AudioContext.
 	 */
 	public RTInput(AudioContext context) {
+		//TODO grab the correct AudioFormat info from context.
 		this(context, new AudioFormat(44100, 16, 1, true, true));
 	}
 
 	/**
-	 * Instantiates a new rT input.
+	 * Instantiates a new RTInput.
 	 * 
 	 * @param context
-	 *            the context
+	 *            the AudioContext.
 	 * @param audioFormat
-	 *            the audio format
+	 *            the AudioFormat.
 	 */
 	public RTInput(AudioContext context, AudioFormat audioFormat) {
 		super(context, audioFormat.getChannels());
@@ -59,7 +52,7 @@ public class RTInput extends UGen {
 	}
 	
 	/**
-	 * Setup.
+	 * Set up JavaSound. Requires that JavaSound has been set up in AudioContext.
 	 */
 	public void initJavaSound() {
 		DataLine.Info info = new DataLine.Info(TargetDataLine.class, audioFormat);

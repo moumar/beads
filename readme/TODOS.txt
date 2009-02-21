@@ -1,0 +1,15 @@
+TODOS
+
+...Additional features...
+More Filters.
+More Windows / Waves.
+SampleManager functionality.
+More FeatureExtractors / Segmenters.
+Feature data functionality.
+OscillatorBank functionality.
+MP3 files.
+Pan algorithms.
+
+...Big changes...
+Convert floats to doubles.
+Rename Envelopes and make public.

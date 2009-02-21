@@ -6,26 +6,26 @@ package net.beadsproject.beads.ugens;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
-
-// TODO: Auto-generated Javadoc
 /**
- * The Class Static.
+ * Static represents a {@link UGen} with a fixed value. Since the value is fixed, Static doesn't actually calculate anything, and overrides the methods {@link #getValue()} and {@link #getValue(int, int)} to return its fixed value.
+ *
+ * @author ollie
  */
 public class Static extends UGen {
 
-	/** The x. */
+	/** The stored value. */
 	public float x;
 	
 	/**
-	 * Instantiates a new static.
+	 * Instantiates a new Static with the given value.
 	 * 
-	 * @param ac
-	 *            the ac
+	 * @param context
+	 *            the AudioContext.
 	 * @param x
-	 *            the x
+	 *            the value.
 	 */
-	public Static(AudioContext ac, float x) {
-		super(ac, 0, 1);
+	public Static(AudioContext context, float x) {
+		super(context, 0, 1);
 		this.x = x;
 		pause(true); //might as well be muted
 	}

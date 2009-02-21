@@ -10,13 +10,16 @@ import net.beadsproject.beads.core.AudioUtils;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.UGen;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class Envelope.
+ * An Envelope generates a sequence of timed transitions (segments) between values as an audio signal. New segments are added to a running Envelope using variations of the method {@link #addSegment()}. With the method {@link #addSegment(float, float, float, Bead)} a {@link Bead} can be provided which gets triggered when the segment has reached its destination. 
+ * At any point in time, the Envelope maintains a current value. New segments define transitions from that current value to a destination value over a given duration. Instead of a linear transition, a curved transition can be used. The curve is defined as the mapping of the range [0,1] from y=x to y=x^p with a given exponent p.    
+ *
+ * @author ollie
  */
 public class Envelope extends UGen {
 
-    /** The segments. */
+    /** The queue of segments. */
+	//TODO this should be a queue!
     private ArrayList<Segment> segments;
     
     /** The current start value. */
@@ -25,30 +28,31 @@ public class Envelope extends UGen {
     /** The current value. */
     private float currentValue;
     
-    /** The current time. */
+    /** The current time in samples. */
     private int currentTime;
     
     /** The current segment. */
     private Segment currentSegment;
     
-    /** The lock. */
+    /** Flag used to block the Envelope from further changes. */
     private boolean lock;
     
+    /** Flag used to note whether the Envelope needs to move to a new segment. */
     private boolean unchanged;
     
     /**
-	 * The Class Segment.
+	 * The nested class Segment. Stores the duration, end value, curvature and trigger for the Segment.
 	 */
     public class Segment {
         
         /** The end value. */
-        float endValue;     //no units
+        float endValue; 
         
-        /** The duration. */
-        int duration;       //samples
+        /** The duration in samples. */
+        long duration; 
         
         /** The curvature. */
-        float curvature;    //no units, defines a power
+        float curvature;  
         
         /** The trigger. */
         Bead trigger;
@@ -75,10 +79,10 @@ public class Envelope extends UGen {
     }
     
     /**
-	 * Instantiates a new envelope.
+	 * Instantiates a new Envelope with start value 0.
 	 * 
 	 * @param context
-	 *            the context
+	 *            the AudioContext.
 	 */
     public Envelope(AudioContext context) {
         super(context, 0, 1);
@@ -91,12 +95,12 @@ public class Envelope extends UGen {
     }
     
     /**
-	 * Instantiates a new envelope.
+	 * Instantiates a new Envelope with the specified start value.
 	 * 
 	 * @param context
-	 *            the context
+	 *            the AudioContext.
 	 * @param value
-	 *            the value
+	 *            the start value.
 	 */
     public Envelope(AudioContext context, float value) {
     	this(context);
@@ -104,27 +108,32 @@ public class Envelope extends UGen {
     }
     
     /**
-	 * Lock.
+	 * Locks/unlocks the Envelope.
 	 */
     public void lock(boolean lock) {
     	this.lock = lock;
     }
     
+    /**
+	 * Checks whether the Envelope is locked.
+	 * 
+	 * @return true if the Envelope is locked.
+	 */
     public boolean isLocked() {
     	return lock;
     }
     
     /**
-	 * Adds the segment.
+	 * Adds a new Segment.
 	 * 
 	 * @param endValue
-	 *            the end value
+	 *            the destination value.
 	 * @param duration
-	 *            the duration
+	 *            the duration.
 	 * @param curvature
-	 *            the curvature
+	 *            the exponent of the curve.
 	 * @param trigger
-	 *            the trigger
+	 *            the trigger.
 	 */
     public synchronized void addSegment(float endValue, float duration, float curvature, Bead trigger) {
         if(!lock) {
@@ -136,32 +145,33 @@ public class Envelope extends UGen {
     }
     
     /**
-	 * Adds the segment.
+	 * Adds a new Segment.
 	 * 
 	 * @param endValue
-	 *            the end value
+	 *            the destination value.
 	 * @param duration
-	 *            the duration
+	 *            the duration.
 	 */
     public void addSegment(float endValue, float duration) {
     	addSegment(endValue, duration, 1.0f, null);        
     }
     
     /**
-	 * Adds the segment.
+	 * Adds a new Segment.
 	 * 
 	 * @param endValue
-	 *            the end value
+	 *            the destination value.
 	 * @param duration
-	 *            the duration
+	 *            the duration.
 	 * @param trigger
-	 *            the trigger
+	 *            the trigger.
 	 */
     public void addSegment(float endValue, float duration, Bead trigger) {
     	addSegment(endValue, duration, 1.0f, trigger);        
     }
     
-    /* (non-Javadoc)
+    /**
+	 * Clears the list of Segments and sets the current value of the Envelope immediately.
      * @see com.olliebown.beads.core.UGen#setValue(float)
      */
     public void setValue(float value) {
@@ -172,22 +182,19 @@ public class Envelope extends UGen {
     }
     
     /**
-	 * Clear.
+	 * Clears the list of Segments.
 	 */
     public synchronized void clear() {
     	if(!lock) {
     		segments = new ArrayList<Segment>();
         	currentSegment = null;
     	} 
-//    	else {
-//    		System.out.println("warning: attempting to clear a locked envelope");
-//    	}
     }
     
     /**
-	 * Gets the next segment.
+	 * Moves the Envelope to the next segment.
 	 * 
-	 * @return the next segment
+	 * @return the next segment.
 	 */
     private synchronized void getNextSegment() {
         if(currentSegment != null) {
@@ -196,7 +203,6 @@ public class Envelope extends UGen {
             segments.remove(currentSegment);
             if(currentSegment.trigger != null) {
             	currentSegment.trigger.message(this);
-            	//System.out.println("envelope:stopTrigger");
             }
         } else {
         	currentStartValue = currentValue;
@@ -212,7 +218,7 @@ public class Envelope extends UGen {
     /**
 	 * Gets the current value.
 	 * 
-	 * @return the current value
+	 * @return the current value.
 	 */
     public float getCurrentValue() {
         return currentValue;

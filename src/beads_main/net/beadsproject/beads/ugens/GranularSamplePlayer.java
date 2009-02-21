@@ -11,9 +11,13 @@ import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.SampleManager;
 import net.beadsproject.beads.data.buffers.HanningWindow;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class GranularSamplePlayer.
+ * GranularSamplePlayer plays back a {@link Sample} using granular synthesis. GranularSamplePlayer inherits its main behaviour from {@link SamplePlayer} but replaces the direct {@link Sample} lookup with a granular process. 
+ * {@link UGen}s can be used to control playback rate, pitch, loop points, grain size, grain interval, grain randomness and position (this last case assumes that the playback rate is zero). 
+ * 
+ * @see SamplePlayer Sample
+ * 
+ * @author ollie
  */
 public class GranularSamplePlayer extends SamplePlayer {
 
@@ -29,57 +33,59 @@ public class GranularSamplePlayer extends SamplePlayer {
     /** The randomness envelope. */
     private UGen randomnessEnvelope;
     
-    /** The time since last grain. */
+    /** The time in milliseconds since the last grain was activated. */
     private float timeSinceLastGrain;
     
-    /** The ms per sample. */
+    /** The length of one sample in milliseconds. */
     private double msPerSample;
     
-    /** The pitch. */
+    /** The pitch, bound to the pitch envelope. */
     protected float pitch;
     
-    /** The grains. */
+    /** The list of current grains. */
     private ArrayList<Grain> grains;
     
-    /** The free grains. */
+    /** A list of free grains. */
     private ArrayList<Grain> freeGrains;
     
-    /** The dead grains. */
+    /** A list of dead grains. */
     private ArrayList<Grain> deadGrains;
     
-    /** The window. */
+    /** The window used by grains. */
     private Buffer window;
     
-    /** The frame. */
+    /** The current frame. */
     private float[] frame;
     
+    /** Flag to determine whether, looping occurs within individual grains. */
     private boolean loopInsideGrains;
 
     /**
-	 * The Class Grain.
+	 * The nested class Grain. Stores information about the start time, current position, age, and grain size of the grain.
 	 */
     private static class Grain {
         
-        /** The free. */
+        /** Flag to indicate whether the grain is free. */
         boolean free;
         
-        /** The start time. */
+        /** The start time in milliseconds. */
         double startTime;
         
-        /** The position. */
+        /** The position in millseconds. */
         double position;
         
-        /** The age. */
+        /** The age of the grain in milliseconds. */
         double age;
         
+        /** The grain size of the grain. Fixed at instantiation. */
         double grainSize;
     }
 
     /**
-	 * Instantiates a new granular sample player.
+	 * Instantiates a new GranularSamplePlayer.
 	 * 
-	 * @param context
-	 *            the context
+	 * @param context the AudioContext.
+	 * @param outs the number of outputs.
 	 */
     private GranularSamplePlayer(AudioContext context, int outs) {
         super(context, outs);
@@ -96,12 +102,10 @@ public class GranularSamplePlayer extends SamplePlayer {
     }
 
     /**
-	 * Instantiates a new granular sample player.
+	 * Instantiates a new GranularSamplePlayer.
 	 * 
-	 * @param context
-	 *            the context
-	 * @param buffer
-	 *            the buffer
+	 * @param context the AudioContext.
+	 * @param buffer the Sample played by the GranularSamplePlayer.
 	 */
     public GranularSamplePlayer(AudioContext context, Sample buffer) {
         this(context, buffer.nChannels);
@@ -113,7 +117,7 @@ public class GranularSamplePlayer extends SamplePlayer {
     /**
 	 * Gets the pitch envelope.
 	 * 
-	 * @return the pitch envelope
+	 * @return the pitch envelope.
 	 */
     public UGen getPitchEnvelope() {
         return pitchEnvelope;
@@ -123,7 +127,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 	 * Sets the pitch envelope.
 	 * 
 	 * @param pitchEnvelope
-	 *            the new pitch envelope
+	 *            the new pitch envelope.
 	 */
     public void setPitchEnvelope(UGen pitchEnvelope) {
         this.pitchEnvelope = pitchEnvelope;
@@ -132,7 +136,7 @@ public class GranularSamplePlayer extends SamplePlayer {
     /**
 	 * Gets the grain interval envelope.
 	 * 
-	 * @return the grain interval envelope
+	 * @return the grain interval envelope.
 	 */
     public UGen getGrainIntervalEnvelope() {
         return grainIntervalEnvelope;
@@ -142,7 +146,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 	 * Sets the grain interval envelope.
 	 * 
 	 * @param grainIntervalEnvelope
-	 *            the new grain interval envelope
+	 *            the new grain interval envelope.
 	 */
     public void setGrainIntervalEnvelope(UGen grainIntervalEnvelope) {
         this.grainIntervalEnvelope = grainIntervalEnvelope;
@@ -151,7 +155,7 @@ public class GranularSamplePlayer extends SamplePlayer {
     /**
 	 * Gets the grain size envelope.
 	 * 
-	 * @return the grain size envelope
+	 * @return the grain size envelope.
 	 */
     public UGen getGrainSizeEnvelope() {
         return grainSizeEnvelope;
@@ -160,8 +164,7 @@ public class GranularSamplePlayer extends SamplePlayer {
     /**
 	 * Sets the grain size envelope.
 	 * 
-	 * @param grainSizeEnvelope
-	 *            the new grain size envelope
+	 * @param grainSizeEnvelope the new grain size envelope.
 	 */
     public void setGrainSizeEnvelope(UGen grainSizeEnvelope) {
         this.grainSizeEnvelope = grainSizeEnvelope;
@@ -170,7 +173,7 @@ public class GranularSamplePlayer extends SamplePlayer {
     /**
 	 * Gets the randomness envelope.
 	 * 
-	 * @return the randomness envelope
+	 * @return the randomness envelope.
 	 */
     public UGen getRandomnessEnvelope() {
 		return randomnessEnvelope;
@@ -179,8 +182,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 	/**
 	 * Sets the randomness envelope.
 	 * 
-	 * @param randomnessEnvelope
-	 *            the new randomness envelope
+	 * @param randomnessEnvelope the new randomness envelope.
 	 */
 	public void setRandomnessEnvelope(UGen randomnessEnvelope) {
 		this.randomnessEnvelope = randomnessEnvelope;
@@ -194,16 +196,9 @@ public class GranularSamplePlayer extends SamplePlayer {
         super.start();
         timeSinceLastGrain = 0;
     }
-	
-	/* (non-Javadoc)
-	 * @see com.olliebown.beads.ugens.SamplePlayer#stop()
-	 */
-	public void kill() {
-		super.kill();
-	}
     
     /**
-	 * Reset grain.
+	 * Sets the given Grain to start immediately.
 	 * 
 	 * @param g
 	 *            the g
@@ -217,8 +212,10 @@ public class GranularSamplePlayer extends SamplePlayer {
         g.grainSize = grainSizeEnvelope.getValue(0, time);
     }   
     
+    /** Flag to indicate special case for the first grain. */
     private boolean firstGrain = true;
     
+    /** Special case method for playing first grain. */
     private void firstGrain() {
     	if(firstGrain) {
 	    	Grain g = new Grain();
@@ -231,7 +228,6 @@ public class GranularSamplePlayer extends SamplePlayer {
     	}
     }
     
-
     /* (non-Javadoc)
      * @see com.olliebown.beads.ugens.SamplePlayer#calculateBuffer()
      */
@@ -274,7 +270,6 @@ public class GranularSamplePlayer extends SamplePlayer {
                 //calculate value of grain window
                 float windowScale = window.getValueFraction((float)(g.age / g.grainSize));
                 //get position in sample for this grain
-//                double samplePosition = context.msToSamples(g.position);
                 double samplePosition = buffer.msToSamples((float)g.position);		//TODO doubles/floats sort out the mess
                 int currentSample = (int)samplePosition;
                 float fractionOffset = (float)(samplePosition - currentSample);
@@ -294,7 +289,6 @@ public class GranularSamplePlayer extends SamplePlayer {
             }
             //increment time and stuff
             calculateNextPosition(i);
-            //for(Grain g : grains) {
             pitch = Math.abs(pitchEnvelope.getValue(0, i));
             for(int gi = 0; gi < grains.size(); gi++) {
                 Grain g = grains.get(gi);
@@ -329,10 +323,9 @@ public class GranularSamplePlayer extends SamplePlayer {
     }
     
     /**
-	 * Calculate next grain position.
+	 * Calculate next position for the given Grain.
 	 * 
-	 * @param g
-	 *            the g
+	 * @param g the Grain.
 	 */
     private void calculateNextGrainPosition(Grain g) {
     	int direction = rate > 0 ? 1 : -1;
@@ -377,6 +370,10 @@ public class GranularSamplePlayer extends SamplePlayer {
     	}
     }
   
+    /**
+     * Calculates the average number of Grains given the current grain size and grain interval.
+     * @return the average number of Grains.
+     */
     public float getAverageNumberOfGrains() {
     	return grainSizeEnvelope.getValue() / grainIntervalEnvelope.getValue();
     }

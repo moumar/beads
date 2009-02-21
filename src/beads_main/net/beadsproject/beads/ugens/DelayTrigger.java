@@ -7,32 +7,33 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.UGen;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class DelayTrigger.
+ * A DelayTrigger waits for a specified duration and then notifies a receiver.
+ *
+ * @author ollie
  */
 public class DelayTrigger extends UGen {
 
-	/** The sample delay. */
+	/** The duration of the delay in samples. */
 	private long sampleDelay;
 	
-	/** The count. */
+	/** The current count in samples. */
 	private long count;
 	
-	/** The receiver. */
+	/** The Bead that responds to is DelayTrigger. */
 	private Bead receiver;
 	
 	/**
-	 * Instantiates a new delay trigger.
+	 * Instantiates a new DelayTrigger with the specified millisecond delay and receiver.
 	 * 
 	 * @param context
-	 *            the context
+	 *            the AudioContext.
 	 * @param delay
-	 *            the delay
+	 *            the delay in milliseconds.
 	 * @param receiver
-	 *            the receiver
+	 *            the receiver.
 	 */
-	public DelayTrigger(AudioContext context, float delay, Bead receiver) {
+	public DelayTrigger(AudioContext context, double delay, Bead receiver) {
 		super(context, 0, 0);
 		sampleDelay = (long)context.msToSamples(delay);
 		reset();
@@ -40,7 +41,7 @@ public class DelayTrigger extends UGen {
 	}
 	
 	/**
-	 * Reset.
+	 * Reset timer to zero.
 	 */
 	public void reset() {
 		count = 0;
@@ -64,45 +65,45 @@ public class DelayTrigger extends UGen {
 	/**
 	 * Gets the sample delay.
 	 * 
-	 * @return the sample delay
+	 * @return the sample delay in milliseconds.
 	 */
 	public double getSampleDelay() {
 		return context.samplesToMs(sampleDelay);
 	}
 
 	/**
-	 * Sets the sample delay.
+	 * Sets the sample delay. This may cause the DelayTrigger to trigger immediately.
 	 * 
 	 * @param sampleDelay
-	 *            the new sample delay
+	 *            the new sample delay in milliseconds.
 	 */
 	public void setSampleDelay(float sampleDelay) {
 		this.sampleDelay = (long)context.msToSamples(sampleDelay);
 	}
 
 	/**
-	 * Gets the receiver.
+	 * Gets this DelayTrigger's receiver.
 	 * 
-	 * @return the receiver
+	 * @return the receiver.
 	 */
 	public Bead getReceiver() {
 		return receiver;
 	}
 
 	/**
-	 * Sets the receiver.
+	 * Sets this DelayTrigger's receiver.
 	 * 
 	 * @param receiver
-	 *            the new receiver
+	 *            the new receiver.
 	 */
 	public void setReceiver(Bead receiver) {
 		this.receiver = receiver;
 	}
 
 	/**
-	 * Gets the count.
+	 * Gets the current count.
 	 * 
-	 * @return the count
+	 * @return the count in milliseconds.
 	 */
 	public double getCount() {
 		return context.samplesToMs(count);

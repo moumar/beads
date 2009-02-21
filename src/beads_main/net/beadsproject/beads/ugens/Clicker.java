@@ -9,6 +9,8 @@ import net.beadsproject.beads.core.UGen;
 
 /**
  * A very simple {@link UGen} that generates one click and then kills itself.
+ *
+ * @author ollie
  */
 public class Clicker extends UGen {
 

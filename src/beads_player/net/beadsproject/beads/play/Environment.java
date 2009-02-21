@@ -3,13 +3,9 @@ package net.beadsproject.beads.play;
 import java.lang.reflect.Method;
 import java.util.Hashtable;
 import java.util.Random;
-import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.BeadArray;
 import net.beadsproject.beads.core.UGen;
-import net.beadsproject.beads.ugens.Clock;
-import net.beadsproject.beads.ugens.MouseResponder;
-import net.beadsproject.beads.ugens.RTInput;
 
 
 // TODO: Auto-generated Javadoc
