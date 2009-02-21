@@ -1,11 +1,12 @@
-//Much code taken from MEAP
-
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ * CREDIT: This class uses portions of code taken from MEAP. See readme/CREDITS.txt.
+ */
 package net.beadsproject.beads.analysis.featureextractors;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.core.AudioContext;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class MelSpectrum.
  */

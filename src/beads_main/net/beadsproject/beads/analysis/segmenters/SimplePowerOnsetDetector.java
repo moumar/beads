@@ -1,4 +1,6 @@
-
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.analysis.segmenters;
 
 import net.beadsproject.beads.analysis.Segmenter;
@@ -7,31 +9,29 @@ import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.ugens.Clicker;
 import net.beadsproject.beads.ugens.RTInput;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class OnsetDetector.
+ * SimplePowerOnsetDetector runs a very simple onset detection algorithm and segments audio accordingly.
  */
 public class SimplePowerOnsetDetector extends Segmenter {
 
-	//I haven't implemented the recorder in this yet, so this Segmenter can't pass audio to FeatureExtractors yet
+	//TODO I haven't implemented the recorder in this yet, so this Segmenter can't pass audio to FeatureExtractors yet.
 	
-	
-    /** The BLOCK. */
+    /** The number of samples to average over when calculating power. */
     static private int BLOCK = 10;
     
-    /** The beat strength. */
+    /** The current beat strength. */
     private int beatStrength;
     
-    /** The thresholds. */
+    /** The array of thresholds used to determine onsets at different strengths. */
     private float[] thresholds;
     
-    /** The count. */
+    /** The time in samples. */
     private int count;
     
-    /** The hop. */
+    /** The hop in samples. */
     private int hop;
     
-    /** The cutout. */
+    /** The cutout time in samples. */
     private int cutout;
     
     /** The cutout count. */
@@ -44,12 +44,12 @@ public class SimplePowerOnsetDetector extends Segmenter {
     private int localCount;
     
     /**
-	 * Instantiates a new onset detector.
+	 * Instantiates a new SimplePowerOnsetDetector with one listener.
 	 * 
 	 * @param context
-	 *            the context
+	 *            the AudioContext.
 	 * @param listener
-	 *            the listener
+	 *            the listener.
 	 */
     public SimplePowerOnsetDetector(AudioContext context, Bead listener) {
     	this(context);
@@ -57,7 +57,7 @@ public class SimplePowerOnsetDetector extends Segmenter {
     }
     
     /**
-	 * Instantiates a new onset detector.
+	 * Instantiates a new SimplePowerOnsetDetector.
 	 * 
 	 * @param context
 	 *            the context
@@ -72,64 +72,58 @@ public class SimplePowerOnsetDetector extends Segmenter {
         setClick(false);
     }
     
-    
-    
-    
 	/**
-	 * Gets the cutout.
+	 * Gets the cutout time.
 	 * 
-	 * @return the cutout
+	 * @return the cutout time in milliseconds.
 	 */
 	public double getCutout() {
 		return context.samplesToMs(cutout);
 	}
-
 	
 	/**
-	 * Sets the cutout.
+	 * Sets the cutout time.
 	 * 
 	 * @param cutout
-	 *            the new cutout
+	 *            the new cutout time in milliseconds.
 	 */
 	public void setCutout(float cutout) {
 		this.cutout = (int)context.msToSamples(cutout);
 	}
-
     
 	/**
-	 * Checks if is clicking.
+	 * Checks if audible click is activated.
 	 * 
-	 * @return true, if is clicking
+	 * @return true if clicking.
 	 */
 	public boolean isClicking() {
 		return click;
 	}
-
 	
 	/**
-	 * Sets the click.
+	 * Sets/unsets the audible click.
 	 * 
 	 * @param click
-	 *            the new click
+	 *            true to hear click.
 	 */
 	public void setClick(boolean click) {
 		this.click = click;
 	}
 
 	/**
-	 * Gets the hop.
+	 * Gets the hop size.
 	 * 
-	 * @return the hop
+	 * @return the hop size in milliseconds.
 	 */
 	public double getHop() {
         return context.samplesToMs(hop);
     }
     
     /**
-	 * Sets the hop.
+	 * Sets the hop size.
 	 * 
 	 * @param msHop
-	 *            the new hop
+	 *            the new hop size in milliseconds.
 	 */
     public void setHop(float msHop) {
         hop = (int)context.msToSamples(msHop);
@@ -137,19 +131,19 @@ public class SimplePowerOnsetDetector extends Segmenter {
     }
     
 	/**
-	 * Gets the thresholds.
+	 * Gets the array of thresholds used to determine the onset layer.
 	 * 
-	 * @return the thresholds
+	 * @return the threshold array.
 	 */
 	public float[] getThresholds() {
 		return thresholds;
 	}
 
 	/**
-	 * Sets the thresholds.
+	 * Sets the array of thresholds used to determine the onset layer.
 	 * 
 	 * @param thresholds
-	 *            the new thresholds
+	 *            the new threshold array.
 	 */
 	public void setThresholds(float[] thresholds) {
 		this.thresholds = thresholds;
@@ -168,9 +162,7 @@ public class SimplePowerOnsetDetector extends Segmenter {
 	            for(int i = 0; i < BLOCK; i++) {
 	                average += bufIn[0][localCount++];
 	            }
-	            //System.out.println(localCount + " " + average);
 	            average /= (float)BLOCK;
-	            //System.out.println(average);
 	            beatStrength = 0;
 	            for(int i = 0; i < thresholds.length; i++) {
 		            if(average > thresholds[i]) {
@@ -189,52 +181,20 @@ public class SimplePowerOnsetDetector extends Segmenter {
     }
     	
     /**
-	 * Gets the beat strength.
+	 * Gets the current beat strength, determined by the set of thresholds specified in {@link #setThresholds(float[])}.
 	 * 
-	 * @return the beat strength
+	 * @return the beat strength.
 	 */
     public int getBeatStrength() {
     	return beatStrength;
     }
-	
-    /** The btcnt. */
-    int btcnt = 0;
     
     /**
-	 * Onset.
+	 * Called whenever there's an onset.
 	 */
     private void onset() {
     	if(click) context.out.addInput(new Clicker(context, 0.5f));
     	segment(null, 0);
     }
-
-    /**
-	 * Time in ms.
-	 * 
-	 * @return the float
-	 */
-    private double timeInMS() {
-    	//time in samples is count + localCount
-    	return context.samplesToMs(count + localCount);
-    }
-	
-	/**
-	 * The main method.
-	 * 
-	 * @param args
-	 *            the arguments
-	 */
-	public static void main(String[] args) {
-		System.out.println("OnsetDetectorTest");
-		AudioContext ac = new AudioContext(512, 1500);
-		ac.start();
-		//SamplePlayer sp = new SamplePlayer(ac, SampleManager.sample("audio/1234.aif"));
-		RTInput input = new RTInput(ac, ac.getAudioFormat());
-		SimplePowerOnsetDetector od = new SimplePowerOnsetDetector(ac);
-		od.setClick(true);
-		od.addInput(input);
-		ac.out.addDependent(od);
-		//ac.getRoot().addInput(sp);
-	}
     
 }

@@ -1,40 +1,61 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.analysis;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.ListIterator;
-
 
 /**
+ * Stores a set of features associated with a continuous period of audio data.
+ * 
+ * A FeatureLayer can hold different views on the data. Time-based features are stored in lists mapping segments to features.
+ * 
  * @author ollie
- *
- * Stores a set of features associated with a Sample (which may be loaded from a file or recorded in realtime).
- * 
- * A features can hold different views on the data. A list of Segments is maintained. Time-based features are stored in lists mapping segments to features.
- * 
  */
 public class FeatureLayer implements Serializable, Iterable<FeatureFrame> {
 	
-	/**
-	 * 
-	 */
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 	
-	ArrayList<FeatureFrame> frames;
+	/** The list of FeatureFrames. */
+	private ArrayList<FeatureFrame> frames;
 	
+	/**
+	 * Instantiates a new FeatureLayer.
+	 */
 	public FeatureLayer() {
 		frames = new ArrayList<FeatureFrame>();
 	}
 	
+	/**
+	 * Adds the specified FeatureFrame.
+	 * 
+	 * @param ff the FeatureFrame.
+	 */
 	public void add(FeatureFrame ff) {
 		frames.add(ff);
 	}
 	
+	/**
+	 * Gets the FeatureFrame at the given index.
+	 * 
+	 * @param index the index.
+	 * 
+	 * @return the FeatureFrame.
+	 */
 	public FeatureFrame get(int index) {
 		return frames.get(index);
 	}
 
+	/**
+	 * Gets the frame for the given offset, in milliseconds, into the FeatureLayer.
+	 * 
+	 * @param timeMS the millisecond offset.
+	 * 
+	 * @return the FeatureFrame at this time.
+	 */
 	public FeatureFrame getFrameAt(double timeMS) {
 		for(FeatureFrame ff : frames) {
 			if(ff.containsTime(timeMS)) return ff;
@@ -42,6 +63,9 @@ public class FeatureLayer implements Serializable, Iterable<FeatureFrame> {
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Iterable#iterator()
+	 */
 	public Iterator<FeatureFrame> iterator() {
 		return frames.iterator();
 	}

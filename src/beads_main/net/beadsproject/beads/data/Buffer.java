@@ -14,7 +14,7 @@ import java.util.Hashtable;
  */
 public class Buffer implements Serializable {
 	
-	
+	//TODO add linear and cubic interpolation
 	/**
 	 * Default serialVersionUID.
 	 */

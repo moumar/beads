@@ -1,28 +1,28 @@
-//Much code borrowed from MEAP
-
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ * CREDIT: This class uses portions of code taken from MEAP. See readme/CREDITS.txt.
+ */
 package net.beadsproject.beads.analysis.featureextractors;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.core.AudioContext;
 
-
-// TODO: Auto-generated Javadoc
 /**
- * The Class Frequency.
+ * Frequency processes spectral data forwarded to it by a {@link PowerSpectrum} to determine the best estimate for the frequency of the current signal.
  */
 public class Frequency extends FeatureExtractor {
 
 	/** The Constant FIRSTBAND. */
 	static final int FIRSTBAND = 3;
 	
-	/** The bin2hz. */
+	/** The ratio bin2hz. */
 	private float bin2hz;
 	
 	/**
-	 * Instantiates a new frequency.
+	 * Instantiates a new Frequency.
 	 * 
 	 * @param context
-	 *            the context
+	 *            the AudioContext.
 	 */
 	public Frequency(AudioContext context) {
 		bin2hz = context.getSampleRate() / (2 * (context.getBufferSize() - 1));
@@ -56,19 +56,7 @@ public class Frequency extends FeatureExtractor {
 		double yp = maxbin < linSpec.length - 1 ? linSpec[maxbin + 1] : linSpec[maxbin];
 		double k = (yp + ym) / 2 - yz;
 		double x0 = (ym - yp) / (4 * k);
-		//double c = yz - k * Math.pow(x0, 2);
 		features[0] = (float)(bin2hz * (maxbin + x0));
-		//printFeatures();
-	}
-
-	/**
-	 * Prints the features.
-	 */
-	public void printFeatures() {
-		for(int i = 0; i < features.length; i++) {
-			System.out.print(features[i]);
-		}
-		System.out.println();
 	}
 
 	/* (non-Javadoc)

@@ -1,28 +1,28 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ * CREDIT: This class uses portions of code taken from MPEG7AudioEnc. See readme/CREDITS.txt.
+ */
 package net.beadsproject.beads.analysis.featureextractors;
 
 import java.util.ArrayList;
 import net.beadsproject.beads.analysis.FeatureExtractor;
-import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.core.UGen;
-import net.beadsproject.beads.data.Buffer;
-import net.beadsproject.beads.data.buffers.HanningWindow;
-import net.beadsproject.beads.data.buffers.SineBuffer;
-import net.beadsproject.beads.ugens.WavePlayer;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class FFT.
+ * FFT performs a Fast Fourier Transform and forwards half of the real part of the data to any listeners.
  */
 public class FFT extends FeatureExtractor {
 	
 	protected ArrayList<FeatureExtractor> listeners;
 	
-	/** The fft real. */
+	/** The real part. */
 	protected float[] fftReal;
 	
-	/** The fft imag. */
+	/** The imaginary part. */
 	protected float[] fftImag;
 	
+	/**
+	 * Instantiates a new FFT.
+	 */
 	public FFT() {
 		listeners = new ArrayList<FeatureExtractor>();
 	}
@@ -39,6 +39,15 @@ public class FFT extends FeatureExtractor {
 			fe.process(fftReal, length);
 		}
 	}
+
+	/**
+	 * Adds a FeatureExtractor as a listener.
+	 * 
+	 * @param the FeatureExtractor.
+	 */
+	public void addListener(FeatureExtractor fe) {
+		listeners.add(fe);
+	}
 	
 	/*
 	 * All of the code below this line is taken from Holger Crysandt's MPEG7AudioEnc project.
@@ -46,13 +55,14 @@ public class FFT extends FeatureExtractor {
 	 */
 	
 	/**
-	 * Gets the real.
+	 * Gets the real part from the complex spectrum.
 	 * 
 	 * @param spectrum
-	 *            Half complex spectrum
+	 *            complex spectrum.
 	 * @param length 
+	 * 			length of data to use.
 	 * 
-	 * @return Returns real part of half complex spectrum
+	 * @return real part of given length of complex spectrum.
 	 */
 	public static float[] getReal(float[] spectrum, int length) {
 		float[] real = new float[length];
@@ -64,13 +74,14 @@ public class FFT extends FeatureExtractor {
 	}
 	
 	/**
-	 * Gets the imag.
+	 * Gets the imaginary part from the complex spectrum.
 	 * 
 	 * @param spectrum
-	 *            Half complex spectrum
+	 *            complex spectrum.
 	 * @param length 
+	 * 			length of data to use.
 	 * 
-	 * @return Returns imaginary part of half complex spectrum
+	 * @return imaginary part of given length of complex spectrum.
 	 */
 	public static float[] getImag(float[] spectrum, int length) {
 		float[] imag = new float[length];
@@ -80,15 +91,15 @@ public class FFT extends FeatureExtractor {
 	}
 
 	/**
-	 * Fft.
+	 * Perform FFT on data with given length, regular or inverse.
 	 * 
 	 * @param data
-	 *            the data
-	 * @param length 
+	 *            the data.
+	 * @param length the length.
 	 * @param isign
-	 *            the isign
+	 *            true for regular, false for inverse.
 	 */
-	public static void fft(float[] data, int n, boolean isign) {
+	protected static void fft(float[] data, int n, boolean isign) {
 		float c1 = 0.5f; 
 		float c2, h1r, h1i, h2r, h2i;
 		double wr, wi, wpr, wpi, wtemp;
@@ -107,7 +118,7 @@ public class FFT extends FeatureExtractor {
 		wi = wpi;
 		int np3 = n + 3;
 		for (int i=2,imax = n >> 2, i1, i2, i3, i4; i <= imax; ++i) {
-			/** @todo this can be optimized */
+			/** @TODO this can be optimized */
 			i4 = 1 + (i3 = np3 - (i2 = 1 + (i1 = i + i - 1)));
 			--i4; --i2; --i3; --i1; 
 			h1i =  c1*(data[i2] - data[i4]);
@@ -134,14 +145,14 @@ public class FFT extends FeatureExtractor {
 	}
 	
 	/**
-	 * Four1.
+	 * four1 algorithm.
 	 * 
 	 * @param data
-	 *            the data
+	 *            the data.
 	 * @param nn
-	 *            the nn
+	 *            the nn.
 	 * @param isign
-	 *            the isign
+	 *            regular or inverse.
 	 */
 	private static void four1(float data[], int nn, boolean isign) {
 		int n, mmax, istep;
@@ -193,10 +204,6 @@ public class FFT extends FeatureExtractor {
 			}
 			mmax = istep;
 		}
-	}
-
-	public void addListener(FeatureExtractor fe) {
-		listeners.add(fe);
 	}
 	
 	

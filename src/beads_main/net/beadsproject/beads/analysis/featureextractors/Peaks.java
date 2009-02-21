@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 //Much code borrowed from MEAP
 
 package net.beadsproject.beads.analysis.featureextractors;
