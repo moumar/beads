@@ -8,7 +8,6 @@ import net.beadsproject.beads.data.buffers.SineBuffer;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.OscillatorBank;
 
-
 public class OscillatorBankExample {
 	
 	public static void main(String[] args) {

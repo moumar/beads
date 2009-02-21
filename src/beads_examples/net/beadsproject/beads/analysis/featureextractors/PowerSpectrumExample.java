@@ -9,7 +9,6 @@ import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.OscillatorBank;
 import net.beadsproject.beads.ugens.WavePlayer;
 
-
 public class PowerSpectrumExample {
 	
 	public static void main(String[] args) {

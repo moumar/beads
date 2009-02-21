@@ -17,7 +17,6 @@ import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.WavePlayer;
 
-
 public class SongPartExample {
 	
 	public static void main(String[] args) {

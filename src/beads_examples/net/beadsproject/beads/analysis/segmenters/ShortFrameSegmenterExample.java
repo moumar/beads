@@ -5,7 +5,6 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.buffers.SineBuffer;
 import net.beadsproject.beads.ugens.WavePlayer;
 
-
 public class ShortFrameSegmenterExample {
 	
 	public static void main(String[] args) {

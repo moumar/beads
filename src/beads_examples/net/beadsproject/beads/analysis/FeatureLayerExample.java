@@ -12,7 +12,6 @@ import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.OscillatorBank;
 import net.beadsproject.beads.ugens.WavePlayer;
 
-
 public class FeatureLayerExample {
 
 	public static void main(String[] args) {

@@ -7,20 +7,31 @@
                    
      Beads                                                                
      ====================================================================== -->
-<project name="project" default="default">
+<project name="beads" default="default">
     <description>
-            description
+            Java computer music library.
     </description>
 
     <!-- ================================= 
           target: default              
          ================================= -->
-    <target name="default" description="description">
-    	<mkdir dir="bin"/>
-    	<javac srcdir="src" destdir="bin" debug="off"/>
+    <target name="default" description="compiles main beads project to beads.jar">
+    	<mkdir dir="build/Beads/library/bin/main"/>
+    	<javac srcdir="src/beads_main" destdir="build/Beads/library/bin/main" debug="off"/>
     	<mkdir dir="build"/>
-        <jar destfile="build/Beads/library/beads.jar" basedir="bin"></jar>
+        <jar destfile="build/Beads/library/beads.jar" basedir="build/Beads/library/bin/main"></jar>
+    	<delete dir="build/Beads/library/bin"/>
     </target>
 
+    <!-- ================================= 
+          target: compile player              
+         ================================= -->
+    <target name="player" description="compiles beads player project to beads-play.jar">
+    	<mkdir dir="build/Beads/library/bin/play"/>
+    	<javac srcdir="src/beads_player" destdir="build/Beads/library/bin/play" classpath="build/Beads/library/beads.jar" debug="off"/>
+    	<mkdir dir="build"/>
+        <jar destfile="build/Beads/library/beads-play.jar" basedir="build/Beads/library/bin/play"></jar>
+    	<delete dir="build/Beads/library/bin"/>
+    </target>
 
 </project>

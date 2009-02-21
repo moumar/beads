@@ -6,7 +6,6 @@ import net.beadsproject.beads.data.SampleManager;
 import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.SamplePlayer;
 
-
 public class SamplePlayerExample {
 
     public static void main(String[] args) throws Exception {

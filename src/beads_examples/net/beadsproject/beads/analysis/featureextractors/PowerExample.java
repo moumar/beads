@@ -7,7 +7,6 @@ import net.beadsproject.beads.data.buffers.SineBuffer;
 import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.WavePlayer;
 
-
 public class PowerExample {
 	
 	public static void main(String[] args) {

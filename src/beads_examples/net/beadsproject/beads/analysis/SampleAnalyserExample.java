@@ -9,7 +9,6 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.SampleManager;
 
-
 public class SampleAnalyserExample {
 
 	public static void main(String[] args) {
