@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- ====================================================================== 
      Sep 24, 2008 8:20:30 PM                                                        
-
-     project    
-     description
                    
-     Beads                                                                
+     Beads - a computer music and sound art library for Java.                                                            
      ====================================================================== -->
 <project name="beads" default="default">
     <description>
-            Java computer music library.
+    	Beads - a computer music and sound art library for Java.
     </description>
 
     <!-- ================================= 
@@ -44,6 +41,26 @@
          ================================= -->
     <target name="doc main" description="generate docs for main">
     	<javadoc sourcepath="src/beads_main" destdir="build/Beads/doc"></javadoc>	
+    </target>
+	
+    <!-- ================================= 
+          target: doc play (merges with doc main)             
+         ================================= -->
+    <target name="doc play" description="generate docs for play and main in same location">
+    	<javadoc sourcepath="src/beads_main:src/beads_player" destdir="build/Beads/doc"></javadoc>	
+    </target>
+	
+    <!-- ================================= 
+          target: genrate packages             
+         ================================= -->
+    <target name="generate packages" description="generate the packages and upload them" depends="default">
+    	<exec executable="/opt/local/bin/svn">
+    		<arg line="--force export build/Beads /Users/ollie/Desktop/Beads"/>
+    	</exec>
+    	<delete file="/Users/ollie/Desktop/Beads/library/beads-play.jar"></delete>
+    	<exec executable="/opt/local/bin/svn">
+    		<arg line="--force export readme /Users/ollie/Desktop/Beads/readme"/>
+    	</exec>
     </target>
 
 </project>
