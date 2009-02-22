@@ -8,6 +8,13 @@
     <description>
     	Beads - a computer music and sound art library for Java.
     </description>
+	
+	<property name="exportdir" value="/Users/ollie/Desktop"></property>
+	<property name="svn" value="/opt/local/bin/svn"></property>
+	<tstamp>
+	    <format property="TODAY" pattern="yyyyMMdd"/>
+	  </tstamp>
+
 
     <!-- ================================= 
           target: default              
@@ -53,13 +60,27 @@
     <!-- ================================= 
           target: genrate packages             
          ================================= -->
-    <target name="generate packages" description="generate the packages and upload them" depends="default">
-    	<exec executable="/opt/local/bin/svn">
-    		<arg line="--force export build/Beads /Users/ollie/Desktop/Beads"/>
+    <target name="generate packages" description="generate the packages to Desktop" depends="default">
+    	<exec executable="${svn}">
+    		<arg line="--force export build/Beads ${exportdir}/Beads"/>
     	</exec>
-    	<delete file="/Users/ollie/Desktop/Beads/library/beads-play.jar"></delete>
-    	<exec executable="/opt/local/bin/svn">
-    		<arg line="--force export readme /Users/ollie/Desktop/Beads/readme"/>
+    	<delete file="${exportdir}/Beads/library/beads-play.jar"></delete>
+    	<exec executable="${svn}">
+    		<arg line="--force export readme ${exportdir}/Beads/readme"/>
+    	</exec>
+    </target>
+	
+    <!-- ================================= 
+          target: commit packages             
+         ================================= -->
+    <target name="commit packages" description="upload the generated packages" depends="generate packages">
+    	<zip basedir="${exportdir}/Beads" destfile="${exportdir}/Beads.zip"/>
+    	<copy file="${exportdir}/Beads.zip" tofile="${exportdir}/Beads${TODAY}.zip"/>
+    	<exec executable="scp">
+    		<arg line="${exportdir}/Beads.zip orsjb@beadsproject.net:beadsproject.net/downloads/"/>
+    	</exec>
+    	<exec executable="scp">
+    	    <arg line="${exportdir}/Beads${TODAY}.zip orsjb@beadsproject.net:beadsproject.net/downloads/"/>
     	</exec>
     </target>
 
