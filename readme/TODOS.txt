@@ -1,6 +1,6 @@
 TODOS
 
-...Additional features...
+...Areas for development...
 More Filters.
 More Windows / Waves.
 SampleManager functionality.
@@ -9,7 +9,8 @@ Feature data functionality.
 OscillatorBank functionality.
 MP3 files.
 Pan algorithms.
+Audio i/o functionality.
 
-...Big changes...
-Convert floats to doubles.
+...Possible major changes...
+Convert audio from floats to doubles. Discuss.
 Rename Envelopes and make public.

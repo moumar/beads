@@ -15,7 +15,12 @@
     <!-- ================================= 
           target: default              
          ================================= -->
-    <target name="default" description="compiles main beads project to beads.jar">
+    <target name="default" description="combine compile main and doc main" depends="compile main, doc main"></target>
+    	
+    <!-- ================================= 
+          target: compile main              
+         ================================= -->
+    <target name="compile main" description="compiles main beads project to beads.jar">
     	<mkdir dir="build/Beads/library/bin/main"/>
     	<javac srcdir="src/beads_main" destdir="build/Beads/library/bin/main" debug="off"/>
     	<mkdir dir="build"/>
@@ -24,14 +29,21 @@
     </target>
 
     <!-- ================================= 
-          target: compile player              
+          target: compile play              
          ================================= -->
-    <target name="player" description="compiles beads player project to beads-play.jar">
+    <target name="compile play" description="compiles beads player project to beads-play.jar" depends="compile main">
     	<mkdir dir="build/Beads/library/bin/play"/>
     	<javac srcdir="src/beads_player" destdir="build/Beads/library/bin/play" classpath="build/Beads/library/beads.jar" debug="off"/>
     	<mkdir dir="build"/>
         <jar destfile="build/Beads/library/beads-play.jar" basedir="build/Beads/library/bin/play"></jar>
     	<delete dir="build/Beads/library/bin"/>
+    </target>
+	
+    <!-- ================================= 
+          target: doc main              
+         ================================= -->
+    <target name="doc main" description="generate docs for main">
+    	<javadoc sourcepath="src/beads_main" destdir="build/Beads/doc"></javadoc>	
     </target>
 
 </project>
