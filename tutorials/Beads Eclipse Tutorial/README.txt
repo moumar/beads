@@ -7,7 +7,7 @@ This is the Beads Eclipse Tutorial. Follow these instructions to get started...
 
 Go to the Eclipse downloads page at http://www.eclipse.org/downloads/. Choose "Eclipse IDE for Java Developers" and then choose your platform. Installation simply involves moving the 'eclipse' directory to your applications directory. 
 
--- 2. Run Eclipse --
+-- 2. Set up Eclipse --
 
 Run Eclipse. The first time you run Eclipse you will be asked to specify a working directory (workspace). This is where all of your Eclipse projects will be stored. Then you are offered some introductory material about Eclipse. Take a look around, or choose the "Go To The Workbench" option to get started.
 
