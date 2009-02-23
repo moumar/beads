@@ -30,6 +30,7 @@
     	<mkdir dir="build"/>
         <jar destfile="build/Beads/library/beads.jar" basedir="build/Beads/library/bin/main"></jar>
     	<delete dir="build/Beads/library/bin"/>
+    	<copy file="build/Beads/library/beads.jar" toFile="tutorials/Beads Eclipse Tutorial/Beads Tutorial/beads.jar"/>
     </target>
 
     <!-- ================================= 
@@ -71,7 +72,6 @@
     	<exec executable="cp"><arg line="-R ${exportdir}/Beads '${exportdir}/Beads Processing Tutorial/'"/></exec>   	    	
     	<!-- Beads Eclipse Tutorial -->
     	<exec executable="${svn}"><arg line="--force export 'tutorials/Beads Eclipse Tutorial' '${exportdir}/Beads Eclipse Tutorial'"/></exec>
-    	<exec executable="cp"><arg line="-R ${exportdir}/Beads '${exportdir}/Beads Eclipse Tutorial/'"/></exec>
     </target>
 	
     <!-- ================================= 
