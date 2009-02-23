@@ -9,7 +9,7 @@
     	Beads - a computer music and sound art library for Java.
     </description>
 	
-	<property name="exportdir" value="/Users/ollie/Desktop"></property>
+	<property name="exportdir" value="/Users/ollie/Desktop/Beads_Export"></property>
 	<property name="svn" value="/opt/local/bin/svn"></property>
 	<tstamp>
 	    <format property="TODAY" pattern="yyyyMMdd"/>
@@ -61,6 +61,7 @@
           target: genrate packages             
          ================================= -->
     <target name="generate packages" description="generate the packages to Desktop" depends="default">
+    	<mkdir dir="${exportdir}"/>
     	<!-- main Beads dir -->
     	<exec executable="${svn}"><arg line="--force export build/Beads ${exportdir}/Beads"/></exec>
     	<delete file="${exportdir}/Beads/library/beads-play.jar"></delete>
@@ -74,7 +75,7 @@
     </target>
 	
     <!-- ================================= 
-          target: commit packages             
+          target: commit packages (project admin only)            
          ================================= -->
     <target name="commit packages" description="upload the generated packages" depends="generate packages">
     	<!-- main Beads dir -->
@@ -83,7 +84,17 @@
     	<exec executable="scp"><arg line="${exportdir}/Beads.zip orsjb@beadsproject.net:beadsproject.net/downloads/"/></exec>
     	<exec executable="scp"><arg line="${exportdir}/Beads${TODAY}.zip orsjb@beadsproject.net:beadsproject.net/downloads/"/></exec>
     	<!-- Beads Processing Tutorial -->
+    	<zip basedir="${exportdir}/Beads Processing Tutorial" destfile="${exportdir}/Beads_Processing_Tutorial.zip"/>
+    	<copy file="${exportdir}/Beads_Processing_Tutorial.zip" tofile="${exportdir}/Beads_Processing_Tutorial${TODAY}.zip"/>
+    	<exec executable="scp"><arg line="${exportdir}/Beads_Processing_Tutorial.zip orsjb@beadsproject.net:beadsproject.net/downloads/"/></exec>
+    	<exec executable="scp"><arg line="${exportdir}/Beads_Processing_Tutorial${TODAY}.zip orsjb@beadsproject.net:beadsproject.net/downloads/"/></exec>
     	<!-- Beads Eclipse Tutorial -->
+    	<zip basedir="${exportdir}/Beads Eclipse Tutorial" destfile="${exportdir}/Beads_Eclipse_Tutorial.zip"/>
+    	<copy file="${exportdir}/Beads_Eclipse_Tutorial.zip" tofile="${exportdir}/Beads_Eclipse_Tutorial${TODAY}.zip"/>
+    	<exec executable="scp"><arg line="${exportdir}/Beads_Eclipse_Tutorial.zip orsjb@beadsproject.net:beadsproject.net/downloads/"/></exec>
+    	<exec executable="scp"><arg line="${exportdir}/Beads_Eclipse_Tutorial${TODAY}.zip orsjb@beadsproject.net:beadsproject.net/downloads/"/></exec>
+    	<!-- Documentation -->
+    	<exec executable="scp"><arg line="-r ${exportdir}/Beads/doc orsjb@beadsproject.net:beadsproject.net/"/></exec>
     </target>
 
 </project>
