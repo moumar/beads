@@ -59,8 +59,7 @@ public class WavePlayer extends UGen {
 	 */
     public WavePlayer(AudioContext context, float frequency, Buffer buffer) {
         super(context, 1, 1);
-        frequencyEnvelope = new Envelope(context);
-        ((Envelope)frequencyEnvelope).setValue(frequency);
+        frequencyEnvelope = new Static(context, frequency);
         this.buffer = buffer;
     }
     
@@ -78,7 +77,6 @@ public class WavePlayer extends UGen {
     @Override
     public void calculateBuffer() {
     	frequencyEnvelope.update();
-    	phaseEnvelope.update();
         float sr = context.getSampleRate();
         if(phaseEnvelope == null) {
 	        for(int i = 0; i < bufferSize; i++) {
@@ -88,6 +86,7 @@ public class WavePlayer extends UGen {
 	            bufOut[0][i] = buffer.getValueFraction((float)point);
 	        }
         } else {
+        	phaseEnvelope.update();
         	for(int i = 0; i < bufferSize; i++) {
         		bufOut[0][i] = buffer.getValueFraction(phaseEnvelope.getValue(0, i));
         	}
