@@ -11,6 +11,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -19,7 +21,7 @@ import net.beadsproject.beads.play.InterfaceElement;
 
 public class Chooser implements InterfaceElement {
 
-	private ArrayList<String> elements;
+	protected List<String> elements;
 	private int boxHeight;
 	private int boxWidth;
 	private int choice;

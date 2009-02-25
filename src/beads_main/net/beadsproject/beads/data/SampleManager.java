@@ -10,6 +10,9 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
+
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 /**
@@ -229,5 +232,14 @@ public class SampleManager {
 		for(String s : samples.keySet()) {
 			System.out.println(s + " " + samples.get(s));
 		}
+	}
+	
+	/**
+	 * Returns an ArrayList containing all of the Sample names.
+	 * 
+	 * @return ArrayList of Sample names.
+	 */
+	public static List<String> getSampleNameList() {
+		return new ArrayList<String>(samples.keySet());
 	}
 }
