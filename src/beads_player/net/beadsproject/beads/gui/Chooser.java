@@ -24,6 +24,7 @@ public class Chooser implements InterfaceElement {
 	protected List<String> elements;
 	private int boxHeight;
 	private int boxWidth;
+	private int popupBoxWidth;
 	private int choice;
 	private int tempChoice;
 	private int textVOffset;
@@ -34,6 +35,7 @@ public class Chooser implements InterfaceElement {
 		elements = new ArrayList<String>();
 		choice = 0;
 		boxWidth = 200;
+		popupBoxWidth = 1000;
 		boxHeight = 10;
 		textVOffset = 1;
 	}
@@ -92,7 +94,7 @@ public class Chooser implements InterfaceElement {
 						mouseDragged(e);
 					}
 				});
-				Dimension d = new Dimension(boxWidth, boxHeight * elements.size());
+				Dimension d = new Dimension(popupBoxWidth, boxHeight * elements.size());
 				list.setFont(new Font("Courier", Font.PLAIN, 10));
 				list.setMinimumSize(d);
 				list.setPreferredSize(d);
