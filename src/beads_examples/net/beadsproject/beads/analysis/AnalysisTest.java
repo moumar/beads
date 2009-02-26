@@ -2,7 +2,7 @@ package net.beadsproject.beads.analysis;
 
 import java.io.FileOutputStream;
 
-import net.beadsproject.beads.analysis.featureextractors.FFT;
+import net.beadsproject.beads.analysis.featureextractors.Frequency;
 import net.beadsproject.beads.analysis.featureextractors.GnuplotDataWriter;
 import net.beadsproject.beads.analysis.featureextractors.MFCC;
 import net.beadsproject.beads.analysis.featureextractors.MelSpectrum;
@@ -20,6 +20,8 @@ public class AnalysisTest {
 	public static void main(String[] args) throws Exception {
 		AudioContext ac = new AudioContext();
 		
+		String analysisDataDir = "/Users/ollie/Desktop";
+		
 		Envelope frequencyEnvelope1 = new Envelope(ac, 200f);
 		frequencyEnvelope1.addSegment(20000, 1000f);
 		WavePlayer wp1 = new WavePlayer(ac, frequencyEnvelope1, new SineBuffer().getDefault());
@@ -36,25 +38,33 @@ public class AnalysisTest {
 		sfs.addInput(wp2);
 		ac.out.addDependent(sfs);
 		
-		sfs.setChunkSize(1024);
+		sfs.setChunkSize(512);
 		sfs.setHopSize(256);
 
-		sfs.addListener(new GnuplotDataWriter(new FileOutputStream("/Users/ollie/Desktop/sfs")));
+		sfs.addListener(new GnuplotDataWriter(new FileOutputStream(analysisDataDir + "/sfs")));
 	
-		FFT fft = new PowerSpectrum();
-		sfs.addListener(fft);
+		PowerSpectrum ps = new PowerSpectrum();
+		sfs.addListener(ps);
 
-		fft.addListener(new GnuplotDataWriter(new FileOutputStream("/Users/ollie/Desktop/powerspec")));
+		ps.addListener(new GnuplotDataWriter(new FileOutputStream(analysisDataDir + "/powerspec")));
 		
 		MelSpectrum ms = new MelSpectrum(ac.getSampleRate(), 128);
-		fft.addListener(ms);
+		ps.addListener(ms);
 
-		ms.addListener(new GnuplotDataWriter(new FileOutputStream("/Users/ollie/Desktop/melspec")));
+		ms.addListener(new GnuplotDataWriter(new FileOutputStream(analysisDataDir + "/melspec")));
 		
 		MFCC mfcc = new MFCC(30);
 		ms.addListener(mfcc);
 		
-		mfcc.addListener(new GnuplotDataWriter(new FileOutputStream("/Users/ollie/Desktop/mfcc")));
+		mfcc.addListener(new GnuplotDataWriter(new FileOutputStream(analysisDataDir + "/mfcc")));
+		
+		Frequency f = new Frequency(ac.getSampleRate()) {
+			public void process(float[] data) {
+				super.process(data);
+				System.out.println(features[0]);
+			}
+		};
+		ps.addListener(f);
 		
 		DelayTrigger dt = new DelayTrigger(ac, 1000f, new AudioContextStopTrigger(ac));
 		ac.out.addDependent(dt);

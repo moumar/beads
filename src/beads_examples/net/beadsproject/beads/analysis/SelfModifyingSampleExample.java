@@ -26,7 +26,7 @@ public class SelfModifyingSampleExample {
 		//create analysis components
 		ShortFrameSegmenter sfs = new ShortFrameSegmenter(ac);
 		PowerSpectrum ps = new PowerSpectrum();
-		final Frequency f = new Frequency(ac) {
+		final Frequency f = new Frequency(ac.getSampleRate()) {
 			public void process(float[] f) {
 				super.process(f);
 				System.out.println(getFeatures()[0]);

@@ -18,14 +18,19 @@ public class Frequency extends FeatureExtractor<float[], float[]> {
 	/** The ratio bin2hz. */
 	private float bin2hz;
 	
+	private int bufferSize;
+	
+	private float sampleRate;
+	
 	/**
 	 * Instantiates a new Frequency.
 	 * 
 	 * @param context
 	 *            the AudioContext.
 	 */
-	public Frequency(AudioContext context) {
-		bin2hz = context.getSampleRate() / (2 * (context.getBufferSize() - 1));
+	public Frequency(float sampleRate) {
+		bufferSize = -1;
+		this.sampleRate = sampleRate;
 		features = new float[1];
 	}
 	
@@ -33,6 +38,10 @@ public class Frequency extends FeatureExtractor<float[], float[]> {
 	 * @see com.olliebown.beads.core.PowerSpectrumListener#calculateFeatures(float[])
 	 */
 	public synchronized void process(float[] powerSpectrum) {
+		if(bufferSize != powerSpectrum.length) {
+			bufferSize = powerSpectrum.length;
+			bin2hz = sampleRate / (2 * (bufferSize - 1));
+		}
 		features = new float[1];
 		// collect average linear spectrum
 		double[] linSpec = new double[powerSpectrum.length];
