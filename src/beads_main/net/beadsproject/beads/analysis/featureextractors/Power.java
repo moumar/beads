@@ -10,7 +10,7 @@ import net.beadsproject.beads.analysis.FeatureExtractor;
 /**
  * The Class Power.
  */
-public class Power extends FeatureExtractor {
+public class Power extends FeatureExtractor<float[], float[]>  {
 
 	public Power() {
 		features = new float[1];
@@ -41,12 +41,12 @@ public class Power extends FeatureExtractor {
 	 * @see com.olliebown.beads.core.UGen#calculateBuffer()
 	 */
 	@Override
-	public void process(float[] audioData, int length) {
+	public void process(float[] audioData) {
 		features[0] = 0.0f;
-		for(int i = 0; i < length; i++) {
+		for(int i = 0; i < audioData.length; i++) {
 			features[0] += audioData[i] * audioData[i];
 		}
-		features[0] = (float)Math.sqrt(features[0] / (float)length);
+		features[0] = (float)Math.sqrt(features[0] / (float)audioData.length);
 	}
 
 	

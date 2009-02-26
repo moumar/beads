@@ -24,7 +24,7 @@ public class FeatureFrame implements Serializable {
 	private double endTimeMS;
 	
 	/** The features. */
-	private Hashtable<String, float[]> features;
+	private Hashtable<String, Object> features;
 	
 	/**
 	 * Instantiates a new FeatureFrame.
@@ -36,7 +36,7 @@ public class FeatureFrame implements Serializable {
 		super();
 		this.startTimeMS = startTimeMS;
 		this.endTimeMS = endTimeMS;
-		features = new Hashtable<String, float[]>();
+		features = new Hashtable<String, Object>();
 	}
 	
 	/**
@@ -81,7 +81,7 @@ public class FeatureFrame implements Serializable {
 	 * @param s the name used to identify the feature set.
 	 * @param f the features.
 	 */
-	public void add(String s, float[] f) {
+	public void add(String s, Object f) {
 		features.put(s, f);
 	}
 	
@@ -92,7 +92,7 @@ public class FeatureFrame implements Serializable {
 	 * 
 	 * @return the features.
 	 */
-	public float[] get(String s) {
+	public Object get(String s) {
 		return features.get(s);
 	}
 	
@@ -125,10 +125,8 @@ public class FeatureFrame implements Serializable {
 		result += "\nEnd Time  : " + endTimeMS + " (ms)";
 		for(String s : features.keySet()) {
 			result += "\n" + s + ": ";
-			float[] data = features.get(s);
-			for(int i = 0; i < data.length; i++) {
-				result += data[i] + " ";
-			}
+			Object data = features.get(s);
+			result += data;
 		}
 		return result;
 	}

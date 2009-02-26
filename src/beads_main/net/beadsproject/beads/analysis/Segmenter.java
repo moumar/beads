@@ -14,31 +14,28 @@ import net.beadsproject.beads.core.UGen;
  * 
  * An implementation of a Segmenter must implement the method {@link UGen#calculateBuffer()}, and determine when {@link #segment(float[], int)} should be called, passing the audio data accordingly (this may require the Segmenter to record audio data).
  * 
- * In addition, the Segmenter keeps track of analysis data in a {@link FeatureLayer} for any {@link FeatureExtractor}s registered as extractors with this Segmenter.
+ * In addition, the Segmenter keeps track of analysis data in a {@link FeatureTrack} for any {@link FeatureExtractor}s registered as extractors with this Segmenter.
  *  
  * <p/>NOTE: It is critical that the second argument passed to the method {@link #segment(float[], int)} correctly indicates the length since the previous segment.
  *  
  *  @author ollie
  */
 public abstract class Segmenter extends UGen {
-	
-	//TODO use of currentTime and previousTime are broken. Reconsider design of segment method.
 
-	/** The FeatureLayer to which analysis data is stored. */
-	private FeatureLayer fl;
 	
 	/** The set of FeatureExtractors that respond to this Segmenter. */
 	private ArrayList<FeatureExtractor> responders;
 	
 	/** The set of Beads that are triggered when this Segmenter segments. */
 	private BeadArray listeners;
+
+	/** The current start time in samples. */
+	private long startTime;
 	
-	/** The set of FeatureExtractors whose feature data is recorded by this Segmenter. */
-	private ArrayList<FeatureExtractor> extractors;
-	
-	/** The current time in milliseconds. */
+	/** The current time in milliseconds since start. */
 	protected double currentTime;
-	
+
+	/** The previous end time in milliseconds since start. */
 	protected double previousEndTime;
 	
 	/**
@@ -49,9 +46,9 @@ public abstract class Segmenter extends UGen {
 	public Segmenter(AudioContext context) {
 		super(context, 1, 0);		
 		responders = new ArrayList<FeatureExtractor>();
-		extractors = new ArrayList<FeatureExtractor>();
 		listeners = new BeadArray();
-		setTime(0);
+		startTime();
+		currentTime = previousEndTime = 0;
 	}
 	
 	/**
@@ -59,33 +56,8 @@ public abstract class Segmenter extends UGen {
 	 * 
 	 * @param time the new time.
 	 */
-	public void setTime(double time) {
-		currentTime = previousEndTime = time;
-	}
-
-	/**
-	 * Sets the FeatureLayer.
-	 * 
-	 * @param fl the new FeatureLayer.
-	 */
-	public void setFeatureLayer(FeatureLayer fl) {
-		this.fl = fl;
-	}
-	
-	/**
-	 * Gets the FeatureLayer.
-	 * 
-	 * @return the FeatureLayer.
-	 */
-	public FeatureLayer getFeatureLayer() {
-		return fl;
-	}
-	
-	/**
-	 * Unsets the FeatureLayer.
-	 */
-	public void unsetFeatureLayer() {
-		fl = null;
+	public void startTime() {
+		startTime = context.getTimeStep() * context.getBufferSize();
 	}
 	
 	/**
@@ -93,27 +65,8 @@ public abstract class Segmenter extends UGen {
 	 * 
 	 * @param fe the FeatureExtractor.
 	 */
-	public void addResponder(FeatureExtractor fe) {
+	public void addListener(FeatureExtractor fe) {
 		responders.add(fe);
-	}
-	
-	/**
-	 * Adds a FeatureExtractor to the list of FeatureExtractors whose data is recorded.
-	 * 
-	 * @param fe the FeatureExtractor.
-	 */
-	public void addExtractor(FeatureExtractor fe) {
-		extractors.add(fe);
-	}
-	
-	/**
-	 * Adds a FeatureExtractor both as a responder to this Segmenter and to the list of FeatureExtractors whose data is recorded.
-	 * 
-	 * @param fe the FeatureExtractor.
-	 */
-	public void addResponderExtractor(FeatureExtractor fe) {
-		addResponder(fe);
-		addExtractor(fe);
 	}
 	
 	/**
@@ -131,20 +84,13 @@ public abstract class Segmenter extends UGen {
 	 * @param data the audio data.
 	 * @param length the number of samples since the previous data.
 	 */
-	protected void segment(float[] data, int length) {
+	protected void segment(float[] data, int sampleOffset) {
 		for(FeatureExtractor fe : responders) {
-			fe.process(data, length);
+			fe.process(data);
 		}
-		if(fl != null) {
-			FeatureFrame ff = new FeatureFrame(previousEndTime, currentTime);
-			for(FeatureExtractor fe : extractors) {
-				ff.add(fe.getName(), fe.getFeatures());
-			}
-			fl.add(ff);
-			previousEndTime = currentTime;
-			currentTime += context.samplesToMs(length);
-		}
+		currentTime = context.samplesToMs(context.getTimeStep() * context.getBufferSize() + sampleOffset - startTime);
 		listeners.message(this);
+		previousEndTime = currentTime;
 	}
 	
 	/* (non-Javadoc)
@@ -152,7 +98,7 @@ public abstract class Segmenter extends UGen {
 	 */
 	public String toString() {
 		String result = "Segmenter: " + getClass().getSimpleName();
-		for(FeatureExtractor fe : extractors) {
+		for(FeatureExtractor fe : responders) {
 			result += "\n    " + fe.getName();
 		}
 		return result;

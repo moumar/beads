@@ -10,7 +10,7 @@ import net.beadsproject.beads.core.AudioContext;
 /**
  * Frequency processes spectral data forwarded to it by a {@link PowerSpectrum} to determine the best estimate for the frequency of the current signal.
  */
-public class Frequency extends FeatureExtractor {
+public class Frequency extends FeatureExtractor<float[], float[]> {
 
 	/** The Constant FIRSTBAND. */
 	static final int FIRSTBAND = 3;
@@ -32,7 +32,7 @@ public class Frequency extends FeatureExtractor {
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.core.PowerSpectrumListener#calculateFeatures(float[])
 	 */
-	public synchronized void process(float[] powerSpectrum, int length) {
+	public synchronized void process(float[] powerSpectrum) {
 		features = new float[1];
 		// collect average linear spectrum
 		double[] linSpec = new double[powerSpectrum.length];

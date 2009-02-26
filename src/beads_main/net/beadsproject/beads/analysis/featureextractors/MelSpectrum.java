@@ -4,13 +4,14 @@
  */
 package net.beadsproject.beads.analysis.featureextractors;
 
+import java.util.ArrayList;
+
 import net.beadsproject.beads.analysis.FeatureExtractor;
-import net.beadsproject.beads.core.AudioContext;
 
 /**
  * The Class MelSpectrum.
  */
-public class MelSpectrum extends FeatureExtractor {
+public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 
 	/** The ac. */
 	private final float sampleRate;
@@ -25,6 +26,9 @@ public class MelSpectrum extends FeatureExtractor {
 	// for each fft bin
 	/** The mel of lin. */
 	protected double[] melOfLin;
+	
+
+	protected ArrayList<FeatureExtractor<?, float[]>> listeners;
 
 
 	/**
@@ -39,6 +43,7 @@ public class MelSpectrum extends FeatureExtractor {
 		this.sampleRate = sampleRate;
 		setNumberOfFeatures(numCoeffs);
 		bufferSize = -1;
+		listeners = new ArrayList<FeatureExtractor<?,float[]>>();
 	}
 	
 	private void setup() {
@@ -66,9 +71,7 @@ public class MelSpectrum extends FeatureExtractor {
 		// precalculate mel translations of fft bin frequencies
 		melOfLin = new double[twiceBufferSize];
 		for (int i = 0; i < twiceBufferSize; i++) {
-			melOfLin[i] = lin2mel(i * sampleRate
-					/ (2 * twiceBufferSize));
-			// System.out.println("linbin2Mel["+i+"]="+linbin2mel[i]);
+			melOfLin[i] = lin2mel(i * sampleRate / (2 * twiceBufferSize));
 		}
 		featureDescriptions = new String[numFeatures];
 		for (int i = 0; i < numFeatures; i++) {
@@ -80,12 +83,12 @@ public class MelSpectrum extends FeatureExtractor {
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.core.PowerSpectrumListener#calculateFeatures(float[])
 	 */
-	public void process(float[] powerSpectrum, int length) {
-		if(length != bufferSize) {
-			bufferSize = length;
+	public void process(float[] powerSpectrum) {
+		if(powerSpectrum.length != bufferSize) {
+			bufferSize = powerSpectrum.length;
 			setup();
 		}
-		float[] linSpec = new float[length];
+		float[] linSpec = new float[powerSpectrum.length];
 		// convert log magnitude to linear magnitude for binning
 		for (int band = 0; band < linSpec.length; band++)
 			linSpec[band] = (float) Math.pow(10, powerSpectrum[band] / 10);
@@ -101,10 +104,15 @@ public class MelSpectrum extends FeatureExtractor {
 				}
 			}
 			// Take log
-			//features[bin] = (float)(10 * Math.log(features[bin]) / Math.log(10)) / (bin + 1); //mucking about by Ollie
 			features[bin] = Math.max(0f, (float)(10f * Math.log(features[bin]) / Math.log(10)));
 		}
-		//printFeatures();
+		for(FeatureExtractor<?, float[]> fe : listeners) {
+			fe.process(features);
+		}
+	}
+	
+	public void addListener(FeatureExtractor<?, float[]> fe) {
+		listeners.add(fe);
 	}
 
 
@@ -145,16 +153,6 @@ public class MelSpectrum extends FeatureExtractor {
 	 */
 	public double mel2lin(double mel) {
 		return 700.0 * (Math.exp(mel / 1127.0) - 1.0);
-	}
-
-	/**
-	 * The main method.
-	 * 
-	 * @param args
-	 *            the arguments
-	 */
-	public static void main(String[] args) {
-	
 	}
 
 

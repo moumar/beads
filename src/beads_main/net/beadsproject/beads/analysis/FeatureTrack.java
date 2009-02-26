@@ -14,7 +14,7 @@ import java.util.Iterator;
  * 
  * @author ollie
  */
-public class FeatureLayer implements Serializable, Iterable<FeatureFrame> {
+public class FeatureTrack implements Serializable, Iterable<FeatureFrame> {
 	
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
@@ -25,7 +25,7 @@ public class FeatureLayer implements Serializable, Iterable<FeatureFrame> {
 	/**
 	 * Instantiates a new FeatureLayer.
 	 */
-	public FeatureLayer() {
+	public FeatureTrack() {
 		frames = new ArrayList<FeatureFrame>();
 	}
 	

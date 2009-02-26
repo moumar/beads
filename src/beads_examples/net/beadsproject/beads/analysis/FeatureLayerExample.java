@@ -2,7 +2,7 @@ package net.beadsproject.beads.analysis;
 
 import java.util.Random;
 import net.beadsproject.beads.analysis.FeatureFrame;
-import net.beadsproject.beads.analysis.FeatureLayer;
+import net.beadsproject.beads.analysis.FeatureTrack;
 import net.beadsproject.beads.analysis.featureextractors.PowerSpectrum;
 import net.beadsproject.beads.analysis.featureextractors.SpectralCentroid;
 import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
@@ -17,7 +17,7 @@ public class FeatureLayerExample {
 	public static void main(String[] args) {
 		int NUM_OSCILLATORS = 100;
 		Random rng = new Random();
-		System.out.println("Testing: " + FeatureLayer.class);
+		System.out.println("Testing: " + FeatureTrack.class);
 		//set up audio
 		AudioContext ac = new AudioContext(512, 5000);
 		//set up sound to analyse
@@ -37,21 +37,25 @@ public class FeatureLayerExample {
 		//set up power spectrum
 		PowerSpectrum ps = new PowerSpectrum();
 		//attach power spectrum to segmenter
-		sfs.addResponderExtractor(ps);
+		sfs.addListener(ps);
 		//set up spectral centroid
 		final SpectralCentroid sc = new SpectralCentroid(ac.getSampleRate());
 		ps.addListener(sc);
-		sfs.addExtractor(sc);
+		sfs.addListener(sc);
 		
-		//add FeatureLayer to Segmenter (this turns on recording)
-		FeatureLayer fl = new FeatureLayer() {
+		//set up FeatureTrack and FeatureRecorder
+		FeatureTrack ft = new FeatureTrack() {
 			public void add(FeatureFrame ff) {
 				super.add(ff);
 				System.out.println("received feature frame: ");
 				System.out.println(ff);
 			}
 		};
-		sfs.setFeatureLayer(fl);
+		FeatureRecorder fr = new FeatureRecorder();
+		sfs.addListener(fr);
+		fr.addFeatureExtractor(ps);
+		fr.addFeatureExtractor(sc);
+		fr.setFeatureTrack(ft);
 		
 		//connect audio
 		sfs.addInput(g);

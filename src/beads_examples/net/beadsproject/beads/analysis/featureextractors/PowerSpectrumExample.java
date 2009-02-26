@@ -33,8 +33,8 @@ public class PowerSpectrumExample {
 		ShortFrameSegmenter sfs = new ShortFrameSegmenter(ac);
 		//set up power
 		PowerSpectrum ps = new PowerSpectrum() {
-			public void process(float[] f, int l) {
-				super.process(f, l);
+			public void process(float[] f) {
+				super.process(f);
 				float[] fts = getFeatures();
 				for(int i = 0; i < fts.length; i++) {
 					System.out.print(fts[i] + " ");
@@ -43,7 +43,7 @@ public class PowerSpectrumExample {
 			}
 		};
 		//attach power to segmenter
-		sfs.addResponderExtractor(ps);
+		sfs.addListener(ps);
 
 		//connect audio
 		sfs.addInput(g);

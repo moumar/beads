@@ -5,7 +5,7 @@
 
 package net.beadsproject.beads.analysis.featureextractors;
 
-import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.analysis.FeatureExtractor;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -37,7 +37,11 @@ public class MFCC extends MelSpectrum {
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.analysis.MelSpectrum#calculateFeatures(float[])
 	 */
-	public void process(float[] powerSpectrum, int length) {
+	public void process(float[] powerSpectrum) {
+		
+
+        super.process(powerSpectrum);
+		
         // precompute DCT matrix
         int nmel = features.length;  
         double m = Math.sqrt(2.0/nmel);
@@ -47,7 +51,7 @@ public class MFCC extends MelSpectrum {
                 DCTcoeffs[i][j] = m*Math.cos(Math.PI*(j+1)*(i+.5)/(double)nmel);
             }
         }
-        super.process(powerSpectrum, length);
+//        super.process(powerSpectrum);
         // convert to cepstrum:
         for(int x = 0; x < features.length; x++) {
             // convert from dB to plain old log magnitude
@@ -57,7 +61,9 @@ public class MFCC extends MelSpectrum {
                 mfccs[y] = (float)(DCTcoeffs[x][y]*features[x]);
             }
         }
-        //printFeatures();
+        for(FeatureExtractor<?, float[]> fe : listeners) {
+        	fe.process(mfccs);
+        }
 	}
 	
 	/* (non-Javadoc)

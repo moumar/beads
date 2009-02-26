@@ -37,11 +37,11 @@ public class SpectralCentroidExample {
 		//set up power spectrum
 		PowerSpectrum ps = new PowerSpectrum();
 		//attach power spectrum to segmenter
-		sfs.addResponderExtractor(ps);
+		sfs.addListener(ps);
 		//set up spectral centroid
 		final SpectralCentroid sc = new SpectralCentroid(ac.getSampleRate()) {
-			public void process(float[] f, int l) {
-				super.process(f, l);
+			public void process(float[] f) {
+				super.process(f);
 				float[] fts = getFeatures();
 				for(int i = 0; i < fts.length; i++) {
 					System.out.print(fts[i] + " ");
@@ -50,7 +50,6 @@ public class SpectralCentroidExample {
 			}
 		};
 		ps.addListener(sc);
-		sfs.addExtractor(sc);
 
 		//bonus mark - make a sine wave play the spectral centroid
 		WavePlayer wp = new WavePlayer(ac, 500f, new SineBuffer().getDefault()) {

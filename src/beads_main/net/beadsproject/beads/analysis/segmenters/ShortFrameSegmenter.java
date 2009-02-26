@@ -108,14 +108,15 @@ public class ShortFrameSegmenter extends Segmenter {
 	public void calculateBuffer() {
 		for(int i = 0; i < bufferSize; i++) {
 			for(int j = 0; j < chunks.length; j++) {
-				int pos = (count + i * hopSize) % chunkSize;
+				int pos = (count + j * hopSize) % chunkSize;
 				chunks[j][pos] = bufIn[0][i] * window.getValueFraction((float)pos / (float)chunkSize);
 			}
 			count = (count + 1) % chunkSize;
 			if(count % hopSize == 0) {
-				segment(chunks[count / hopSize], chunkSize);
+				segment(chunks[count / hopSize], i);
 			}
 		}
 	}
+	
 
 }

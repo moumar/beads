@@ -24,13 +24,13 @@ public class PowerExample {
 		ShortFrameSegmenter sfs = new ShortFrameSegmenter(ac);
 		//set up power
 		Power p = new Power() {
-			public void process(float[] f, int l) {
-				super.process(f, l);
+			public void process(float[] f) {
+				super.process(f);
 				System.out.println(getFeatures()[0]);
 			}
 		};
 		//attach power to segmenter
-		sfs.addResponderExtractor(p);
+		sfs.addListener(p);
 
 		//connect audio
 		sfs.addInput(g);

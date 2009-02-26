@@ -11,7 +11,7 @@ import net.beadsproject.beads.analysis.FeatureExtractor;
 /**
  * The Class SpectralCentroid.
  */
-public class SpectralCentroid extends FeatureExtractor {
+public class SpectralCentroid extends FeatureExtractor<float[], float[]>  {
 
 	/** The ac. */
 	private float sampleRate;
@@ -30,14 +30,14 @@ public class SpectralCentroid extends FeatureExtractor {
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.core.PowerSpectrumListener#calculateFeatures(float[])
 	 */
-	public void process(float[] powerSpectrum, int length) {
+	public void process(float[] powerSpectrum) {
 		double num = 0;
 		double den = 0;
 		num = 0;
 		den = 0;
-		for (int band = 0; band < length; band++) {
+		for (int band = 0; band < powerSpectrum.length; band++) {
 			double freqCenter = band * (sampleRate / 2)
-					/ (length - 1);
+					/ (powerSpectrum.length - 1);
 			// convert back to linear power
 			double p = Math.pow(10, powerSpectrum[band] / 10);
 			num += freqCenter * p;

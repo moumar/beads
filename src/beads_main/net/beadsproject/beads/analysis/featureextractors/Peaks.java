@@ -12,7 +12,7 @@ import net.beadsproject.beads.core.AudioContext;
 /**
  * The Class Peaks.
  */
-public class Peaks extends FeatureExtractor {
+public class Peaks extends FeatureExtractor<float[], float[]>  {
 
 	/** The Constant FIRSTBAND. */
 	static final int FIRSTBAND = 3;
@@ -34,9 +34,9 @@ public class Peaks extends FeatureExtractor {
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.core.PowerSpectrumListener#calculateFeatures(float[])
 	 */
-	public synchronized void process(float[] powerSpectrum, int length) {
+	public synchronized void process(float[] powerSpectrum) {
 		// collect average linear spectrum
-		double[] linSpec = new double[length];
+		double[] linSpec = new double[powerSpectrum.length];
 		for (int band = 0; band < linSpec.length; band++) {
 			linSpec[band] = Math.pow(10, powerSpectrum[band] / 10);
 		}

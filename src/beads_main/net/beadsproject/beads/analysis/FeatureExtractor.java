@@ -8,13 +8,13 @@ package net.beadsproject.beads.analysis;
  *
  * @author ollie
  */
-public abstract class FeatureExtractor {
+public abstract class FeatureExtractor<R, P> {
 	
 	/** The number of features. */
 	protected int numFeatures;
 	
-	/** The current array of feature data. */
-	protected float[] features;
+	/** The current feature data. */
+	protected R features;
 	
 	/** The name of the FeatureExtractor. */
 	protected String name;
@@ -35,14 +35,14 @@ public abstract class FeatureExtractor {
 	 * @param data the data.
 	 * @param length the length of the data to use. 
 	 */
-	public abstract void process(float[] data, int length);
+	public abstract void process(P data);
 	
 	/**
 	 * Gets the current features.
 	 * 
 	 * @return the features.
 	 */
-	public float[] getFeatures() {
+	public R getFeatures() {
 		return features;
 	}
 	

@@ -10,9 +10,9 @@ import net.beadsproject.beads.analysis.FeatureExtractor;
 /**
  * FFT performs a Fast Fourier Transform and forwards half of the real part of the data to any listeners.
  */
-public class FFT extends FeatureExtractor {
+public class FFT extends FeatureExtractor<float[], float[]>  {
 	
-	protected ArrayList<FeatureExtractor> listeners;
+	protected ArrayList<FeatureExtractor<?, float[]>> listeners;
 	
 	/** The real part. */
 	protected float[] fftReal;
@@ -24,19 +24,23 @@ public class FFT extends FeatureExtractor {
 	 * Instantiates a new FFT.
 	 */
 	public FFT() {
-		listeners = new ArrayList<FeatureExtractor>();
+		listeners = new ArrayList<FeatureExtractor<?, float[]>>();
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.core.UGen#calculateBuffer()
 	 */
 	@Override
-	public void process(float[] data, int length) {
-		fft(data, length, true);
-		fftReal = getReal(data, length);
-		fftImag = getImag(data, length);
+	public void process(float[] data) {
+		float[] dataCopy = new float[data.length];
+		for(int i = 0; i < data.length; i++) {
+			dataCopy[i] = data[i];
+		}
+		fft(dataCopy, dataCopy.length, true);
+		fftReal = calculateReal(dataCopy, dataCopy.length);
+		fftImag = calculateImaginary(dataCopy, dataCopy.length);
 		for(FeatureExtractor fe : listeners) {
-			fe.process(fftReal, length);
+			fe.process(fftReal);
 		}
 	}
 
@@ -64,7 +68,7 @@ public class FFT extends FeatureExtractor {
 	 * 
 	 * @return real part of given length of complex spectrum.
 	 */
-	public static float[] getReal(float[] spectrum, int length) {
+	protected static float[] calculateReal(float[] spectrum, int length) {
 		float[] real = new float[length];
 		real[0] = spectrum[0];
 		real[real.length/2] = spectrum[1];
@@ -83,7 +87,7 @@ public class FFT extends FeatureExtractor {
 	 * 
 	 * @return imaginary part of given length of complex spectrum.
 	 */
-	public static float[] getImag(float[] spectrum, int length) {
+	protected static float[] calculateImaginary(float[] spectrum, int length) {
 		float[] imag = new float[length];
 		for (int i=1, j=imag.length-1; i<j; ++i, --j)
 		  imag[i] = -(imag[j] = spectrum[2*i+1]);
