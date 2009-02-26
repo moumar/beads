@@ -9,10 +9,12 @@ import net.beadsproject.beads.analysis.featureextractors.MelSpectrum;
 import net.beadsproject.beads.analysis.featureextractors.PowerSpectrum;
 import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.data.SampleManager;
 import net.beadsproject.beads.data.buffers.SineBuffer;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
 import net.beadsproject.beads.ugens.DelayTrigger;
 import net.beadsproject.beads.ugens.Envelope;
+import net.beadsproject.beads.ugens.SamplePlayer;
 import net.beadsproject.beads.ugens.WavePlayer;
 
 public class AnalysisTest {
@@ -22,20 +24,22 @@ public class AnalysisTest {
 		
 		String analysisDataDir = "/Users/ollie/Desktop";
 		
-		Envelope frequencyEnvelope1 = new Envelope(ac, 200f);
-		frequencyEnvelope1.addSegment(20000, 1000f);
-		WavePlayer wp1 = new WavePlayer(ac, frequencyEnvelope1, new SineBuffer().getDefault());
-		ac.out.addInput(wp1);
-		
-		Envelope frequencyEnvelope2 = new Envelope(ac, 400f);
-		frequencyEnvelope2.addSegment(20000, 500f);
-		frequencyEnvelope2.addSegment(5000, 500f);
-		WavePlayer wp2 = new WavePlayer(ac, frequencyEnvelope2, new SineBuffer().getDefault());
-		ac.out.addInput(wp2);
+//		Envelope frequencyEnvelope1 = new Envelope(ac, 200f);
+//		frequencyEnvelope1.addSegment(20000, 1000f);
+//		WavePlayer wp1 = new WavePlayer(ac, frequencyEnvelope1, new SineBuffer().getDefault());
+//		ac.out.addInput(wp1);
+//		
+//		Envelope frequencyEnvelope2 = new Envelope(ac, 400f);
+//		frequencyEnvelope2.addSegment(20000, 500f);
+//		frequencyEnvelope2.addSegment(5000, 500f);
+//		WavePlayer wp2 = new WavePlayer(ac, frequencyEnvelope2, new SineBuffer().getDefault());
+//		ac.out.addInput(wp2);
+//		
+//		SamplePlayer sp = new SamplePlayer(ac, SampleManager.sample("audio/1234.aif"));
+//		ac.out.addInput(sp);
 		
 		ShortFrameSegmenter sfs = new ShortFrameSegmenter(ac);
-		sfs.addInput(wp1);
-		sfs.addInput(wp2);
+		sfs.addInput(ac.out);
 		ac.out.addDependent(sfs);
 		
 		sfs.setChunkSize(512);

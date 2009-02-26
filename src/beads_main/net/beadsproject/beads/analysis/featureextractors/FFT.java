@@ -39,7 +39,7 @@ public class FFT extends FeatureExtractor<float[], float[]>  {
 		fft(dataCopy, dataCopy.length, true);
 		fftReal = calculateReal(dataCopy, dataCopy.length);
 		fftImag = calculateImaginary(dataCopy, dataCopy.length);
-		for(FeatureExtractor fe : listeners) {
+		for(FeatureExtractor<?, float[]> fe : listeners) {
 			fe.process(fftReal);
 		}
 	}
@@ -49,7 +49,7 @@ public class FFT extends FeatureExtractor<float[], float[]>  {
 	 * 
 	 * @param the FeatureExtractor.
 	 */
-	public void addListener(FeatureExtractor fe) {
+	public void addListener(FeatureExtractor<?, float[]> fe) {
 		listeners.add(fe);
 	}
 	

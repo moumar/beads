@@ -33,7 +33,7 @@ public class PowerSpectrum extends FFT {
 		//calculate the power spectrum
 		calculatePower();
 		//update the listeners
-		for(FeatureExtractor fe : listeners) {
+		for(FeatureExtractor<?, float[]> fe : listeners) {
 			fe.process(powerSpectrum);
 		}
 	}

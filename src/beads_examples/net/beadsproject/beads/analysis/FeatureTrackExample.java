@@ -4,6 +4,7 @@ import java.util.Random;
 import net.beadsproject.beads.analysis.FeatureFrame;
 import net.beadsproject.beads.analysis.FeatureTrack;
 import net.beadsproject.beads.analysis.featureextractors.PowerSpectrum;
+import net.beadsproject.beads.analysis.featureextractors.ReBin;
 import net.beadsproject.beads.analysis.featureextractors.SpectralCentroid;
 import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
 import net.beadsproject.beads.core.AudioContext;
@@ -12,7 +13,7 @@ import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.OscillatorBank;
 import net.beadsproject.beads.ugens.WavePlayer;
 
-public class FeatureLayerExample {
+public class FeatureTrackExample {
 
 	public static void main(String[] args) {
 		int NUM_OSCILLATORS = 100;
@@ -42,6 +43,9 @@ public class FeatureLayerExample {
 		final SpectralCentroid sc = new SpectralCentroid(ac.getSampleRate());
 		ps.addListener(sc);
 		sfs.addListener(sc);
+		//set up rebinner
+		ReBin rb = new ReBin(10);
+		ps.addListener(rb);
 		
 		//set up FeatureTrack and FeatureRecorder
 		FeatureTrack ft = new FeatureTrack() {
@@ -55,6 +59,7 @@ public class FeatureLayerExample {
 		sfs.addListener(fr);
 		fr.addFeatureExtractor(ps);
 		fr.addFeatureExtractor(sc);
+		fr.addFeatureExtractor(rb);
 		fr.setFeatureTrack(ft);
 		
 		//connect audio

@@ -126,7 +126,14 @@ public class FeatureFrame implements Serializable {
 		for(String s : features.keySet()) {
 			result += "\n" + s + ": ";
 			Object data = features.get(s);
-			result += data;
+			if(data instanceof float[]) {
+				float[] fdata = (float[])data;
+				for(int i = 0; i < fdata.length; i++) {
+					result += fdata[i] + " ";
+				}
+			} else {
+				result += data;
+			}
 		}
 		return result;
 	}
