@@ -85,7 +85,7 @@ public abstract class Segmenter extends UGen {
 	 * @param length the number of samples since the previous data.
 	 */
 	protected void segment(float[] data, int sampleOffset) {
-		for(FeatureExtractor fe : responders) {
+		for(FeatureExtractor<?, float[]> fe : responders) {
 			fe.process(data);
 		}
 		currentTime = context.samplesToMs(context.getTimeStep() * context.getBufferSize() + sampleOffset - startTime);
@@ -98,7 +98,7 @@ public abstract class Segmenter extends UGen {
 	 */
 	public String toString() {
 		String result = "Segmenter: " + getClass().getSimpleName();
-		for(FeatureExtractor fe : responders) {
+		for(FeatureExtractor<?, float[]> fe : responders) {
 			result += "\n    " + fe.getName();
 		}
 		return result;

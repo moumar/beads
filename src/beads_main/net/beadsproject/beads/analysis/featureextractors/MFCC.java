@@ -5,16 +5,23 @@
 
 package net.beadsproject.beads.analysis.featureextractors;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import net.beadsproject.beads.analysis.FeatureExtractor;
 
 // TODO: Auto-generated Javadoc
 /**
  * The Class MFCC.
  */
-public class MFCC extends MelSpectrum {
+public class MFCC extends FeatureExtractor<float[], float[]> {
 
-	/** The mfccs. */
-	private float[] mfccs;
+
+	private ArrayList<FeatureExtractor<?, float[]>> listeners;
+	
+	private double[][] DCTcoeffs; 
+	
+	private int inputLength;
 	
 	/**
 	 * Instantiates a new mFCC.
@@ -24,80 +31,73 @@ public class MFCC extends MelSpectrum {
 	 * @param numCoeffs
 	 *            the num coeffs
 	 */
-	public MFCC(float bufferSize, int numCoeffs) {
-		super(bufferSize, numCoeffs);
-		mfccs = new float[numCoeffs];
-		featureDescriptions = new String[numCoeffs];
+	public MFCC(int numCoeffs) {
+		setNumberOfFeatures(numCoeffs);
+		features = new float[numFeatures];
+		featureDescriptions = new String[numFeatures];
 		for (int i = 0; i < numCoeffs; i++) {
 			if(i < 9) featureDescriptions[i] = "mfcc0" + (i + 1);
 			else featureDescriptions[i] = "mfcc" + (i + 1);
 		}
+		listeners = new ArrayList<FeatureExtractor<?,float[]>>();
+	}
+	
+	public void setNumberOfFeatures(int num) {
+		super.setNumberOfFeatures(num);
+		inputLength = -1; //flag to make sure DCTcoeffs are setup
+	}
+	
+	private void setupDCTcoeffs() {
+        double m = Math.sqrt(2.0 / inputLength);
+        DCTcoeffs = new double[inputLength][features.length];
+        for(int i = 0; i < inputLength; i++) {
+            for(int j = 0; j < features.length; j++) {
+                DCTcoeffs[i][j] = m * Math.cos(Math.PI * (j + 1) * (i + 0.5) / (double)inputLength);
+            }
+        }
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.analysis.MelSpectrum#calculateFeatures(float[])
 	 */
-	public void process(float[] powerSpectrum) {
-		
-
-        super.process(powerSpectrum);
-		
+	public void process(float[] melSpectrum) {
+		Arrays.fill(features, 0f);
         // precompute DCT matrix
-        int nmel = features.length;  
-        double m = Math.sqrt(2.0/nmel);
-        double[][] DCTcoeffs = new double[nmel][features.length];
-        for(int i = 0; i < nmel; i++) {
-            for(int j = 0; j < features.length; j++) {
-                DCTcoeffs[i][j] = m*Math.cos(Math.PI*(j+1)*(i+.5)/(double)nmel);
-            }
-        }
-//        super.process(powerSpectrum);
+		float[] melSpectrumCopy = new float[melSpectrum.length];
+		for(int i = 0; i < melSpectrum.length; i++) {
+			melSpectrumCopy[i] = melSpectrum[i];
+		}
+		if(melSpectrum.length != inputLength) {
+			inputLength = melSpectrum.length;
+			setupDCTcoeffs();
+		}
         // convert to cepstrum:
-        for(int x = 0; x < features.length; x++) {
+        for(int x = 0; x < melSpectrumCopy.length; x++) {
             // convert from dB to plain old log magnitude
-            features[x] = features[x]/10;  
+        	melSpectrumCopy[x] = melSpectrumCopy[x]/10;  
             // take DCT
             for(int y = 0; y < features.length; y++) {
-                mfccs[y] = (float)(DCTcoeffs[x][y]*features[x]);
+                features[y] += (float)(DCTcoeffs[x][y]*melSpectrumCopy[x]);
             }
         }
         for(FeatureExtractor<?, float[]> fe : listeners) {
-        	fe.process(mfccs);
+        	fe.process(features);
         }
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.olliebown.beads.analysis.MelSpectrum#getFeatures()
-	 */
-	public float[] getFeatures() {
-		return mfccs;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.olliebown.beads.analysis.MelSpectrum#getNumFeatures()
-	 */
-	public int getNumFeatures() {
-		return mfccs.length;
-	}
 
 	/**
 	 * Prints the features.
 	 */
 	private void printFeatures() {
-		for (int i = 0; i < mfccs.length; i++) {
-			System.out.print(mfccs[i] + " ");
+		for (int i = 0; i < features.length; i++) {
+			System.out.print(features[i] + " ");
 		}
 		System.out.println();
 	}
-	
-	/**
-	 * The main method.
-	 * 
-	 * @param args
-	 *            the arguments
-	 */
-	public static void main(String[] args) {
-	
+
+	public void addListener(FeatureExtractor<?, float[]> fe) {
+		listeners.add(fe);
 	}
 
 }

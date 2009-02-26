@@ -46,13 +46,13 @@ public class AnalysisTest {
 
 		fft.addListener(new GnuplotDataWriter(new FileOutputStream("/Users/ollie/Desktop/powerspec")));
 		
-//		MelSpectrum ms = new MelSpectrum(ac.getSampleRate(), 128);
-//		fft.addListener(ms);
-//
-//		ms.addListener(new GnuplotDataWriter(new FileOutputStream("/Users/ollie/Desktop/melspec")));
+		MelSpectrum ms = new MelSpectrum(ac.getSampleRate(), 128);
+		fft.addListener(ms);
+
+		ms.addListener(new GnuplotDataWriter(new FileOutputStream("/Users/ollie/Desktop/melspec")));
 		
-		MFCC mfcc = new MFCC(ac.getSampleRate(), 30);
-		fft.addListener(mfcc);
+		MFCC mfcc = new MFCC(30);
+		ms.addListener(mfcc);
 		
 		mfcc.addListener(new GnuplotDataWriter(new FileOutputStream("/Users/ollie/Desktop/mfcc")));
 		

@@ -18,14 +18,16 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 	private int bufferSize;
 	// for each mel bin...
 	/** The mel center. */
-	protected double[] melCenter; // actual targe mel value at center of this
+	private double[] melCenter; // actual targe mel value at center of this
 	// bin
 	/** The mel width. */
-	protected double[] melWidth; // mel width divisor for this bin (constant,
+	private double[] melWidth; // mel width divisor for this bin (constant,
 	// except broadens in low bins)
 	// for each fft bin
 	/** The mel of lin. */
-	protected double[] melOfLin;
+	private double[] melOfLin;
+	
+	private double hardMax;
 	
 
 	protected ArrayList<FeatureExtractor<?, float[]>> listeners;
@@ -42,8 +44,8 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 	public MelSpectrum(float sampleRate, int numCoeffs) {
 		this.sampleRate = sampleRate;
 		setNumberOfFeatures(numCoeffs);
-		bufferSize = -1;
 		listeners = new ArrayList<FeatureExtractor<?,float[]>>();
+		hardMax = 8000.0;
 	}
 	
 	private void setup() {
@@ -54,7 +56,7 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 		melCenter = new double[numFeatures + 2];
 		melWidth = new double[numFeatures + 2];
 		double melMin = lin2mel(0);
-		double melMax = lin2mel((8000.0 < sampleRate / 2) ? 8000.0 : sampleRate / 2); // dpwe 2006-12-11 - hard maximum
+		double melMax = lin2mel((hardMax < sampleRate / 2) ? hardMax : sampleRate / 2); // dpwe 2006-12-11 - hard maximum
 		double hzPerBin = sampleRate / 2 / twiceBufferSize;
 		for (int i = 0; i < numFeatures + 2; i++) {
 			melCenter[i] = melMin + i * (melMax - melMin) / (numFeatures + 1);
@@ -64,8 +66,7 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 			double linbinwidth = (mel2lin(melCenter[i + 1]) - mel2lin(melCenter[i]))
 					/ hzPerBin;
 			if (linbinwidth < 1) {
-				melWidth[i] = lin2mel(mel2lin(melCenter[i]) + hzPerBin)
-						- melCenter[i];
+				melWidth[i] = lin2mel(mel2lin(melCenter[i]) + hzPerBin) - melCenter[i];
 			}
 		}
 		// precalculate mel translations of fft bin frequencies
@@ -128,7 +129,7 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 	
 	public void setNumberOfFeatures(int numFeatures) {
 		super.setNumberOfFeatures(numFeatures);
-		setup();
+		bufferSize = -1;
 	}
 
 	/**
@@ -139,7 +140,7 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 	 * 
 	 * @return the double
 	 */
-	public double lin2mel(double fq) {
+	public static double lin2mel(double fq) {
 		return 1127.0 * Math.log(1.0 + fq / 700.0);
 	}
 
@@ -151,7 +152,7 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 	 * 
 	 * @return the double
 	 */
-	public double mel2lin(double mel) {
+	public static double mel2lin(double mel) {
 		return 700.0 * (Math.exp(mel / 1127.0) - 1.0);
 	}
 

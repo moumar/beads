@@ -4,8 +4,7 @@
 package net.beadsproject.beads.analysis;
 
 /**
- * FeatureExtractor is an abstract base class for classes that perform some kind of analysis on audio data. The resulting feature data is assumed to take the form of an array of floats. Implementing classes use the method {@link #process(float[], int)} to process data. This method gets passed an array of audio data and an integer specifying the length of that array to analyse. The incoming data may not be raw sample data, but may be the output of an FFT or some other transform instead, so it is important to check which feature data the feature extractor works with before plugging it in.
- *
+ * FeatureExtractor is an abstract base class for classes that perform some kind of analysis on incoming data. Both the incoming data and the generated data are generic types. Implementing classes use the method {@link #process(P)} to process data. 
  * @author ollie
  */
 public abstract class FeatureExtractor<R, P> {
