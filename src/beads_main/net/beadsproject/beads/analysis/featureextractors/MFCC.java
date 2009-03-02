@@ -1,8 +1,7 @@
 /*
  * This file is part of Beads. See http://www.beadsproject.net for all information.
+ * CREDIT: This class uses portions of code taken from MEAP. See readme/CREDITS.txt.
  */
-//Much code taken from MEAP
-
 package net.beadsproject.beads.analysis.featureextractors;
 
 import java.util.ArrayList;
@@ -10,26 +9,24 @@ import java.util.Arrays;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class MFCC.
+ * MFCC generates mel-frequency cepstral coefficients, an important feature type in music and speech processing. MFCC receives feature data from a {@link MelSpectrum}, and must be set as a listener to a {@link MelSpectrum}, not a pure audio stream, in order to work properly.
  */
 public class MFCC extends FeatureExtractor<float[], float[]> {
 
-
+	/** Array of listeners. */
 	private ArrayList<FeatureExtractor<?, float[]>> listeners;
 	
+	/** Matrix used for discrete cosine transform. */
 	private double[][] DCTcoeffs; 
 	
+	/** Size of the input data. */
 	private int inputLength;
 	
 	/**
-	 * Instantiates a new mFCC.
+	 * Instantiates a new MFCC.
 	 * 
-	 * @param ac
-	 *            the ac
-	 * @param numCoeffs
-	 *            the num coeffs
+	 * @param numCoeffs the number of coefficients to generate.
 	 */
 	public MFCC(int numCoeffs) {
 		setNumberOfFeatures(numCoeffs);
@@ -42,11 +39,17 @@ public class MFCC extends FeatureExtractor<float[], float[]> {
 		listeners = new ArrayList<FeatureExtractor<?,float[]>>();
 	}
 	
+	/* (non-Javadoc)
+	 * @see net.beadsproject.beads.analysis.FeatureExtractor#setNumberOfFeatures(int)
+	 */
 	public void setNumberOfFeatures(int num) {
 		super.setNumberOfFeatures(num);
 		inputLength = -1; //flag to make sure DCTcoeffs are setup
 	}
 	
+	/**
+	 * Builds the matrix of discrete cosine transform coefficients.
+	 */
 	private void setupDCTcoeffs() {
         double m = Math.sqrt(2.0 / inputLength);
         DCTcoeffs = new double[inputLength][features.length];
@@ -87,7 +90,7 @@ public class MFCC extends FeatureExtractor<float[], float[]> {
 	
 
 	/**
-	 * Prints the features.
+	 * Prints the feature data.
 	 */
 	private void printFeatures() {
 		for (int i = 0; i < features.length; i++) {
@@ -96,6 +99,11 @@ public class MFCC extends FeatureExtractor<float[], float[]> {
 		System.out.println();
 	}
 
+	/**
+	 * Adds a listener to this MFCC.
+	 * 
+	 * @param fe the listener.
+	 */
 	public void addListener(FeatureExtractor<?, float[]> fe) {
 		listeners.add(fe);
 	}

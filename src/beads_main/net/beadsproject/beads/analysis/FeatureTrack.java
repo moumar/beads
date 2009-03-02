@@ -10,7 +10,7 @@ import java.util.Iterator;
 /**
  * Stores a set of features associated with a continuous period of audio data.
  * 
- * A FeatureLayer can hold different views on the data. Time-based features are stored in lists mapping segments to features.
+ * A FeatureTrack can hold different views on the data. Time-based features are stored in lists mapping segments to features.
  * 
  * @author ollie
  */
@@ -23,7 +23,7 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame> {
 	private ArrayList<FeatureFrame> frames;
 	
 	/**
-	 * Instantiates a new FeatureLayer.
+	 * Instantiates a new FeatureTrack.
 	 */
 	public FeatureTrack() {
 		frames = new ArrayList<FeatureFrame>();

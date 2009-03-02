@@ -9,24 +9,31 @@ import java.util.ArrayList;
 import net.beadsproject.beads.analysis.FeatureExtractor;
 
 /**
- * The Class MelSpectrum.
+ * MelSpectrum receives spectral data from a {@link PowerSpectrum} object and converts it to the mel frequency spectrum. To use MelSpectrum, make sure it is set as a listener to a {@link PowerSpectrum} object, not directly from an audio stream.
  */
 public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 
-	/** The ac. */
+	//TODO be able to specify max in min frequencies
+	//TODO work out a nice filter so that the spectrum is empty when zero sound comes in
+	
+	public static final float LOG10 = (float)Math.log(10.0);
+	
+	/** The sample rate in samples per second. */
 	private final float sampleRate;
+	
+	/** The size of incoming power spectrum data. */
 	private int bufferSize;
-	// for each mel bin...
-	/** The mel center. */
-	private double[] melCenter; // actual targe mel value at center of this
-	// bin
-	/** The mel width. */
-	private double[] melWidth; // mel width divisor for this bin (constant,
-	// except broadens in low bins)
-	// for each fft bin
+	
+	/** Array of mel spectrum bin centres. */
+	private double[] melCenter;
+
+	/** Array of mel spectrum bin widths. */
+	private double[] melWidth;
+
 	/** The mel of lin. */
 	private double[] melOfLin;
-	
+
+	/** Hard frequency maximum. */
 	private double hardMax;
 	
 
@@ -34,12 +41,12 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 
 
 	/**
-	 * Instantiates a new mel spectrum.
+	 * Instantiates a new MelSpectrum.
 	 * 
-	 * @param ac
-	 *            the ac
+	 * @param sampleRate
+	 *            the sample rate in samples per second.
 	 * @param numCoeffs
-	 *            the num coeffs
+	 *            the number of filters to use (number of features).
 	 */
 	public MelSpectrum(float sampleRate, int numCoeffs) {
 		this.sampleRate = sampleRate;
@@ -48,6 +55,9 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 		hardMax = 8000.0;
 	}
 	
+	/**
+	 * Builds the filterbank. Only needs to be called if the size of the input array or the number of features changes.
+	 */
 	private void setup() {
 		int twiceBufferSize = bufferSize * 2;
 		features = new float[numFeatures];
@@ -68,11 +78,13 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 			if (linbinwidth < 1) {
 				melWidth[i] = lin2mel(mel2lin(melCenter[i]) + hzPerBin) - melCenter[i];
 			}
+			if(melWidth[i] == 0f) System.out.println("zero melwidth");
 		}
 		// precalculate mel translations of fft bin frequencies
 		melOfLin = new double[twiceBufferSize];
 		for (int i = 0; i < twiceBufferSize; i++) {
 			melOfLin[i] = lin2mel(i * sampleRate / (2 * twiceBufferSize));
+			if(Double.isInfinite(melOfLin[i])) System.out.println("infinte meloflin");
 		}
 		featureDescriptions = new String[numFeatures];
 		for (int i = 0; i < numFeatures; i++) {
@@ -91,31 +103,36 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 		}
 		float[] linSpec = new float[powerSpectrum.length];
 		// convert log magnitude to linear magnitude for binning
-		for (int band = 0; band < linSpec.length; band++)
-			linSpec[band] = (float) Math.pow(10, powerSpectrum[band] / 10);
+		for (int band = 0; band < linSpec.length; band++) {
+//			linSpec[band] = (float) Math.pow(10f, powerSpectrum[band] / 10f);
+			linSpec[band] = powerSpectrum[band]; //mod by Ollie -- is the PowerSpectrum already linear?
+		}
 		// convert to mel scale
 		for (int bin = 0; bin < features.length; bin++) {
 			// initialize
 			features[bin] = 0;
 			for (int i = 0; i < linSpec.length; ++i) {
-				//System.out.println(i + " " + linSpec.length);
 				double weight = 1.0 - (Math.abs(melOfLin[i] - melCenter[bin]) / melWidth[bin]);
 				if (weight > 0) {
 					features[bin] += weight * linSpec[i];
 				}
 			}
 			// Take log
-			features[bin] = Math.max(0f, (float)(10f * Math.log(features[bin]) / Math.log(10)));
+			features[bin] = Math.max(0f, (float)(10f * Math.log(features[bin]) / LOG10));
 		}
 		for(FeatureExtractor<?, float[]> fe : listeners) {
 			fe.process(features);
 		}
 	}
 	
+	/**
+	 * Adds a listener to this MFCC.
+	 * 
+	 * @param fe the listener.
+	 */
 	public void addListener(FeatureExtractor<?, float[]> fe) {
 		listeners.add(fe);
 	}
-
 
 	/**
 	 * Prints the features.
@@ -133,26 +150,26 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 	}
 
 	/**
-	 * Lin2mel.
+	 * Converts from linear frequency to mel scale.
 	 * 
 	 * @param fq
-	 *            the fq
+	 *            the frequency in hz.
 	 * 
-	 * @return the double
+	 * @return value on the mel scale.
 	 */
-	public static double lin2mel(double fq) {
+	private static double lin2mel(double fq) {
 		return 1127.0 * Math.log(1.0 + fq / 700.0);
 	}
 
 	/**
-	 * Mel2lin.
+	 * Converts from mel scale to linear frequency.
 	 * 
 	 * @param mel
-	 *            the mel
+	 *            the mel scale value.
 	 * 
-	 * @return the double
+	 * @return the frequency in hz.
 	 */
-	public static double mel2lin(double mel) {
+	private static double mel2lin(double mel) {
 		return 700.0 * (Math.exp(mel / 1127.0) - 1.0);
 	}
 

@@ -1,19 +1,33 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.analysis.featureextractors;
 
 import java.util.ArrayList;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
 
-
+/**
+ * ReBin takes an array of float data and places the data into a smaller array, the size of which is specified by the number of features.
+ */
 public class ReBin extends FeatureExtractor<float[], float[]> {
 
+	/** The array of listeners. */
 	private ArrayList<FeatureExtractor<?, float[]>> listeners;
 	
+	/**
+	 * Instantiates a new ReBin.
+	 * 
+	 * @param numFeatures the number of features.
+	 */
 	public ReBin(int numFeatures) {
 		this.numFeatures = numFeatures;
 		listeners = new ArrayList<FeatureExtractor<?,float[]>>();
 	}
 	
+	/* (non-Javadoc)
+	 * @see net.beadsproject.beads.analysis.FeatureExtractor#process(java.lang.Object)
+	 */
 	@Override
 	public void process(float[] original) {
 		features = new float[numFeatures];
@@ -32,6 +46,11 @@ public class ReBin extends FeatureExtractor<float[], float[]> {
 		}
 	}
 	
+	/**
+	 * Adds the listener.
+	 * 
+	 * @param listener the listener.
+	 */
 	public void addListener(FeatureExtractor<?, float[]> listener) {
 		listeners.add(listener);
 	}

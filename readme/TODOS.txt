@@ -2,6 +2,10 @@ TODOS
 
 Suggestions and contributions welcome.
 
+*** General development ***
+
+Develop tutorials. 
+
 *** Main areas identified for development ***
 
 More Filters.

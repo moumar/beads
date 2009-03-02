@@ -4,7 +4,7 @@
 package net.beadsproject.beads.analysis;
 
 /**
- * FeatureExtractor is an abstract base class for classes that perform some kind of analysis on incoming data. Both the incoming data and the generated data are generic types. Implementing classes use the method {@link #process(P)} to process data. 
+ * FeatureExtractor is an abstract base class for classes that perform some kind of analysis on incoming data. Both the incoming data (P) and the generated data (R) are generic types. Implementing classes use the method {@link #process(P)} to process data. 
  * @author ollie
  */
 public abstract class FeatureExtractor<R, P> {
@@ -29,15 +29,14 @@ public abstract class FeatureExtractor<R, P> {
 	}
 	
 	/**
-	 * Process some data. A length argument is provided, which is useful in certain cases such as when a large buffer of audio is being passed, but only a small part need be analysed, or the case of an FFT where only half of the data is needed.
+	 * Process some data of type P (specified by the class def). This method must be overidden by implementing classes.
 	 * 
 	 * @param data the data.
-	 * @param length the length of the data to use. 
 	 */
 	public abstract void process(P data);
 	
 	/**
-	 * Gets the current features.
+	 * Gets the current features of type R, specified in the class def.
 	 * 
 	 * @return the features.
 	 */

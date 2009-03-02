@@ -27,8 +27,22 @@ public class Gain extends UGen {
 	 *            the gain envelope.
 	 */
     public Gain(AudioContext context, int inouts, UGen gainEnvelope) {
-       this(context, inouts);
+       super(context, inouts, inouts);
         setGainEnvelope(gainEnvelope);
+    }
+    
+    /**
+	 * Instantiates a new Gain with a {@link Static} gain envelop with the given value.
+	 * 
+	 * @param context
+	 *            the AudioContext.
+	 * @param inouts
+	 *            the number of inputs (= number of outputs).
+	 * @param gainEnvelope
+	 *            the fixed gain level.
+	 */
+    public Gain(AudioContext context, int inouts, float gain) {
+       this(context, inouts, new Static(context, gain));
     }
     
     /**
@@ -40,8 +54,7 @@ public class Gain extends UGen {
 	 *            the number of inputs (= number of outputs).
 	 */
     public Gain(AudioContext context, int inouts) {
-        super(context, inouts, inouts);
-        gainEnvelope = new Static(context, 1.0f);
+        this(context, inouts, 1f);
     }
     
     /**

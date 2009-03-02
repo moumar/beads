@@ -1,34 +1,44 @@
 /*
  * This file is part of Beads. See http://www.beadsproject.net for all information.
+ * CREDIT: This class uses portions of code taken from MEAP. See readme/CREDITS.txt.
  */
-//Much code borrowed from MEAP
-
 package net.beadsproject.beads.analysis.featureextractors;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.core.AudioContext;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class Peaks.
+ * Peaks finds the strongest N peaks in a signal passed from a {@link PowerSpectrum}, where N is the specified number of features. Peaks must be set as a listener to a {@link PowerSpectrum} object to work properly.
  */
 public class Peaks extends FeatureExtractor<float[], float[]>  {
 
 	/** The Constant FIRSTBAND. */
 	static final int FIRSTBAND = 3;
 	
-	/** The bin2hz. */
+	/** The ratio bin2hz. */
 	private float bin2hz;
 	
 	/**
-	 * Instantiates a new peaks.
+	 * Instantiates a new Peaks.
 	 * 
 	 * @param context
-	 *            the context
+	 *            the AudioContext.
 	 */
 	public Peaks(AudioContext context) {
+		this(context, 10);
+	}
+	
+	/**
+	 * Instantiates a new Peaks with the given number of features.
+	 * 
+	 * @param context
+	 *            the AudioContext.
+	 * @param numFeatures
+	 *            the number of features.
+	 */
+	public Peaks(AudioContext context, int numFeatures) {
 		bin2hz = context.getSampleRate() / (2 * (context.getBufferSize() - 1));
-		setNumberOfFeatures(10);
+		setNumberOfFeatures(numFeatures);
 	}
 	
 	/* (non-Javadoc)
@@ -86,17 +96,6 @@ public class Peaks extends FeatureExtractor<float[], float[]>  {
 		for(int i = 0; i < numFeatures; i++) {
 			featureDescriptions[i] = "peak" + i;
 		}
-	}
-
-	
-	/**
-	 * The main method.
-	 * 
-	 * @param args
-	 *            the arguments
-	 */
-	public static void main(String[] args) {
-
 	}
 
 }

@@ -10,7 +10,7 @@
     </description>
 	
 	<property name="exportdir" value="/Users/ollie/Desktop/Beads_Export"></property>
-	<property name="svn" value="/opt/local/bin/svn"></property>
+	<property name="svn" value="/usr/local/bin/svn"></property>
 	<tstamp>
 	    <format property="TODAY" pattern="yyyyMMdd"/>
 	  </tstamp>

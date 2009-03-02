@@ -24,7 +24,7 @@ public abstract class Segmenter extends UGen {
 
 	
 	/** The set of FeatureExtractors that respond to this Segmenter. */
-	private ArrayList<FeatureExtractor> responders;
+	private ArrayList<FeatureExtractor<?, float[]>> responders;
 	
 	/** The set of Beads that are triggered when this Segmenter segments. */
 	private BeadArray listeners;
@@ -45,16 +45,14 @@ public abstract class Segmenter extends UGen {
 	 */
 	public Segmenter(AudioContext context) {
 		super(context, 1, 0);		
-		responders = new ArrayList<FeatureExtractor>();
+		responders = new ArrayList<FeatureExtractor<?, float[]>>();
 		listeners = new BeadArray();
 		startTime();
 		currentTime = previousEndTime = 0;
 	}
 	
 	/**
-	 * Sets the current time.
-	 * 
-	 * @param time the new time.
+	 * Sets the start time to now (now being determined by the AudioContext).
 	 */
 	public void startTime() {
 		startTime = context.getTimeStep() * context.getBufferSize();
@@ -65,7 +63,7 @@ public abstract class Segmenter extends UGen {
 	 * 
 	 * @param fe the FeatureExtractor.
 	 */
-	public void addListener(FeatureExtractor fe) {
+	public void addListener(FeatureExtractor<?, float[]> fe) {
 		responders.add(fe);
 	}
 	

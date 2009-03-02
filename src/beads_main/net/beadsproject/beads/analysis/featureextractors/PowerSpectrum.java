@@ -5,15 +5,17 @@ package net.beadsproject.beads.analysis.featureextractors;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class PowerSpectrum.
+ * PowerSpectrum calculates the power spectrum from a segmented audio signal. PowerSpectrum forwards the full power spectrum data to its listeners.
  */
 public class PowerSpectrum extends FFT {
 
-	/** The power spectrum. */
+	/** The power spectrum data. */
 	private float[] powerSpectrum;
 	
+	/**
+	 * Instantiates a new PowerSpectrum.
+	 */
 	public PowerSpectrum() {
 		super();
 	}
@@ -39,7 +41,7 @@ public class PowerSpectrum extends FFT {
 	}
 	
 	/**
-	 * Calculate power.
+	 * Calculate the power from the fft data.
 	 */
 	private void calculatePower() {
 		setNumberOfFeatures(fftReal.length / 2);

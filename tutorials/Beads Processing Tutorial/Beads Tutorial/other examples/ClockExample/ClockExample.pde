@@ -9,6 +9,10 @@ import com.olliebown.beads.ugens.*;
 import com.olliebown.beads.data.*;
 import com.olliebown.beads.gui.*;
 
+/*
+ * 
+ */
+
 void setup() {
   AudioContext ac = new AudioContext(512);
   Clock clock = new Clock(ac, new Static(ac, 500f));
