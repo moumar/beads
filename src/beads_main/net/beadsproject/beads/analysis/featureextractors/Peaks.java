@@ -48,7 +48,8 @@ public class Peaks extends FeatureExtractor<float[], float[]>  {
 		// collect average linear spectrum
 		double[] linSpec = new double[powerSpectrum.length];
 		for (int band = 0; band < linSpec.length; band++) {
-			linSpec[band] = Math.pow(10, powerSpectrum[band] / 10);
+//			linSpec[band] = Math.pow(10, powerSpectrum[band] / 10);
+			linSpec[band] = powerSpectrum[band];
 		}
 		// now pick best peaks from linspec
 		for(int i = 0; i < features.length; i++) {
