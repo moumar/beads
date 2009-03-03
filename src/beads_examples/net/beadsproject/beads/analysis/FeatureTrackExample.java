@@ -3,6 +3,7 @@ package net.beadsproject.beads.analysis;
 import java.util.Random;
 import net.beadsproject.beads.analysis.FeatureFrame;
 import net.beadsproject.beads.analysis.FeatureTrack;
+import net.beadsproject.beads.analysis.featureextractors.FFT;
 import net.beadsproject.beads.analysis.featureextractors.PowerSpectrum;
 import net.beadsproject.beads.analysis.featureextractors.ReBin;
 import net.beadsproject.beads.analysis.featureextractors.SpectralCentroid;
@@ -35,10 +36,14 @@ public class FeatureTrackExample {
 
 		//set up segmenter
 		ShortFrameSegmenter sfs = new ShortFrameSegmenter(ac);
+		//set up fft
+		FFT fft = new FFT();
+		//attach fft to segmenter
+		sfs.addListener(fft);
 		//set up power spectrum
 		PowerSpectrum ps = new PowerSpectrum();
-		//attach power spectrum to segmenter
-		sfs.addListener(ps);
+		//attach power spectrum to fft
+		fft.addListener(ps);
 		//set up spectral centroid
 		final SpectralCentroid sc = new SpectralCentroid(ac.getSampleRate());
 		ps.addListener(sc);

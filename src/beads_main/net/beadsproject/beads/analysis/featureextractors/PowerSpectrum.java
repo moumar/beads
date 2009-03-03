@@ -3,62 +3,46 @@
  */
 package net.beadsproject.beads.analysis.featureextractors;
 
+import java.util.ArrayList;
 import net.beadsproject.beads.analysis.FeatureExtractor;
 
 /**
- * PowerSpectrum calculates the power spectrum from a segmented audio signal. PowerSpectrum forwards the full power spectrum data to its listeners.
+ * PowerSpectrum calculates the power spectrum from the output of {@link FFT}. PowerSpectrum forwards the full power spectrum data to its listeners.
  */
-public class PowerSpectrum extends FFT {
+public class PowerSpectrum extends FeatureExtractor<float[], float[][]> {
 
-	/** The power spectrum data. */
-	private float[] powerSpectrum;
+	protected ArrayList<FeatureExtractor<?, float[]>> listeners;
 	
 	/**
 	 * Instantiates a new PowerSpectrum.
 	 */
 	public PowerSpectrum() {
-		super();
+		listeners = new ArrayList<FeatureExtractor<?,float[]>>();
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.analysis.FFT#calculateBuffer()
 	 */
-	public void process(float[] data) {
-		//use superclass, FFT, to get fftReal and fftImag
-		float[] dataCopy = new float[data.length];
-		for(int i = 0; i < data.length; i++) {
-			dataCopy[i] = data[i];
+	public void process(float[][] data) {
+		if(features == null || features.length != data[0].length / 2) {
+			features = new float[data[0].length / 2];
 		}
-		fft(dataCopy, dataCopy.length, true);
-		fftReal = calculateReal(dataCopy, dataCopy.length);
-		fftImag = calculateImaginary(dataCopy, dataCopy.length);
-		//calculate the power spectrum
-		calculatePower();
+		for(int i = 0; i < features.length; i++) {
+			features[i] = (float)Math.sqrt(data[0][i] * data[0][i] + data[1][i] * data[1][i]);
+		}
 		//update the listeners
 		for(FeatureExtractor<?, float[]> fe : listeners) {
-			fe.process(powerSpectrum);
+			fe.process(features);
 		}
 	}
-	
+
 	/**
-	 * Calculate the power from the fft data.
+	 * Adds a FeatureExtractor as a listener.
+	 * 
+	 * @param the FeatureExtractor.
 	 */
-	private void calculatePower() {
-		setNumberOfFeatures(fftReal.length / 2);
-		powerSpectrum = new float[fftReal.length / 2];
-		for(int i = 0; i < fftReal.length / 2; i++) {
-			powerSpectrum[i] = (float)Math.sqrt(fftReal[i] * fftReal[i] + fftImag[i] * fftImag[i]);
-		}
+	public void addListener(FeatureExtractor<?, float[]> fe) {
+		listeners.add(fe);
 	}
-
-	/* (non-Javadoc)
-	 * @see com.olliebown.beads.core.FrameFeatureExtractor#getFeatures()
-	 */
-	public float[] getFeatures() {
-		return powerSpectrum;
-	}
-
-
-
 
 }

@@ -8,11 +8,11 @@ import java.util.ArrayList;
 import net.beadsproject.beads.analysis.FeatureExtractor;
 
 /**
- * FFT performs a Fast Fourier Transform and forwards half of the real part of the data to any listeners.
+ * FFT performs a Fast Fourier Transform and forwards the complex data to any listeners. The complex data is a float of the form float[2][frameSize], with real and imaginary parts stored respectively.
  */
-public class FFT extends FeatureExtractor<float[], float[]>  {
+public class FFT extends FeatureExtractor<float[][], float[]>  {
 	
-	protected ArrayList<FeatureExtractor<?, float[]>> listeners;
+	protected ArrayList<FeatureExtractor<?, float[][]>> listeners;
 	
 	/** The real part. */
 	protected float[] fftReal;
@@ -24,7 +24,8 @@ public class FFT extends FeatureExtractor<float[], float[]>  {
 	 * Instantiates a new FFT.
 	 */
 	public FFT() {
-		listeners = new ArrayList<FeatureExtractor<?, float[]>>();
+		listeners = new ArrayList<FeatureExtractor<?, float[][]>>();
+		features = new float[2][];
 	}
 	
 	/* (non-Javadoc)
@@ -39,8 +40,10 @@ public class FFT extends FeatureExtractor<float[], float[]>  {
 		fft(dataCopy, dataCopy.length, true);
 		fftReal = calculateReal(dataCopy, dataCopy.length);
 		fftImag = calculateImaginary(dataCopy, dataCopy.length);
-		for(FeatureExtractor<?, float[]> fe : listeners) {
-			fe.process(fftReal);
+		features[0] = fftReal;
+		features[1] = fftImag;
+		for(FeatureExtractor<?, float[][]> fe : listeners) {
+			fe.process(features);
 		}
 	}
 
@@ -49,7 +52,7 @@ public class FFT extends FeatureExtractor<float[], float[]>  {
 	 * 
 	 * @param the FeatureExtractor.
 	 */
-	public void addListener(FeatureExtractor<?, float[]> fe) {
+	public void addListener(FeatureExtractor<?, float[][]> fe) {
 		listeners.add(fe);
 	}
 	

@@ -1,5 +1,6 @@
 package net.beadsproject.beads.analysis;
 
+import net.beadsproject.beads.analysis.featureextractors.FFT;
 import net.beadsproject.beads.analysis.featureextractors.Frequency;
 import net.beadsproject.beads.analysis.featureextractors.PowerSpectrum;
 import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
@@ -25,6 +26,7 @@ public class SelfModifyingSampleExample {
 		
 		//create analysis components
 		ShortFrameSegmenter sfs = new ShortFrameSegmenter(ac);
+		FFT fft = new FFT();
 		PowerSpectrum ps = new PowerSpectrum();
 		final Frequency f = new Frequency(ac.getSampleRate()) {
 			public void process(float[] f) {
@@ -34,7 +36,8 @@ public class SelfModifyingSampleExample {
 		};
 		
 		//connect analysis components together
-		sfs.addListener(ps);
+		sfs.addListener(fft);
+		fft.addListener(ps);
 		ps.addListener(f);
 		
 		//plug in analysis (listens to SamplePlayer)

@@ -35,9 +35,11 @@ public class SpectralCentroidExample {
 		//set up segmenter
 		ShortFrameSegmenter sfs = new ShortFrameSegmenter(ac);
 		//set up power spectrum
+		FFT fft = new FFT();
 		PowerSpectrum ps = new PowerSpectrum();
+		fft.addListener(ps);
 		//attach power spectrum to segmenter
-		sfs.addListener(ps);
+		sfs.addListener(fft);
 		//set up spectral centroid
 		final SpectralCentroid sc = new SpectralCentroid(ac.getSampleRate()) {
 			public void process(float[] f) {
