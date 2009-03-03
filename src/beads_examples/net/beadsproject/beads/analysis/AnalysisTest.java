@@ -1,11 +1,14 @@
 package net.beadsproject.beads.analysis;
 
 import java.io.FileOutputStream;
+
+import net.beadsproject.beads.analysis.featureextractors.BasicDataWriter;
 import net.beadsproject.beads.analysis.featureextractors.FFT;
 import net.beadsproject.beads.analysis.featureextractors.Frequency;
 import net.beadsproject.beads.analysis.featureextractors.GnuplotDataWriter;
 import net.beadsproject.beads.analysis.featureextractors.MFCC;
 import net.beadsproject.beads.analysis.featureextractors.MelSpectrum;
+import net.beadsproject.beads.analysis.featureextractors.PeakDetector;
 import net.beadsproject.beads.analysis.featureextractors.PowerSpectrum;
 import net.beadsproject.beads.analysis.featureextractors.SpectralDifference;
 import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
@@ -49,8 +52,9 @@ public class AnalysisTest {
 		ShortFrameSegmenter sfs = new ShortFrameSegmenter(ac);
 		sfs.addInput(ac.out);
 		ac.out.addDependent(sfs);
-		sfs.setChunkSize(1024);
-		sfs.setHopSize(512);
+		int chunkSize = 1024;
+		sfs.setChunkSize(chunkSize);
+		sfs.setHopSize(chunkSize/2);
 		//set up the fft
 		FFT fft = new FFT();
 		sfs.addListener(fft);
@@ -72,22 +76,25 @@ public class AnalysisTest {
 		};
 		ps.addListener(f);
 		//set up spectral difference
-		SpectralDifference sd = new SpectralDifference() {
-			public void process(float[] data) {
-				super.process(data);
-//				System.out.println(features[0]);
-			}
-		};
-		sd.setMinBin(505);
-		sd.setMaxBin(511);
+		SpectralDifference sd = new SpectralDifference();
+		sd.setMinBin(0);
+		sd.setMaxBin(chunkSize/2);
 		ps.addListener(sd);
+		
+		// Peak Detector
+		PeakDetector pd = new PeakDetector();
+		sd.addListener(pd);		
+		
 		//print some data
-		String analysisDataOutputDir = "/Users/ollie/Desktop";	
-		sfs.addListener(new GnuplotDataWriter(new FileOutputStream(analysisDataOutputDir + "/sfs")));
+		String analysisDataOutputDir = "C:/tmp";	
+		//sfs.addListener(new GnuplotDataWriter(new FileOutputStream(analysisDataOutputDir + "/sfs")));
 //		fft.addListener(new GnuplotDataWriter(new FileOutputStream(analysisDataOutputDir + "/fft")));
-		ps.addListener(new GnuplotDataWriter(new FileOutputStream(analysisDataOutputDir + "/powerspec")));
-		ms.addListener(new GnuplotDataWriter(new FileOutputStream(analysisDataOutputDir + "/melspec")));
-		mfcc.addListener(new GnuplotDataWriter(new FileOutputStream(analysisDataOutputDir + "/mfcc")));
+		//ps.addListener(new GnuplotDataWriter(new FileOutputStream(analysisDataOutputDir + "/powerspec")));
+		//ms.addListener(new GnuplotDataWriter(new FileOutputStream(analysisDataOutputDir + "/melspec")));
+		//mfcc.addListener(new GnuplotDataWriter(new FileOutputStream(analysisDataOutputDir + "/mfcc")));
+		sd.addListener(new BasicDataWriter(new FileOutputStream(analysisDataOutputDir + "/sd")));
+		pd.addListener(new BasicDataWriter(new FileOutputStream(analysisDataOutputDir + "/pd")));		
+		
 		//time the playback to 2s
 		DelayTrigger dt = new DelayTrigger(ac, 4000f, new AudioContextStopTrigger(ac));
 		ac.out.addDependent(dt);
