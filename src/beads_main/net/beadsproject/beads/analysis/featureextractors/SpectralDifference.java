@@ -14,7 +14,7 @@ public class SpectralDifference extends FeatureExtractor<float[], float[]> {
 	public SpectralDifference() {
 		features = new float[1];
 		listeners = new ArrayList<FeatureExtractor<?,float[]>>();
-		setMinBin(10);
+		setMinBin(10);		//TODO really these should be set as a fraction of the total bins
 		setMaxBin(100);
 	}
 	
