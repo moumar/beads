@@ -38,6 +38,7 @@ public class FFT extends FeatureExtractor<float[][], float[]>  {
 			dataCopy[i] = data[i];
 		}
 		fft(dataCopy, dataCopy.length, true);
+		numFeatures = dataCopy.length;
 		fftReal = calculateReal(dataCopy, dataCopy.length);
 		fftImag = calculateImaginary(dataCopy, dataCopy.length);
 		features[0] = fftReal;
@@ -54,6 +55,25 @@ public class FFT extends FeatureExtractor<float[][], float[]>  {
 	 */
 	public void addListener(FeatureExtractor<?, float[][]> fe) {
 		listeners.add(fe);
+	}
+	
+	/**
+	 * The frequency corresponding to a specific bin 
+	 * 
+	 * @param samplingFrequency The Sampling Frequency of the AudioContext
+	 * @param blockSize The size of the block analysed
+	 * @param binNumber 
+	 */
+	public static float binFrequency(float samplingFrequency, int blockSize, int binNumber)
+	{		
+		return binNumber*samplingFrequency/blockSize;
+	}
+	
+	/** The nyquist frequency of this samplingFrequency 
+	 */
+	public static float nyquist(float samplingFrequency)
+	{
+		return samplingFrequency/2;
 	}
 	
 	/*

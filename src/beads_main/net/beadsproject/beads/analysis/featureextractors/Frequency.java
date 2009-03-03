@@ -40,29 +40,23 @@ public class Frequency extends FeatureExtractor<float[], float[]> {
 	public synchronized void process(float[] powerSpectrum) {
 		if(bufferSize != powerSpectrum.length) {
 			bufferSize = powerSpectrum.length;
-			bin2hz = sampleRate / (2 * (bufferSize - 1));
+			bin2hz = sampleRate / (2 * bufferSize);
 		}
 		features = new float[1];
-		// collect average linear spectrum
-		double[] linSpec = new double[powerSpectrum.length];
-		for (int band = 0; band < linSpec.length; band++) {
-			linSpec[band] = Math.pow(10, powerSpectrum[band] / 10);
-		}
 		// now pick best peak from linspec
 		double pmax = -1;
 		int maxbin = 0;
-		for (int band = FIRSTBAND; band < powerSpectrum.length; band++) {
-			// double pwr = pitchWt[band]*linSpec[band];
-			double pwr = linSpec[band];
+		for (int band = FIRSTBAND; band < powerSpectrum.length; band++) {			
+			double pwr = powerSpectrum[band];
 			if (pwr > pmax) {
 				pmax = pwr;
 				maxbin = band;
 			}
 		}
 		// cubic interpolation
-		double yz = linSpec[maxbin];
-		double ym = maxbin <= 0? linSpec[maxbin] : linSpec[maxbin - 1];
-		double yp = maxbin < linSpec.length - 1 ? linSpec[maxbin + 1] : linSpec[maxbin];
+		double yz = powerSpectrum[maxbin];
+		double ym = maxbin <= 0? powerSpectrum[maxbin] : powerSpectrum[maxbin - 1];
+		double yp = maxbin < powerSpectrum.length - 1 ? powerSpectrum[maxbin + 1] : powerSpectrum[maxbin];
 		double k = (yp + ym) / 2 - yz;
 		double x0 = (ym - yp) / (4 * k);
 		features[0] = (float)(bin2hz * (maxbin + x0));

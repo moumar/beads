@@ -27,8 +27,8 @@ public class PowerSpectrum extends FeatureExtractor<float[], float[][]> {
 		if(features == null || features.length != data[0].length / 2) {
 			features = new float[data[0].length / 2];
 		}
-		for(int i = 0; i < features.length; i++) {
-			features[i] = (float)Math.sqrt(data[0][i] * data[0][i] + data[1][i] * data[1][i]);
+		for(int i = 0; i < features.length; i++) {		
+			features[i] = (float)(data[0][i] * data[0][i] + data[1][i] * data[1][i]);
 		}
 		//update the listeners
 		for(FeatureExtractor<?, float[]> fe : listeners) {
