@@ -10,6 +10,7 @@ import net.beadsproject.beads.analysis.featureextractors.PowerSpectrum;
 import net.beadsproject.beads.analysis.featureextractors.SpectralDifference;
 import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.data.Pitch;
 import net.beadsproject.beads.data.SampleManager;
 import net.beadsproject.beads.data.buffers.SineBuffer;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
@@ -24,7 +25,7 @@ public class AnalysisTest {
 		AudioContext ac = new AudioContext();	
 		//various sounds, switch on and off
 		//jumping wave
-//		Envelope frequencyEnvelope1 = new Envelope(ac, 10000f);
+		Envelope frequencyEnvelope1 = new Envelope(ac, Pitch.mtof(60));
 //		frequencyEnvelope1.addSegment(200, 200f);
 //		frequencyEnvelope1.addSegment(500, 10f);
 //		frequencyEnvelope1.addSegment(500, 200f);
@@ -33,7 +34,7 @@ public class AnalysisTest {
 //		frequencyEnvelope1.addSegment(1500, 10f);
 //		frequencyEnvelope1.addSegment(1500, 200f);
 //		frequencyEnvelope1.addSegment(2000, 10f);
-//		WavePlayer wp1 = new WavePlayer(ac, frequencyEnvelope1, new SineBuffer().getDefault());
+		WavePlayer wp1 = new WavePlayer(ac, frequencyEnvelope1, new SineBuffer().getDefault());
 //		ac.out.addInput(wp1);	
 //		//sliding wave
 //		Envelope frequencyEnvelope2 = new Envelope(ac, 400f);
@@ -66,7 +67,7 @@ public class AnalysisTest {
 		Frequency f = new Frequency(ac.getSampleRate()) {
 			public void process(float[] data) {
 				super.process(data);
-//				System.out.println(features[0]);
+				System.out.println(Pitch.ftom(features[0]));
 			}
 		};
 		ps.addListener(f);
@@ -74,7 +75,7 @@ public class AnalysisTest {
 		SpectralDifference sd = new SpectralDifference() {
 			public void process(float[] data) {
 				super.process(data);
-				System.out.println(features[0]);
+//				System.out.println(features[0]);
 			}
 		};
 		sd.setMinBin(505);
