@@ -6,32 +6,152 @@ import net.beadsproject.beads.analysis.FeatureExtractor;
 
 public class SpectralDifference extends FeatureExtractor<float[], float[]> {
 
-	private float[] previousSpectrum;
+	public enum DifferenceType {RMS, MEANDIFFERENCE};
+	
+	private float[] previousSpectrum;	
+	private float minFreq;
+	private float maxFreq;
+	private float sampleRate;
+	private DifferenceType differenceType = DifferenceType.RMS;
+	protected ArrayList<FeatureExtractor<?, float[]>> listeners;
+		
+	// cached size of last block
+	private int lastBlockSize = 0;
+	
+	// derived: minBin, maxBin are cached each time the fft block size changes
 	private int minBin;
 	private int maxBin;
-	protected ArrayList<FeatureExtractor<?, float[]>> listeners;
 	
-	public SpectralDifference() {
+	/**
+	 * Create a spectral difference feature extractor of the entire spectrum.
+	 * 
+	 * @param samplerate The sample rate of the AudioContext
+	 */	
+	public SpectralDifference(float samplerate) {		
 		features = new float[1];
-		listeners = new ArrayList<FeatureExtractor<?,float[]>>();
-		setMinBin(10);		//TODO really these should be set as a fraction of the total bins
-		setMaxBin(100);
+		listeners = new ArrayList<FeatureExtractor<?,float[]>>();		
+		minFreq = 0;		
+		sampleRate = samplerate;
+		maxFreq = sampleRate;
 	}
 	
-	public int getMinBin() {
-		return minBin;
+	/**
+	 * Create a spectral difference feature extractor with a specific frequency window.
+	 * 
+	 * @param samplerate The sample rate of the AudioContext
+	 * @param minf The lower frequency of the window
+	 * @param maxf The upper frequency of the window
+	 */
+	public SpectralDifference(float samplerate, float minf, float maxf) {
+		features = new float[1];
+		listeners = new ArrayList<FeatureExtractor<?,float[]>>();		
+		minFreq = minf;
+		maxFreq = maxf;
+		sampleRate = samplerate;
 	}
 	
-	public void setMinBin(int minBin) {
-		this.minBin = Math.max(0, minBin);
+	
+	
+	/**
+	 * Specify a window of the spectrum to analyse.
+	 * By default the entire spectrum is analysed.  
+	 * 
+	 * @param minf The lower frequency
+	 * @param maxf The upper frequency
+	 */
+	public void setFreqWindow(float minf, float maxf)
+	{
+		minFreq = minf;
+		maxFreq = maxf;
 	}
 	
-	public int getMaxBin() {
-		return maxBin;
+	public void setDifferenceType(DifferenceType dt)
+	{
+		differenceType = dt;
+	}	
+	
+	@Override
+	public void process(float[] spectrum) {		
+		// compare this spectrum with the last
+		int numBins = maxBin - minBin;
+		
+		// 1. check to see if we need to create a new previousSpectrum cache
+		if (lastBlockSize!=spectrum.length)		
+		{
+			// 2. calculate min and maxBin
+			calcMaxAndMinBin(spectrum.length);
+			
+			// 3. create a new spectrum cache of the appropriate size
+			numBins = maxBin - minBin;
+			if (numBins > 0)			
+				previousSpectrum = new float[numBins];			
+			
+			lastBlockSize = spectrum.length;		
+		}
+		
+		if(numBins > 0) {
+			switch (differenceType)
+			{
+				case RMS: 
+					features[0] = rms(spectrum,minBin,previousSpectrum,0,numBins);
+					break;
+				case MEANDIFFERENCE:
+					features[0] = meanDifference(spectrum,minBin,previousSpectrum,0,numBins);
+					break;
+			}
+			
+			// finally copy the current spectrum
+			System.arraycopy(spectrum,minBin,previousSpectrum,0,numBins);
+		}
+		for(FeatureExtractor<?, float[]> fe : listeners) {
+			fe.process(features);
+		}
 	}
 	
-	public void setMaxBin(int maxBin) {
-		this.maxBin = Math.max(0, maxBin);
+	// helper functions
+	/** 
+	 * Computes the Root-Mean-Squared of two arrays
+	 * 
+	 * @param arr1 first array
+	 * @param i1 index of first element
+	 * @param arr2 second array 
+	 * @param i2 index of second element
+	 * @param length length of arrays
+	 * @return
+	 */
+	private float rms(float arr1[], int i1, float arr2[], int i2, int length)
+	{	
+		float value = 0f;
+		for(int i = 0; i < length; i++) {
+			float thisDiff = arr1[i1+i] - arr2[i2+i];				
+			value += thisDiff * thisDiff;
+		}
+		return (float)Math.sqrt(value / length);
+	}
+	
+	/** 
+	 * Computes the mean difference of two arrays
+	 * 
+	 * @param arr1 first array
+	 * @param i1 index of first element
+	 * @param arr2 second array 
+	 * @param i2 index of second element
+	 * @param length length of arrays
+	 * @return
+	 */
+	private float meanDifference(float arr1[], int i1, float arr2[], int i2, int length)
+	{	
+		float value = 0f;
+		for(int i = 0; i < length; i++) {				
+			value += arr1[i1+i] - arr2[i2+i];
+		}
+		return value / length;
+	}	
+	
+	private void calcMaxAndMinBin(int blocksize)
+	{
+		minBin = Math.min(blocksize-1,Math.max(0,Math.round(FFT.binNumber(sampleRate, blocksize, minFreq))));
+		maxBin = Math.min(blocksize-1,Math.max(0,Math.round(FFT.binNumber(sampleRate, blocksize, maxFreq))));
 	}
 	
 	/**
@@ -41,27 +161,6 @@ public class SpectralDifference extends FeatureExtractor<float[], float[]> {
 	 */
 	public void addListener(FeatureExtractor<?, float[]> fe) {
 		listeners.add(fe);
-	}
-
-	@Override
-	public void process(float[] spectrum) {
-		int bins = maxBin - minBin;
-		float spectralDifference = 0f;
-		if(bins > 0) {
-			if(previousSpectrum == null || previousSpectrum.length != bins) {
-				previousSpectrum = new float[bins];
-			}
-			for(int i = 0; i < bins; i++) {
-				float thisDiff = spectrum[minBin + i] - previousSpectrum[i];
-				spectralDifference += thisDiff * thisDiff;
-				previousSpectrum[i] = spectrum[minBin + i];
-			}
-			spectralDifference = (float)Math.sqrt(spectralDifference / bins);
-			features[0] = spectralDifference;
-		}
-		for(FeatureExtractor<?, float[]> fe : listeners) {
-			fe.process(features);
-		}
 	}
 	
 }

@@ -17,6 +17,7 @@ import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
+import net.beadsproject.beads.ugens.DelayTrigger;
 import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.Recorder;
 
@@ -295,6 +296,14 @@ public class AudioContext {
 			}
 		}
 	}
+	
+	public void runForNSecondsNonRealTime(int n)
+	{
+		//time the playback to n seconds
+		DelayTrigger dt = new DelayTrigger(this, n*1000f, new AudioContextStopTrigger(this));
+		out.addDependent(dt);
+		runNonRealTime();		
+	}
 
 	/**
 	 * Interleaves a multi-channel audio buffer into a single interleaved buffer.
@@ -410,6 +419,13 @@ public class AudioContext {
 	 */
 	public int getTimeStep() {
 		return timeStep;
+	}
+	
+	/**
+	 * Get the runtime (in ms) since start() 
+	 */
+	public double getTime(){
+		return samplesToMs(getTimeStep());
 	}
 
 	/**

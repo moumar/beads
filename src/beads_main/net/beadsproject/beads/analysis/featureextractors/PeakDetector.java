@@ -1,35 +1,66 @@
 package net.beadsproject.beads.analysis.featureextractors;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
+import net.beadsproject.beads.data.Buffer;
+import net.beadsproject.beads.data.buffers.MeanFilter;
 
-/** PeakDetector: Updates listeneres when peaks in energy are detected 
- * Assumes input is a 1 element array with values greater than 0
+/** 
+ * Detects Peaks/Onsets in input.
+ * It updates listeners when peaks in energy are detected 
+ * Assumes input is a 1 element array (i.e., a single value)
  * 
  * @author ben
- *
  */
 
 public class PeakDetector extends FeatureExtractor<float[], float[]>{
 	protected ArrayList<FeatureExtractor<?, float[]>> listeners;
-	float threshold;
-	float base_threshold;
-	float sum;
-	int M;
-	float lastMValues[];	
+	private float threshold = 0;
+	private float base_threshold = 0;
+	private int M = 4;
+	private float lastMValues[];
+	private Buffer filter;	
 	
 	public PeakDetector(){
 		super();
-		listeners = new ArrayList<FeatureExtractor<?,float[]>>();	
-		threshold = 0;
-		base_threshold = 0;
-		sum = 0;		
-		M = 128;
+		listeners = new ArrayList<FeatureExtractor<?,float[]>>();
+		features = new float[1];				
+		
 		lastMValues = new float[M];
-		for(int i=0;i<M;i++)
-			lastMValues[i] = 0;
-		features = new float[1];		
+		Arrays.fill(lastMValues,0.f);
+		filter = new MeanFilter().generateBuffer(M);
+	}
+	
+	/**
+	 * Tell the Peak Detector to use a moving average filter of a certain size. 
+	 * 
+	 * @param m Size of the filter. Larger = Smoother. M must be greater than 3. 
+	 */
+	public void useMeanFilterOfSize(int m)
+	{
+		M = m;
+		lastMValues = new float[M];
+		Arrays.fill(lastMValues,0.f);
+		filter = new MeanFilter().generateBuffer(M);
+	}
+	
+	public void setThreshold(float thresh)
+	{
+		base_threshold = thresh;		
+	}
+	
+	/**
+	 * Sets the window for the FIR filter. 
+	 * @param b
+	 */
+	public void setFilter(Buffer b)
+	{
+		filter = b;
+		M = b.buf.length;
+		lastMValues = new float[M];
+		Arrays.fill(lastMValues,0.f);		
 	}
 	
 	/** 
@@ -40,24 +71,42 @@ public class PeakDetector extends FeatureExtractor<float[], float[]>{
 		assert input.length==1;
 		// if input is above the threshold value then notify the listeners
 		float value = input[0];
-		boolean fire = false;
+		boolean exceededThreshold = false;
 		if (value > threshold)
-			fire = true;		
+			exceededThreshold = true;		
 		
-		// update the threshold value based on a moving average
-		// threshold += (sum_i=0toM d(n-i))/(M+1)
-		sum -= lastMValues[0];
-		// shift values
+		// reapply the FIR filter
+		// 1. shift the cached values and
+		// 2. convolve the window with the cached input
+		float sum = 0;
 		for(int i=1;i<M;i++)
+		{
 			lastMValues[i-1] = lastMValues[i];
+			sum += lastMValues[i]*filter.buf[i];
+		}
+		
 		lastMValues[M-1] = value;
-		sum += value;
-		threshold = base_threshold + sum/(M+1);
+		sum += value*filter.buf[M-1];
+		// 3. update the threshold		
+		threshold = base_threshold + sum;
 		
-		features[0] = fire?1:0;
-		for(FeatureExtractor<?, float[]> fe : listeners)
-			fe.process(features);
-		
+		// simple onset detection mechanism 
+		if (exceededThreshold)
+		{
+			// we can be rising or falling
+			// we want the point in between these two
+			
+			// if rising then wait
+			// if falling after risen then a local maxima has just occurred
+			// NOTE: we are 1 step/frame/segment behind
+			if (lastMValues[M-2] > lastMValues[M-3] && value < lastMValues[M-2])
+			{				
+				// notify the listeners 
+				features[0] = value;
+				for(FeatureExtractor<?, float[]> fe : listeners)
+					fe.process(features);
+			}			
+		}		
 	}
 
 	/**

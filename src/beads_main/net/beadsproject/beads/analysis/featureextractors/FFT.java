@@ -69,6 +69,20 @@ public class FFT extends FeatureExtractor<float[][], float[]>  {
 		return binNumber*samplingFrequency/blockSize;
 	}
 	
+	/**
+	 * Returns the average bin number corresponding to a particular frequency.
+	 * Note: This function returns a float. Take the Math.round() of the returned value to get an integral bin number. 
+	 * 
+	 * @param samplingFrequency The Sampling Frequency of the AudioContext
+	 * @param blockSize The size of the fft block
+	 * @param freq  The frequency
+	 */
+	
+	public static float binNumber(float samplingFrequency, int blockSize, float freq)
+	{
+		return blockSize*freq/samplingFrequency;
+	}
+	
 	/** The nyquist frequency of this samplingFrequency 
 	 */
 	public static float nyquist(float samplingFrequency)

@@ -21,16 +21,22 @@ public class ReBin extends FeatureExtractor<float[], float[]> {
 	 * @param numFeatures the number of features.
 	 */
 	public ReBin(int numFeatures) {
-		this.numFeatures = numFeatures;
-		listeners = new ArrayList<FeatureExtractor<?,float[]>>();
+		setNumberOfFeatures(numFeatures);		
+		listeners = new ArrayList<FeatureExtractor<?,float[]>>();		
 	}
+	
+	@Override
+	public void setNumberOfFeatures(int nf) {
+		super.setNumberOfFeatures(nf);
+		features = new float[numFeatures];
+	}	
 	
 	/* (non-Javadoc)
 	 * @see net.beadsproject.beads.analysis.FeatureExtractor#process(java.lang.Object)
 	 */
 	@Override
 	public void process(float[] original) {
-		features = new float[numFeatures];
+		//features = new float[numFeatures];
 		if(original != null) {
 			float scale = (float)original.length / (float)features.length;
 			for(int i = 0; i < original.length; i++) {
