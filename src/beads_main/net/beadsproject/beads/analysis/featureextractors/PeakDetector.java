@@ -69,8 +69,8 @@ public class PeakDetector extends FeatureExtractor<float[], float[]>{
 	@Override
 	public void process(float[] input) {
 		assert input.length==1;
-		// if input is above the threshold value then notify the listeners
-		float value = input[0];
+		
+		float value = input[0];		
 		boolean exceededThreshold = false;
 		if (value > threshold)
 			exceededThreshold = true;		

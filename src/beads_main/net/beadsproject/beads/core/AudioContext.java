@@ -297,7 +297,7 @@ public class AudioContext {
 		}
 	}
 	
-	public void runForNSecondsNonRealTime(int n)
+	public void runForNSecondsNonRealTime(float n)
 	{
 		//time the playback to n seconds
 		DelayTrigger dt = new DelayTrigger(this, n*1000f, new AudioContextStopTrigger(this));
@@ -397,7 +397,7 @@ public class AudioContext {
 	 * @return number of samples.
 	 */
 	public double msToSamples(double msTime) {
-		return msTime * audioFormat.getSampleRate() / 1000.0f;
+		return msTime * (audioFormat.getSampleRate() / 1000.0);
 	}
 
 	/**
@@ -408,7 +408,7 @@ public class AudioContext {
 	 * @return duration in milliseconds.
 	 */
 	public double samplesToMs(double sampleTime) {
-		return sampleTime / audioFormat.getSampleRate() * 1000.0f;
+		return (sampleTime / audioFormat.getSampleRate()) * 1000.0;
 	}
 
 	/**
@@ -425,7 +425,7 @@ public class AudioContext {
 	 * Get the runtime (in ms) since start() 
 	 */
 	public double getTime(){
-		return samplesToMs(getTimeStep());
+		return samplesToMs(getTimeStep()*getBufferSize());
 	}
 
 	/**

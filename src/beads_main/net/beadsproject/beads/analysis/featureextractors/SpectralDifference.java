@@ -6,13 +6,13 @@ import net.beadsproject.beads.analysis.FeatureExtractor;
 
 public class SpectralDifference extends FeatureExtractor<float[], float[]> {
 
-	public enum DifferenceType {RMS, MEANDIFFERENCE};
+	public enum DifferenceType {POSITIVERMS, RMS, POSITIVEMEANDIFFERENCE, MEANDIFFERENCE};
 	
 	private float[] previousSpectrum;	
 	private float minFreq;
 	private float maxFreq;
 	private float sampleRate;
-	private DifferenceType differenceType = DifferenceType.RMS;
+	private DifferenceType differenceType = DifferenceType.POSITIVEMEANDIFFERENCE;
 	protected ArrayList<FeatureExtractor<?, float[]>> listeners;
 		
 	// cached size of last block
@@ -92,8 +92,14 @@ public class SpectralDifference extends FeatureExtractor<float[], float[]> {
 		if(numBins > 0) {
 			switch (differenceType)
 			{
+				case POSITIVERMS:
+					features[0] = positiveRms(spectrum,minBin,previousSpectrum,0,numBins);
+					break;
 				case RMS: 
 					features[0] = rms(spectrum,minBin,previousSpectrum,0,numBins);
+					break;
+				case POSITIVEMEANDIFFERENCE:
+					features[0] = positiveMeanDifference(spectrum,minBin,previousSpectrum,0,numBins);
 					break;
 				case MEANDIFFERENCE:
 					features[0] = meanDifference(spectrum,minBin,previousSpectrum,0,numBins);
@@ -130,6 +136,27 @@ public class SpectralDifference extends FeatureExtractor<float[], float[]> {
 	}
 	
 	/** 
+	 * Computes the Root-Mean-Squared of two arrays (only summing the positive differences)
+	 * 
+	 * @param arr1 first array
+	 * @param i1 index of first element
+	 * @param arr2 second array 
+	 * @param i2 index of second element
+	 * @param length length of arrays
+	 * @return
+	 */
+	private float positiveRms(float arr1[], int i1, float arr2[], int i2, int length)
+	{	
+		float value = 0f;
+		for(int i = 0; i < length; i++) {
+			float thisDiff = arr1[i1+i] - arr2[i2+i];
+			if (thisDiff >= 0)
+				value += thisDiff * thisDiff;			
+		}
+		return (float)Math.sqrt(value / length);
+	}
+	
+	/** 
 	 * Computes the mean difference of two arrays
 	 * 
 	 * @param arr1 first array
@@ -147,6 +174,26 @@ public class SpectralDifference extends FeatureExtractor<float[], float[]> {
 		}
 		return value / length;
 	}	
+	
+	/** 
+	 * Computes the mean difference of two arrays (only considering the positive differences)
+	 * 
+	 * @param arr1 first array
+	 * @param i1 index of first element
+	 * @param arr2 second array 
+	 * @param i2 index of second element
+	 * @param length length of arrays
+	 * @return
+	 */
+	private float positiveMeanDifference(float arr1[], int i1, float arr2[], int i2, int length)
+	{	
+		float value = 0f;
+		for(int i = 0; i < length; i++) {
+			if (arr1[i1+i] > arr2[i2+i])
+				value += arr1[i1+i] - arr2[i2+i];
+		}
+		return value / length;
+	}
 	
 	private void calcMaxAndMinBin(int blocksize)
 	{

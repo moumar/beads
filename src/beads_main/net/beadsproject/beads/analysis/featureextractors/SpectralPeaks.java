@@ -10,7 +10,7 @@ import net.beadsproject.beads.core.AudioContext;
 /**
  * Peaks finds the strongest N peaks in a signal passed from a {@link PowerSpectrum}, where N is the specified number of features. Peaks must be set as a listener to a {@link PowerSpectrum} object to work properly.
  */
-public class Peaks extends FeatureExtractor<float[], float[]>  {
+public class SpectralPeaks extends FeatureExtractor<float[], float[]>  {
 
 	/** The Constant FIRSTBAND. */
 	static final int FIRSTBAND = 3;
@@ -24,7 +24,7 @@ public class Peaks extends FeatureExtractor<float[], float[]>  {
 	 * @param context
 	 *            the AudioContext.
 	 */
-	public Peaks(AudioContext context) {
+	public SpectralPeaks(AudioContext context) {
 		this(context, 10);
 	}
 	
@@ -36,7 +36,7 @@ public class Peaks extends FeatureExtractor<float[], float[]>  {
 	 * @param numFeatures
 	 *            the number of features.
 	 */
-	public Peaks(AudioContext context, int numFeatures) {
+	public SpectralPeaks(AudioContext context, int numFeatures) {
 		bin2hz = context.getSampleRate() / (2 * (context.getBufferSize() - 1));
 		setNumberOfFeatures(numFeatures);
 	}

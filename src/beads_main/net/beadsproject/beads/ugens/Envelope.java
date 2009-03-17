@@ -240,7 +240,9 @@ public class Envelope extends UGen {
 		        } else {
 		        	iChanged = true;
 		        	float ratio;
-		        	if(currentSegment.curvature != 1.0f) ratio = (float)AudioUtils.fastPow((double)currentTime / (double)currentSegment.duration, (double)currentSegment.curvature);
+		        	// if(currentSegment.curvature != 1.0f) ratio = (float)AudioUtils.fastPow((double)currentTime / (double)currentSegment.duration, (double)currentSegment.curvature);
+		        	// BP, fastPow doesn't like values > 1
+		        	if(currentSegment.curvature != 1.0f) ratio = (float)Math.pow((double)currentTime / (double)currentSegment.duration, (double)currentSegment.curvature);
 		        	else ratio = (float)currentTime / (float)currentSegment.duration;
 		            currentValue = (1f - ratio) * currentStartValue + ratio * currentSegment.endValue;
 		            currentTime++;
