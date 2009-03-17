@@ -11,7 +11,9 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.sound.sampled.UnsupportedAudioFileException;
 
@@ -21,10 +23,10 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 public class SampleManager {
 
 	/** List of all Samples, indexed by name. */
-	private final static Hashtable<String, Sample> samples = new Hashtable<String, Sample>();
+	private final static Map<String, Sample> samples = new TreeMap<String, Sample>();
 	
 	/** List of Sample groups, indexed by group name. */
-	private final static Hashtable<String, ArrayList<Sample>> groups = new Hashtable<String, ArrayList<Sample>>();
+	private final static Map<String, ArrayList<Sample>> groups = new TreeMap<String, ArrayList<Sample>>();
 
 	/**
 	 * Returns a new Sample from the given filename. If the Sample has already
@@ -82,7 +84,7 @@ public class SampleManager {
 	 */
 	public static void group(String groupName, Sample[] sampleList) {
 		ArrayList<Sample> group;
-		if (!groups.contains(groupName))
+		if (!groups.keySet().contains(groupName))
 			group = new ArrayList<Sample>();
 		else
 			group = groups.get(groupName);
@@ -130,14 +132,15 @@ public class SampleManager {
 	 */
 	public static void group(String groupName, String[] fileNameList) {
 		ArrayList<Sample> group;
-		if (!groups.contains(groupName)) {
+		if (!groups.keySet().contains(groupName)) {
 			group = new ArrayList<Sample>();
 			groups.put(groupName, group);
 		} else
 			group = groups.get(groupName);
 		for (int i = 0; i < fileNameList.length; i++) {
-			Sample sample = sample(fileNameList[i]);
-			if (!group.contains(fileNameList[i]) && sample != null)
+			String simpleName = new File(fileNameList[i]).getName();
+			Sample sample = sample(simpleName, fileNameList[i]);
+			if (!group.contains(simpleName) && sample != null)
 				group.add(sample);
 		}
 	}

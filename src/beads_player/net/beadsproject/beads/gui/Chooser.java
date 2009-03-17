@@ -10,6 +10,8 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +26,7 @@ public class Chooser implements InterfaceElement {
 	protected List<String> elements;
 	private int boxHeight;
 	private int boxWidth;
+	private int charachterWidth;
 	private int popupBoxWidth;
 	private int choice;
 	private int tempChoice;
@@ -35,7 +38,8 @@ public class Chooser implements InterfaceElement {
 		elements = new ArrayList<String>();
 		choice = 0;
 		boxWidth = 200;
-		popupBoxWidth = 1000;
+		charachterWidth = 5;
+		popupBoxWidth = 0;
 		boxHeight = 10;
 		textVOffset = 1;
 	}
@@ -55,7 +59,7 @@ public class Chooser implements InterfaceElement {
 			public void mousePressed(MouseEvent e) {
 				final JDialog popup = new JDialog((Frame)component.getTopLevelAncestor());
 				popup.setUndecorated(true);
-				popup.setModal(true);
+//				popup.setModal(true);
 				tempChoice = choice;
 				final JComponent list = new JComponent() {
 					public void paintComponent(Graphics g) {
@@ -68,13 +72,23 @@ public class Chooser implements InterfaceElement {
 						for(String s : elements) {
 							if(tempChoice == height) {
 								g.setColor(Color.gray);
-								g.fillRect(0, height * boxHeight, boxWidth, boxHeight);
+								g.fillRect(0, height * boxHeight, popupBoxWidth, boxHeight);
 								g.setColor(Color.black);
 							} 
 							g.drawString(s, 0, (height++ + 1) * boxHeight - textVOffset);
 						}
 					}
 				};
+				popup.addWindowFocusListener(new WindowFocusListener() {
+
+					public void windowGainedFocus(WindowEvent e) {
+					}
+
+					public void windowLostFocus(WindowEvent e) {
+						popup.dispose();
+					}
+					
+				});
 				list.addMouseListener(new MouseAdapter() {
 					public void mousePressed(MouseEvent e) {
 						popup.dispose();
@@ -115,6 +129,10 @@ public class Chooser implements InterfaceElement {
 	
 	public void add(String s) {
 		elements.add(s);
+		int textWidth = s.length() * charachterWidth;
+		if(textWidth > popupBoxWidth) {
+			popupBoxWidth = textWidth;
+		}
 	}
 		
 	public int getBoxHeight() {

@@ -287,12 +287,22 @@ public class Sample {
     
     
     /**
-     * Gets the file name.
+     * Gets the full file name.
      * 
      * @return the file name
      */
     public String getFileName() {
     	return fileName;
+    }
+    
+
+    /**
+     * Gets the simple file name.
+     * 
+     * @return the file name
+     */
+    public String getSimpleFileName() {
+    	return new File(fileName).getName();
     }
     
 }
