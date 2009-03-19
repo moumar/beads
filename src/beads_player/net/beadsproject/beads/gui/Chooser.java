@@ -39,7 +39,7 @@ public class Chooser implements InterfaceElement {
 		choice = 0;
 		boxWidth = 200;
 		charachterWidth = 5;
-		popupBoxWidth = 0;
+		popupBoxWidth = 200;
 		boxHeight = 10;
 		textVOffset = 1;
 	}
@@ -133,6 +133,7 @@ public class Chooser implements InterfaceElement {
 		if(textWidth > popupBoxWidth) {
 			popupBoxWidth = textWidth;
 		}
+		popupBoxWidth = Math.max(200, popupBoxWidth);
 	}
 		
 	public int getBoxHeight() {
@@ -150,8 +151,6 @@ public class Chooser implements InterfaceElement {
 	public void setBoxWidth(int boxWidth) {
 		this.boxWidth = boxWidth;
 	}
-
-	
 	
 	public ChooserListener getListener() {
 		return listener;

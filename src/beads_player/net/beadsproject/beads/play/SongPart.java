@@ -1,8 +1,14 @@
 package net.beadsproject.beads.play;
 
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
+
+import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+
+import net.beadsproject.beads.events.KeyInput;
+import net.beadsproject.beads.gui.BeadsPanel;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.Gain;
@@ -29,6 +35,7 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 	
 	public SongPart(String name, Environment environment) {
 		this(name, environment, 2);
+		setGainEnvelope(new Envelope(getContext(), 2));
 	}
 	
 	/**
@@ -57,9 +64,14 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 	 * Setup panel.
 	 */
 	private void setupPanel() {
-		panel = new JPanel();
+		panel = new BeadsPanel();
+		((BeadsPanel)panel).horizontalBox();
 		for(InterfaceElement p : interfaceElements) {
 			panel.add(p.getComponent());
+		}
+		if(this instanceof KeyListener) {
+			System.out.println("KEY LISTENER");
+			panel.addKeyListener((KeyListener)this);
 		}
 	}
 	
