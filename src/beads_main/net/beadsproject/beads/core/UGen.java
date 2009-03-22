@@ -208,6 +208,7 @@ public abstract class UGen extends Bead {
 				dependent.update();
 		}
 		if (!noInputs) {
+			noInputs = true;
 			for (int i = 0; i < inputs.length; i++) {
 				ArrayList<BufferPointer> inputsCopy = (ArrayList<BufferPointer>) inputs[i].clone();
 				size = inputsCopy.size();
@@ -218,6 +219,7 @@ public abstract class UGen extends Bead {
 							inputs[i].remove(bp);
 						else {
 							bp.ugen.update();
+							noInputs = false;	//we actually updated something, so we must have inputs
 							for (int j = 0; j < bufferSize; j++) {
 								bufIn[i][j] += bp.get(j);
 							}

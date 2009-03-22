@@ -173,5 +173,12 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 		return 700.0 * (Math.exp(mel / 1127.0) - 1.0);
 	}
 
+	public double getFreqForBin(int bin) {
+		if(melCenter != null) {
+			return mel2lin(melCenter[bin]); 	//TODO test me
+		} else {
+			return Double.NaN;
+		}
+	}
 
 }

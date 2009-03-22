@@ -3,6 +3,7 @@ package net.beadsproject.beads.gui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.play.Environment;
@@ -73,18 +74,24 @@ public class BeadsGui {
 		ci.add(slider.getComponent());
 		ci.titledBorder("Master Controls");
 		environmentFrame.content.add(ci);
-		environmentFrame.setSize(500,500);
-//		environmentFrame.setResizable(false);
+		environmentFrame.pack();
+//		environmentFrame.setSize(500,500);
+		environmentFrame.setResizable(false);
 		environmentFrame.setVisible(true);
 	}
 
+	public void repack() {
+		((JFrame)songGrid.getTopLevelAncestor()).pack();
+	}
+	
 	public synchronized void addSongGroup(SongGroup sg) {
 		songGrid.addSongGroup(sg);
+		repack();
 	}
 
 	public synchronized void addSongPart(SongPart sp) {
 		songGrid.addSongPart(sp);
-
+		repack();
 	}
 
 }

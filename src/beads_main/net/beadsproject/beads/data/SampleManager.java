@@ -59,18 +59,14 @@ public class SampleManager {
 	 * @param fn the file path.
 	 * 
 	 * @return the sample.
+	 * @throws IOException 
+	 * @throws UnsupportedAudioFileException 
 	 */
-	public static Sample sample(String ref, String fn) {
+	public static Sample sample(String ref, String fn) throws UnsupportedAudioFileException, IOException {
 		Sample sample = samples.get(ref);
 		if (sample == null) {
-			try {
-				sample = new Sample(fn);
-				samples.put(ref, sample);
-			} catch (UnsupportedAudioFileException e) {
-				 e.printStackTrace();
-			} catch (IOException e) {
-				 e.printStackTrace();
-			}
+			sample = new Sample(fn);
+			samples.put(ref, sample);
 		}
 		return sample;
 	}
@@ -139,10 +135,23 @@ public class SampleManager {
 			group = groups.get(groupName);
 		for (int i = 0; i < fileNameList.length; i++) {
 			String simpleName = new File(fileNameList[i]).getName();
-			Sample sample = sample(simpleName, fileNameList[i]);
-			if (!group.contains(simpleName) && sample != null)
-				group.add(sample);
+			try {
+				Sample sample = sample(simpleName, fileNameList[i]);
+				if (!group.contains(simpleName) && sample != null) {
+					group.add(sample);
+				}
+			} catch(Exception e) {
+				//snuff the exception
+			}
 		}
+	}
+	
+	/**
+	 * Gets the set of group names.
+	 * @return Set of Strings representing group names.
+	 */
+	public static Set<String> groups() {
+		return groups.keySet();
 	}
 
 	/**

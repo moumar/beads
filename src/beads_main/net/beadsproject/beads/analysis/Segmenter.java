@@ -9,17 +9,6 @@ import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.BeadArray;
 import net.beadsproject.beads.core.UGen;
 
-/**
- * A Segmenter is an abstract base class for classes that divide a stream of audio data into segments. Whenever a segment is created, using the method {@link #segment(float[], int)}, it is passed on to any {@link FeatureExtractor}s that are registered as responders to this Segmenter. Other {@link Bead}s can be added as listeners, that are triggered when {@link #segment(float[], int)} is called.
- * 
- * An implementation of a Segmenter must implement the method {@link UGen#calculateBuffer()}, and determine when {@link #segment(float[], int)} should be called, passing the audio data accordingly (this may require the Segmenter to record audio data).
- * 
- * In addition, the Segmenter keeps track of analysis data in a {@link FeatureTrack} for any {@link FeatureExtractor}s registered as extractors with this Segmenter.
- *  
- * <p/>NOTE: It is critical that the second argument passed to the method {@link #segment(float[], int)} correctly indicates the length since the previous segment.
- *  
- *  @author ollie
- */
 public abstract class Segmenter extends UGen {
 
 	

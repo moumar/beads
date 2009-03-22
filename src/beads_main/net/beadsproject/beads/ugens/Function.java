@@ -32,7 +32,7 @@ public abstract class Function extends UGen {
 	 * 
 	 * @param inputs the set of input UGens.
 	 */
-	public Function(UGen[] inputs) {
+	public Function(UGen... inputs) {
 		super(inputs[0].getContext(), 1);
 		this.inputs = inputs;
 		x = new float[inputs.length];

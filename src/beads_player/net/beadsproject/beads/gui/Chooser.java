@@ -18,6 +18,8 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+
 import net.beadsproject.beads.play.InterfaceElement;
 
 
@@ -33,33 +35,36 @@ public class Chooser implements InterfaceElement {
 	private int textVOffset;
 	private ChooserListener listener;
 	private JComponent component;
+	private String label;
 	
-	public Chooser() {
+	public Chooser(String label) {
+		setLabel(label);
 		elements = new ArrayList<String>();
 		choice = 0;
-		boxWidth = 200;
+		boxWidth = 100;
 		charachterWidth = 5;
 		popupBoxWidth = 200;
 		boxHeight = 10;
 		textVOffset = 1;
 	}
-	
+
 	public JComponent getComponent() {
-		component = new JComponent() {
+		refreshList();
+		final JComponent valueComponent = new JComponent() {
 			public void paintComponent(Graphics g) {
 				Graphics2D g2d = (Graphics2D)g;
 				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 				g.setColor(Color.white);
 				g.fillRect(0, 0, getWidth(), getHeight());
 				g.setColor(Color.black);
-				g.drawString(elements.get(choice), 0, boxHeight - textVOffset);
+				g.drawString(getChoice(), 0, boxHeight - textVOffset);
 			}
 		};
-		component.addMouseListener(new MouseAdapter() {
+		valueComponent.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
+				refreshList();
 				final JDialog popup = new JDialog((Frame)component.getTopLevelAncestor());
 				popup.setUndecorated(true);
-//				popup.setModal(true);
 				tempChoice = choice;
 				final JComponent list = new JComponent() {
 					public void paintComponent(Graphics g) {
@@ -80,14 +85,11 @@ public class Chooser implements InterfaceElement {
 					}
 				};
 				popup.addWindowFocusListener(new WindowFocusListener() {
-
 					public void windowGainedFocus(WindowEvent e) {
 					}
-
 					public void windowLostFocus(WindowEvent e) {
 						popup.dispose();
 					}
-					
 				});
 				list.addMouseListener(new MouseAdapter() {
 					public void mousePressed(MouseEvent e) {
@@ -115,16 +117,31 @@ public class Chooser implements InterfaceElement {
 				list.setMaximumSize(d);
 				popup.setContentPane(list);
 				popup.pack();
-				popup.setLocation((int)component.getLocationOnScreen().getX(), (int)component.getLocationOnScreen().getY() - choice * boxHeight);
+				popup.setLocation((int)valueComponent.getLocationOnScreen().getX(), (int)valueComponent.getLocationOnScreen().getY() - choice * boxHeight);
 				popup.setVisible(true);
 			}
 		});
 		Dimension size = new Dimension(boxWidth, boxHeight);
-		component.setFont(new Font("Courier", Font.PLAIN, 10));
-		component.setPreferredSize(size);
-		component.setMinimumSize(size);
-		component.setMaximumSize(size);
+		valueComponent.setFont(new Font("Courier", Font.PLAIN, 10));
+		valueComponent.setPreferredSize(size);
+		valueComponent.setMinimumSize(size);
+		valueComponent.setMaximumSize(size);
+		BeadsPanel container = new BeadsPanel();
+		container.horizontalBox();
+		String tempLabel = label;
+		while(tempLabel.length() < 7) {
+			tempLabel = tempLabel + " ";
+		}
+		JLabel nameLabel = new JLabel(tempLabel);
+		nameLabel.setFont(new Font("Courier", Font.PLAIN, 10));
+		container.add(nameLabel);
+		container.add(valueComponent);
+		component = container;
 		return component;
+	}
+	
+	public void refreshList() {
+		//default is to do nothing, override to change
 	}
 	
 	public void add(String s) {
@@ -164,14 +181,43 @@ public class Chooser implements InterfaceElement {
 		public void choice(String s);
 	}
 	
+	private void setLabel(String label) {
+		this.label = label;
+	}
+	
+	public String getLabel() {
+		return label;
+	}
+	
 	public void setChoice(int choice) {
 		this.choice = choice;
 		if(listener != null) listener.choice(elements.get(choice));
 		if(component != null) component.repaint();
 	}
+	
+	public String getChoice() {
+		if(elements == null || elements.size() == 0) {
+			return "";
+		} else {
+			if(choice >= elements.size()) {
+				choice = elements.size() - 1;
+			}
+			return elements.get(choice);
+		}
+	}
+	
+	public void clear() {
+		elements.clear();
+	}
+	
+	public void repaint() {
+		if(component != null) {
+			component.repaint();
+		}
+	}
 
 	public static void main(String[] args) {
-		Chooser c = new Chooser();
+		Chooser c = new Chooser("test");
 		JFrame f = new JFrame();
 		f.add(c.getComponent());
 		c.elements.add("Hello");

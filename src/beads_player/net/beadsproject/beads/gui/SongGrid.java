@@ -1,7 +1,6 @@
 package net.beadsproject.beads.gui;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
@@ -15,21 +14,18 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.play.Player;
 import net.beadsproject.beads.play.SongGroup;
 import net.beadsproject.beads.play.SongPart;
-import net.beadsproject.beads.ugens.Clock;
 
 public class SongGrid extends BeadsPanel {
 
+	private static final long serialVersionUID = 1L;
 	private JComponent grid;
 	private JComponent groupPanel;
 	private JComponent partPanel;
@@ -82,7 +78,9 @@ public class SongGrid extends BeadsPanel {
 					} else {
 						BeadsWindow bw = new BeadsWindow(sp.getName());
 						bw.content.add(sp.getComponent());
+						bw.pack();
 						bw.setVisible(true);
+						bw.setResizable(false);
 						partWindows.put(sp, bw);
 					}
 				}

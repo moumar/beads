@@ -9,6 +9,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.play.InterfaceElement;
 
@@ -23,6 +25,7 @@ public class SampleView implements InterfaceElement {
 	private int selectionEnd;
 	private int height;
 	private int width;
+	private int chunkSize;
 	private JComponent component;
 	private SelectMode selectionMode;
 	private SampleViewListener listener;
@@ -34,7 +37,8 @@ public class SampleView implements InterfaceElement {
 	public SampleView(Sample sample) {
 		this.sample = sample;
 		height = 100;
-		setWidth(200);
+		chunkSize = 100;
+		setWidth(500);
 		selectionMode = SelectMode.REGION;
 	}
 	
@@ -89,7 +93,13 @@ public class SampleView implements InterfaceElement {
 		if(sample != null) {
 			double hop = (double)sample.buf[0].length / width;
 			for(int i = 0; i < width; i++) {
-				view[i] = (int)((sample.buf[0][(int)(i * hop)] + 1f) * (float)height / 2f);
+				int index = (int)(i * hop);
+				float average = 0;
+				for(int j = 0; j < chunkSize; j++) {
+					average += sample.buf[0][index + j];
+				}
+				average /= chunkSize;
+				view[i] = (int)((average + 1f) * (float)height / 2f);
 			}
 		}
 		if(component != null) {
@@ -99,7 +109,7 @@ public class SampleView implements InterfaceElement {
 
 	public JComponent getComponent() {
 		if(component == null) {
-			component = new JComponent() {
+			final JComponent subComponent = new JComponent() {
 				public void paintComponent(Graphics g) {
 					Graphics2D g2d = (Graphics2D)g;
 					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -119,17 +129,17 @@ public class SampleView implements InterfaceElement {
 					g.fillRect(Math.min(selectionStart, selectionEnd), 0, Math.abs(selectionEnd - selectionStart), height);
 				}
 			};
-			component.addMouseListener(new MouseAdapter() {
+			subComponent.addMouseListener(new MouseAdapter() {
 				public void mousePressed(MouseEvent e) {
 					selectionStart = e.getX();
 					selectionEnd = selectionStart + 1;
 					if(listener != null) {
 						listener.selectionChanged(pixelsToMS(Math.min(selectionStart, selectionEnd)), pixelsToMS(Math.max(selectionStart, selectionEnd)));
 					}
-					component.repaint();
+					subComponent.repaint();
 				}
 			});
-			component.addMouseMotionListener(new MouseMotionListener() {
+			subComponent.addMouseMotionListener(new MouseMotionListener() {
 				public void mouseDragged(MouseEvent e) {
 					switch(selectionMode) {
 					case REGION:
@@ -143,15 +153,16 @@ public class SampleView implements InterfaceElement {
 					if(listener != null) {
 						listener.selectionChanged(pixelsToMS(Math.min(selectionStart, selectionEnd)), pixelsToMS(Math.max(selectionStart, selectionEnd)));
 					}
-					component.repaint();
+					subComponent.repaint();
 				}
 				public void mouseMoved(MouseEvent e) {
 				}
 			});
+			component = subComponent;
 			Dimension size = new Dimension(width, height);
-			component.setMinimumSize(size);
-			component.setPreferredSize(size);
-			component.setMaximumSize(size);
+			subComponent.setMinimumSize(size);
+			subComponent.setPreferredSize(size);
+			subComponent.setMaximumSize(size);
 		}
 		return component;
 	}

@@ -2,18 +2,13 @@ package net.beadsproject.beads.play;
 
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
-
-import javax.swing.BoxLayout;
 import javax.swing.JComponent;
-import javax.swing.JPanel;
-
-import net.beadsproject.beads.events.KeyInput;
+import net.beadsproject.beads.events.PauseTrigger;
 import net.beadsproject.beads.gui.BeadsPanel;
+import net.beadsproject.beads.gui.Slider;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.Gain;
-
-
 
 // TODO: Auto-generated Javadoc
 /**
@@ -31,11 +26,12 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 	
 	protected Clock clock;
 	
+	protected Gain controllableGain;
+	
 	protected Environment environment;
 	
 	public SongPart(String name, Environment environment) {
 		this(name, environment, 2);
-		setGainEnvelope(new Envelope(getContext(), 2));
 	}
 	
 	/**
@@ -53,7 +49,12 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 		interfaceElements = new ArrayList<InterfaceElement>();
 		pause(true);
 		state = 0;
-//		setGainEnvelope(new Envelope(context, 0f));
+		controllableGain = new Gain(context, inouts);
+		Slider s = new Slider(context, "gain", 0f, 1f, 0f);
+		controllableGain.setGainEnvelope(s);
+		addInput(controllableGain);
+		interfaceElements.add(s);
+		setGainEnvelope(new Envelope(context, 0f));
 	}
 	
 	public void setState(int state) {
@@ -65,7 +66,6 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 	 */
 	private void setupPanel() {
 		panel = new BeadsPanel();
-		((BeadsPanel)panel).horizontalBox();
 		for(InterfaceElement p : interfaceElements) {
 			panel.add(p.getComponent());
 		}
@@ -85,9 +85,16 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 		return panel;
 	}
 	
-	public abstract void enter();
-	
-	public abstract void exit();
+	public void enter() {
+		((Envelope)getGainEnvelope()).lock(false);
+		getGainEnvelope().setValue(1f);
+	}
+
+	public void exit() {
+		((Envelope)getGainEnvelope()).clear();
+		((Envelope)getGainEnvelope()).addSegment(0f, 500f, new PauseTrigger(this));
+		((Envelope)getGainEnvelope()).lock(true);
+	}
 	
 	public final String toString() {
 		return getName() + " (" + getClass().getSimpleName() + ")";
