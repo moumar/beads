@@ -74,10 +74,9 @@ public class BeadsGui {
 		ci.add(slider.getComponent());
 		ci.titledBorder("Master Controls");
 		environmentFrame.content.add(ci);
-		environmentFrame.pack();
-//		environmentFrame.setSize(500,500);
-		environmentFrame.setResizable(false);
+		environmentFrame.setResizable(true);
 		environmentFrame.setVisible(true);
+		environmentFrame.pack();
 	}
 
 	public void repack() {

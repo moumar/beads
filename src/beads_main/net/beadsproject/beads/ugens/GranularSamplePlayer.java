@@ -187,6 +187,12 @@ public class GranularSamplePlayer extends SamplePlayer {
 	public void setRandomnessEnvelope(UGen randomnessEnvelope) {
 		this.randomnessEnvelope = randomnessEnvelope;
 	}
+	
+	public synchronized void setBuffer(Sample buffer) {
+		super.setBuffer(buffer);
+		grains.clear();
+		timeSinceLastGrain = 0f;
+	}
 
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.core.UGen#start()
@@ -232,7 +238,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 	 * @see com.olliebown.beads.ugens.SamplePlayer#calculateBuffer()
 	 */
 	@Override
-	public void calculateBuffer() {
+	public synchronized void calculateBuffer() {
 		//special condition for first grain
 		//update the various envelopes
 		if(buffer != null) {
@@ -285,7 +291,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 					}
 					//add it to the current output frame
 					for (int j = 0; j < outs; j++) {
-						bufOut[j][i] += windowScale * frame[j];
+						bufOut[j][i] += windowScale * frame[j % buffer.nChannels];
 					}
 				}
 				//increment time and stuff

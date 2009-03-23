@@ -398,7 +398,7 @@ public class SamplePlayer extends UGen {
 					break;
 				}
 				for (int j = 0; j < outs; j++) {
-					bufOut[j][i] = frame[j];
+					bufOut[j][i] = frame[j % buffer.nChannels];
 				}
 				//update the position, loop state, direction
 				calculateNextPosition(i);

@@ -10,7 +10,7 @@ public class DefaultEnvironmentFactory extends EnvironmentFactory {
 
 	public Environment createEnvironment() {
 		Environment e = new Environment();
-		e.ac = new AudioContext(512, 5000);
+		e.ac = new AudioContext();
 		//set up clock as a pathway
 		Clock c = new Clock(e.ac, 500f);
 		c.setName("master clock");
@@ -25,8 +25,6 @@ public class DefaultEnvironmentFactory extends EnvironmentFactory {
 		e.elements.put("in", in);
 		//set up in and main out as object in channels
 		e.channels.put("out", e.ac.out);
-//		//make some other simple UGen to add
-//		e.channels.put("dummy", new Gain(e.ac, 2));
 		return e;
 	}
 }

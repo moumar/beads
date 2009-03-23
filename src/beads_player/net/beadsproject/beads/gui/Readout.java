@@ -2,16 +2,22 @@ package net.beadsproject.beads.gui;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 
 import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import com.sun.org.apache.xpath.internal.axes.SubContextList;
 
 import net.beadsproject.beads.play.InterfaceElement;
 
 public class Readout implements InterfaceElement {
 
+	private JLabel label;
 	private String text;
 	private JComponent component;
 	private int boxHeight;
@@ -20,12 +26,15 @@ public class Readout implements InterfaceElement {
 	
 	public Readout() {
 		boxHeight = 10;
-		boxWidth = 200;
+		boxWidth = 100;
 		textVOffset = 1;
+		label = new JLabel();
+		label.setFont(new Font("Courier", Font.PLAIN, 10));
 	}
 	
-	public Readout(String text) {
+	public Readout(String label, String text) {
 		this();
+		setLabel(label);
 		setText(text);
 	}
 	
@@ -36,13 +45,28 @@ public class Readout implements InterfaceElement {
 		}
 	}
 	
+	public void setLabel(String label) {
+		String tempLabel = label;
+		while(tempLabel.length() < 7) {
+			tempLabel = tempLabel + " ";
+		}
+		this.label.setText(tempLabel);
+		if(component != null) {
+			component.repaint();
+		}
+	}
+	
 	public String getText() {
 		return text;
 	}
 	
+	public String getLabel() {
+		return label.getText();
+	}
+	
 	public JComponent getComponent() {
 		if(component == null) {
-			component = new JComponent() {
+			JComponent subComponent = new JComponent() {
 				public void paintComponent(Graphics g) {
 					Graphics2D g2d = (Graphics2D)g;
 					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -54,11 +78,16 @@ public class Readout implements InterfaceElement {
 					}
 				}
 			};
+			Dimension size = new Dimension(boxWidth, boxHeight);
+			BeadsPanel bp = new BeadsPanel();
+			bp.horizontalBox();
+			bp.add(label);
+			bp.add(subComponent);
+			component = bp;
+			component.setMinimumSize(size);
+			component.setPreferredSize(size);
+			component.setMaximumSize(size);
 		}
-		Dimension size = new Dimension(boxWidth, boxHeight);
-		component.setMinimumSize(size);
-		component.setPreferredSize(size);
-		component.setMaximumSize(size);
 		return component;
 	}
 

@@ -39,8 +39,8 @@ public class ShortFrameSegmenter extends Segmenter {
 	 */
 	public ShortFrameSegmenter(AudioContext context) {
 		super(context);
-		hopSize = context.getBufferSize();
-		chunkSize = hopSize * 2;
+		chunkSize = context.getBufferSize();
+		hopSize = chunkSize;
 		window = new HanningWindow().getDefault();
 		init();
 	}

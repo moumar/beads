@@ -37,7 +37,7 @@ public class SampleView implements InterfaceElement {
 	public SampleView(Sample sample) {
 		this.sample = sample;
 		height = 100;
-		chunkSize = 100;
+		chunkSize = 200;
 		setWidth(500);
 		selectionMode = SelectMode.REGION;
 	}
@@ -95,10 +95,13 @@ public class SampleView implements InterfaceElement {
 			for(int i = 0; i < width; i++) {
 				int index = (int)(i * hop);
 				float average = 0;
-				for(int j = 0; j < chunkSize; j++) {
-					average += sample.buf[0][index + j];
+				int maxJ = Math.min(chunkSize, sample.buf[0].length - index);
+				for(int j = 0; j < maxJ; j++) {
+					average += Math.abs(sample.buf[0][index + j]);
 				}
-				average /= chunkSize;
+				if(maxJ != 0) {
+					average /= maxJ;
+				}
 				view[i] = (int)((average + 1f) * (float)height / 2f);
 			}
 		}
@@ -122,6 +125,7 @@ public class SampleView implements InterfaceElement {
 					if(view != null) {
 						for(int i = 1; i < view.length; i++) {
 							g.drawLine(i - 1, view[i - 1], i, view[i]);
+							g.drawLine(i - 1, getHeight() - view[i - 1], i, getHeight() - view[i]);
 						}
 					}
 					//overlay

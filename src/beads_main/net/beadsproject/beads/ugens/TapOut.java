@@ -3,12 +3,12 @@ package net.beadsproject.beads.ugens;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
-class TapOut extends UGen
+public class TapOut extends UGen
 {
   private TapIn ti;
   private UGen sampleDelayEnvelope;
 
-  public TapOut(AudioContext ac, TapIn ti, int sampleDelay)
+  public TapOut(AudioContext ac, TapIn ti, float sampleDelay)
   {
     super(ac,0,1);
     this.ti = ti;
@@ -29,4 +29,5 @@ class TapOut extends UGen
     sampleDelayEnvelope.update();
     ti.fillBufferFrom(bufOut[0],sampleDelayEnvelope);
   }  
+  
 };

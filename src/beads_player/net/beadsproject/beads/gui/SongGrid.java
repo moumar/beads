@@ -74,6 +74,7 @@ public class SongGrid extends BeadsPanel {
 				if(e.getClickCount() > 1) {
 					SongPart sp = parts.get((e.getY() - groupTextHeight) / boxWidth);
 					if(partWindows.containsKey(sp)) {
+						partWindows.get(sp).setVisible(true);
 						partWindows.get(sp).toFront();
 					} else {
 						BeadsWindow bw = new BeadsWindow(sp.getName());

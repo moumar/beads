@@ -1,7 +1,6 @@
 package net.beadsproject.beads.gui;
 
 import java.awt.Font;
-
 import javax.swing.JComponent;
 
 public class BeadsComponent extends JComponent {
