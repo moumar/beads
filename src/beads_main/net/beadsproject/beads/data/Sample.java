@@ -6,6 +6,8 @@ package net.beadsproject.beads.data;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
@@ -75,12 +77,14 @@ public class Sample {
     public Sample(String fn) throws UnsupportedAudioFileException, IOException {
     	this.fileName = fn;
     	AudioInputStream audioInputStream = null;
-    	try {
+    	try {    		
     		File fileIn = new File(fn);
-        	audioInputStream = AudioSystem.getAudioInputStream(fileIn);
+    		if (fileIn.exists())
+    			audioInputStream = AudioSystem.getAudioInputStream(fileIn);
+    		else
+    			audioInputStream = AudioSystem.getAudioInputStream((new URL(fn)).openStream());
     	} catch(Exception e) {
-    		URL url = new URL(fn);
-        	audioInputStream = AudioSystem.getAudioInputStream(url.openStream());
+    		throw(new IOException("Cannot find file \"" + fn + "\". It either doesn't exist at the specified location or the URL is malformed."));    		    		
     	}
         audioFormat = audioInputStream.getFormat();
         nChannels = audioFormat.getChannels();
