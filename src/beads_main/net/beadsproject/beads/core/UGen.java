@@ -263,7 +263,7 @@ public abstract class UGen extends Bead {
 	 * 
 	 * @param sourceUGen the UGen to connect to this UGen.
 	 */
-	public synchronized void addInput(UGen sourceUGen) {
+	public void addInput(UGen sourceUGen) {
 		if(ins != 0 && sourceUGen.outs != 0) {
 			for (int i = 0; i < ins; i++) {
 				addInput(i, sourceUGen, i % sourceUGen.outs);
@@ -280,7 +280,7 @@ public abstract class UGen extends Bead {
 	 * @param sourceOutputIndex the output of the connecting UGen with which to make the
 	 * connection.
 	 */
-	public synchronized void addInput(int inputIndex, UGen sourceUGen, int sourceOutputIndex) {
+	public void addInput(int inputIndex, UGen sourceUGen, int sourceOutputIndex) { //Removed synchronized from this method
 		inputs[inputIndex].add(new BufferPointer(sourceUGen, sourceOutputIndex));
 		noInputs = false;
 	}

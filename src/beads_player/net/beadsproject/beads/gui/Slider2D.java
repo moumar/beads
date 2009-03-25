@@ -38,7 +38,7 @@ public class Slider2D implements InterfaceElement {
 		if(component == null) {
 			component = new BeadsComponent() {
 				public void paintComponent(Graphics g) {
-					((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//					((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 					//outer box
 					g.setColor(Color.white);
 					g.fillRect(0, 0, getWidth(), getHeight());

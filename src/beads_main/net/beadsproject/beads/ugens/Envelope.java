@@ -135,7 +135,7 @@ public class Envelope extends UGen {
 	 * @param trigger
 	 *            the trigger.
 	 */
-    public synchronized void addSegment(float endValue, float duration, float curvature, Bead trigger) {
+    public synchronized void addSegment(float endValue, float duration, float curvature, Bead trigger) { //synchronized
         if(!lock) {
         	if(!Float.isNaN(endValue) && !Float.isInfinite(endValue)) {
         		segments.add(new Segment(endValue, duration, curvature, trigger));
@@ -184,7 +184,7 @@ public class Envelope extends UGen {
     /**
 	 * Clears the list of Segments.
 	 */
-    public synchronized void clear() {
+    public synchronized void clear() { //synchronized
     	if(!lock) {
     		segments = new ArrayList<Segment>();
         	currentSegment = null;

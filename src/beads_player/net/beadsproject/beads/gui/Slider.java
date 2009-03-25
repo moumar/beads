@@ -156,7 +156,7 @@ public class Slider extends Envelope implements InterfaceElement {
 	public void calculateBuffer() {
 		super.calculateBuffer();
 		value = bufOut[0][0];
-		if(component != null) component.repaint();
+//		if(component != null) component.repaint();
 	}
 	
 	/**
@@ -169,7 +169,7 @@ public class Slider extends Envelope implements InterfaceElement {
 			component = new BeadsComponent() {
 				public void paintComponent(Graphics g) {
 					Graphics2D g2d = (Graphics2D)g;
-					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 					//outer box
 					g.setColor(Color.white);
 					g.fillRect(0, 0, getWidth(), getHeight());

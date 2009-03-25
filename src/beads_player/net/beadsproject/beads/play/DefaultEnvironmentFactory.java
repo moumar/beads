@@ -22,6 +22,7 @@ public class DefaultEnvironmentFactory extends EnvironmentFactory {
 		e.elements.put(c.getName(), c);
 		//set up audio input as object in environment
 		RTInput in = new RTInput(e.ac, e.ac.getAudioFormat());
+//		Gain in = new Gain(e.ac, 2);
 		e.elements.put("in", in);
 		//set up in and main out as object in channels
 		e.channels.put("out", e.ac.out);
