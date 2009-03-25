@@ -226,9 +226,9 @@ public class AudioContext {
 		float[] interleavedOutput = new float[audioFormat.getChannels() * bufferSizeInFrames];
 		while (!stop) {
 			if (!skipFrame) {
-//				synchronized(this) {	//This was causing permanent freezing
+				synchronized(this) {	//This was causing permanent freezing
 					out.update(); // this will propagate all of the updates
-//				}
+				}
 				interleave(out.bufOut, interleavedOutput);
 				AudioUtils.floatToByte(bbuf, interleavedOutput,
 						audioFormat.isBigEndian());

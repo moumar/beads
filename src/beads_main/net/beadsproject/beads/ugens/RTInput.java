@@ -25,6 +25,9 @@ public class RTInput extends UGen {
 	
 	/** Flag to tell whether JavaSound has been initialised. */
 	private boolean javaSoundInitialized;
+	
+	private float[] interleavedSamples;
+	private byte[] bbuf;
 
 	/**
 	 * Instantiates a new RTInput.
@@ -66,6 +69,8 @@ public class RTInput extends UGen {
 		}
 		targetDataLine.start();
 		javaSoundInitialized = true;
+		interleavedSamples = new float[bufferSize * audioFormat.getChannels()];
+		bbuf = new byte[bufferSize * audioFormat.getFrameSize()];
 	}
 	
 
@@ -77,9 +82,7 @@ public class RTInput extends UGen {
 		if(!javaSoundInitialized) {
 			initJavaSound();
 		}
-		byte[] bbuf = new byte[bufferSize * audioFormat.getFrameSize()];
 		targetDataLine.read(bbuf, 0, bbuf.length);
-		float[] interleavedSamples = new float[bufferSize * audioFormat.getChannels()];
 		AudioUtils.byteToFloat(interleavedSamples, bbuf, audioFormat.isBigEndian());
 		AudioUtils.deinterleave(interleavedSamples, audioFormat.getChannels(), bufferSize, bufOut);
 	}

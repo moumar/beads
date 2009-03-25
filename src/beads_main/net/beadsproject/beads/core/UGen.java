@@ -5,6 +5,10 @@ package net.beadsproject.beads.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import com.apple.audio.jdirect.ArrayCopy;
+import com.sun.tools.javac.code.Attribute.Array;
+
 import net.beadsproject.beads.ugens.Clock;
 
 /**
@@ -212,12 +216,26 @@ public abstract class UGen extends Bead {
 			for (int i = 0; i < inputs.length; i++) {
 				ArrayList<BufferPointer> inputsCopy = (ArrayList<BufferPointer>) inputs[i].clone();
 				size = inputsCopy.size();
+				if(size == 1) {
+					BufferPointer bp = inputsCopy.get(0);
+					if (bp.ugen.isDeleted()) {
+						inputs[i].remove(bp);
+						Arrays.fill(bufIn[i], 0f);
+					} else {
+						bp.ugen.update();
+						noInputs = false;	//we actually updated something, so we must have inputs
+						System.arraycopy(bp.getBuffer(), 0, bufIn[i], 0, bufferSize);
+//						for (int j = 0; j < bufferSize; j++) {
+//							bufIn[i][j] = bp.get(j);
+//						}
+					}
+				} else {
 					Arrays.fill(bufIn[i], 0f);
 					for (int ip = 0; ip < size; ip++) {
 						BufferPointer bp = inputsCopy.get(ip);
-						if (bp.ugen.isDeleted())
+						if (bp.ugen.isDeleted()) {
 							inputs[i].remove(bp);
-						else {
+						} else {
 							bp.ugen.update();
 							noInputs = false;	//we actually updated something, so we must have inputs
 							for (int j = 0; j < bufferSize; j++) {
@@ -225,6 +243,7 @@ public abstract class UGen extends Bead {
 							}
 						}
 					}
+				}
 			}
 		}
 	}
