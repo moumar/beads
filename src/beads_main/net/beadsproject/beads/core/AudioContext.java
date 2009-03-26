@@ -47,7 +47,7 @@ public class AudioContext {
 	private byte[] bbuf;
 	
 	/** Thread for running realtime audio. */
-	private Thread thread;
+	private Thread audioThread;
 	
 	/** The stop flag. */
 	private boolean stop;
@@ -246,6 +246,7 @@ public class AudioContext {
 					skipFrame = false;
 			}
 			timeStep++;
+			if(Thread.interrupted()) System.out.println("Thread interrupted");
 			if(logTime && timeStep % 100 == 0) {
 				System.out.println(samplesToMs(timeStep * bufferSizeInFrames) / 1000f + " (seconds)");
 			}
@@ -270,13 +271,13 @@ public class AudioContext {
 	public void start() {
 		if(stop) {
 			stop = false;
-			thread = new Thread(new Runnable() {
+			audioThread = new Thread(new Runnable() {
 				public void run() {
 					AudioContext.this.run();
 				}
 			});
-			thread.setPriority(Thread.MAX_PRIORITY);
-			thread.start();
+			audioThread.setPriority(Thread.MAX_PRIORITY);
+			audioThread.start();
 		}
 	}
 
