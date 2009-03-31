@@ -8,6 +8,8 @@ package net.beadsproject.beads.core;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
+
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
@@ -69,6 +71,8 @@ public class AudioContext {
 	
 	/** The system buffer size in frames. */
 	private int systemBufferSizeInFrames;
+	
+	private boolean checkForThreadBlocking;
 
 	/**
 	 * Creates a new AudioContext with default settings. The default buffer size
@@ -118,6 +122,7 @@ public class AudioContext {
 		stop = true;
 		checkForDroppedFrames = true;
 		logTime = false;
+		checkForThreadBlocking = false;
 		// set audio format
 		this.audioFormat = audioFormat;
 		// set buffer size
@@ -222,19 +227,26 @@ public class AudioContext {
 		long nanoStart = System.nanoTime();
 		long nanoLeap = (long) (1000000000 / (audioFormat.getSampleRate() / (float) bufferSizeInFrames));
 		boolean skipFrame = false;
+		if(checkForThreadBlocking) {
+			doCheckForThreadBlocking();
+		}
+		byte b = 0;
+		Arrays.fill(bbuf, b);
 		timeStep = 0;
 		float[] interleavedOutput = new float[audioFormat.getChannels() * bufferSizeInFrames];
 		while (!stop) {
 			if (!skipFrame) {
-				synchronized(this) {	//This was causing permanent freezing
-					out.update(); // this will propagate all of the updates
+				if(timeStep > 20) {
+					synchronized(this) {	//This was causing permanent freezing
+						out.update(); // this will propagate all of the updates
+					}
+					interleave(out.bufOut, interleavedOutput);
+					AudioUtils.floatToByte(bbuf, interleavedOutput,
+							audioFormat.isBigEndian());
 				}
-				interleave(out.bufOut, interleavedOutput);
-				AudioUtils.floatToByte(bbuf, interleavedOutput,
-						audioFormat.isBigEndian());
 				sourceDataLine.write(bbuf, 0, bbuf.length);
 			}
-			if (checkForDroppedFrames) {
+			if (timeStep > 20 && checkForDroppedFrames) {
 				long expectedNanoTime = nanoLeap * (timeStep + 1);
 				long realNanoTime = System.nanoTime() - nanoStart;
 				float frameDifference = (float) (expectedNanoTime - realNanoTime)
@@ -254,6 +266,22 @@ public class AudioContext {
 		sourceDataLine.drain();
 		sourceDataLine.stop();
 		sourceDataLine.close();
+	}
+	
+	private void doCheckForThreadBlocking() {
+		Thread t = new Thread() {
+			public void run() {
+				while(true) {
+					//TODO
+					try {
+						sleep(1000);
+					} catch(Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		};
+		t.start();
 	}
 	
 	/**
@@ -445,6 +473,15 @@ public class AudioContext {
 	 */
 	public void checkForDroppedFrames(boolean checkForDroppedFrames) {
 		this.checkForDroppedFrames = checkForDroppedFrames;
+	}
+	
+	/**
+	 * Switch on/off checking for blocking of audio thread when running in realtime.
+	 * 
+	 * @param checkForThreadBlocking set true to check for thread blocking.
+	 */
+	public void checkForThreadBlocking(boolean checkForThreadBlocking) {
+		this.checkForThreadBlocking = checkForThreadBlocking;
 	}
 	
 	/**
