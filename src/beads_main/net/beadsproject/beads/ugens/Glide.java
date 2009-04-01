@@ -2,6 +2,7 @@ package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
+import net.beadsproject.beads.data.buffers.SineBuffer;
 
 public class Glide extends UGen {
 
@@ -31,6 +32,7 @@ public class Glide extends UGen {
 		gliding = true;
 		nothingChanged = false;
 		countSinceGlide = 0;
+		currentValue = getValue();
 	}
 	
 	public void setGlideTime(float msTime) {
@@ -43,26 +45,49 @@ public class Glide extends UGen {
 
 	@Override
 	public void calculateBuffer() {
-		if(!nothingChanged) {
-			nothingChanged = true;
+//		if(!nothingChanged) {
+//			nothingChanged = true;
 			for(int i = 0; i < bufferSize; i++) {
 				if(gliding) {
-					float offset = ((float)countSinceGlide / glideTime);
-					bufOut[0][i] = offset * targetValue + (1f - offset) * currentValue;
-					if(countSinceGlide > glideTime) {
+					if(countSinceGlide >= glideTime) {
 						gliding = false;
-						currentValue = bufOut[0][i];
+						bufOut[0][i] = currentValue = targetValue;
 					} else {
-						nothingChanged = false;
+						float offset = ((float)countSinceGlide / glideTime);
+						bufOut[0][i] = offset * targetValue + (1f - offset) * currentValue;
+//						nothingChanged = false;
 					}
 					countSinceGlide++;
 				} else {
 					bufOut[0][i] = currentValue;
 				}
 			}
-		}
+//		}
 	}
 
-	
-	
+	public static void main(String args[]) {
+		AudioContext ac = new AudioContext();
+		final Glide g = new Glide(ac, 500) {
+			public void calculateBuffer() {
+				super.calculateBuffer();
+				System.out.println(getValue());
+			}
+		};
+		WavePlayer wp = new WavePlayer(ac, g, new SineBuffer().getDefault());
+		ac.out.addInput(wp);
+		ac.start();
+		Thread t = new Thread() {
+			public void run() {
+				while(true) {
+					g.setValue((float)Math.random() * 10000 + 100);
+					try {
+						sleep(50);
+					} catch(Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		};
+		t.start();
+	}
 }
