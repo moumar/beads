@@ -20,7 +20,7 @@ ac = new AudioContext();
   * The Bead is made on-the-fly. All we have to do is to
   * give the Bead a callback method to make notes.
   * 
-  * Pay attention, this example is more sophisticated than the previous
+  * This example is more sophisticated than the previous
   * ones. It uses nested code.
   */
  Clock clock = new Clock(ac, 700);

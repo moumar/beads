@@ -64,7 +64,7 @@
     <target name="generate packages" description="generate the packages to Desktop" depends="default">
     	<mkdir dir="${exportdir}"/>
     	<!-- main Beads dir -->
-    	<exec executable="${svn}"><arg line="--force export build/Beads ${exportdir}/Beads"/></exec>
+    	<exec executable="cp"><arg line="-R build/Beads '${exportdir}'"/></exec>   	    	
     	<delete file="${exportdir}/Beads/library/beads-play.jar"></delete>
     	<exec executable="${svn}"><arg line="--force export readme ${exportdir}/Beads/readme"/></exec>
     	<!-- Beads Processing Tutorial -->
