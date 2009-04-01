@@ -45,8 +45,8 @@ public class Glide extends UGen {
 
 	@Override
 	public void calculateBuffer() {
-//		if(!nothingChanged) {
-//			nothingChanged = true;
+		if(!nothingChanged) {
+			nothingChanged = true;
 			for(int i = 0; i < bufferSize; i++) {
 				if(gliding) {
 					if(countSinceGlide >= glideTime) {
@@ -55,14 +55,14 @@ public class Glide extends UGen {
 					} else {
 						float offset = ((float)countSinceGlide / glideTime);
 						bufOut[0][i] = offset * targetValue + (1f - offset) * currentValue;
-//						nothingChanged = false;
+						nothingChanged = false;
 					}
 					countSinceGlide++;
 				} else {
 					bufOut[0][i] = currentValue;
 				}
 			}
-//		}
+		}
 	}
 
 	public static void main(String args[]) {
