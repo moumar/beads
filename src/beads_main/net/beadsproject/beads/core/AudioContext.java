@@ -61,7 +61,7 @@ public class AudioContext {
 	private boolean checkForDroppedFrames;
 	
 	/** The current time step. */
-	private int timeStep;
+	public int timeStep; //FIXME I've temporarily made this public for easier debugging in the RTAudio test project.
 	
 	/** Flag for logging time to System.out. */
 	private boolean logTime;
