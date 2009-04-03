@@ -13,7 +13,7 @@ package net.beadsproject.beads.data;
 public abstract class BufferFactory {
 	
 	/** The Constant DEFAULT_BUFFER_SIZE. */
-	public static final int DEFAULT_BUFFER_SIZE = 1024;
+	public static final int DEFAULT_BUFFER_SIZE = 4096;
 	
 	/**
 	 * Subclasses should override this method to generate a {@link Buffer} of the specified size.

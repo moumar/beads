@@ -7,7 +7,7 @@ import net.beadsproject.beads.data.buffers.SineBuffer;
 public class HowManyWavePlayers {
 
 	//Try and thrash your system
-	public final static int NUM_OSCS = 1300;
+	public final static int NUM_OSCS = 1000;
 	public final static int BUFFER_SIZE = 4096;
 	public final static int IO_BUFFER_SIZE = 10000;
 	

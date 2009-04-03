@@ -60,10 +60,11 @@ public class RTInput extends UGen {
 	public void initJavaSound() {
 		DataLine.Info info = new DataLine.Info(TargetDataLine.class, audioFormat);
 		try {
+			int inputBufferSize = 4000;
 			targetDataLine = (TargetDataLine) AudioSystem.getLine(info); 
-			targetDataLine.open(audioFormat, 4000);
+			targetDataLine.open(audioFormat, inputBufferSize);
 			if(targetDataLine == null) System.out.println("no line");
-			else System.out.println("CHOSEN INPUT: " + targetDataLine.getLineInfo());
+			else System.out.println("CHOSEN INPUT: " + targetDataLine.getLineInfo() + ", buffer size in bytes: " + inputBufferSize);
 		} catch (LineUnavailableException ex) {
 			System.out.println(getClass().getName() + " : Error getting line\n");
 		}

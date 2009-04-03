@@ -367,6 +367,16 @@ public class AudioContext {
 	public int getBufferSize() {
 		return bufferSizeInFrames;
 	}
+	
+
+	/**
+	 * Gets the system buffer size for this AudioContext.
+	 * 
+	 * @return System buffer size in samples.
+	 */
+	public int getSystemBufferSize() {
+		return systemBufferSizeInFrames;
+	}
 
 	/**
 	 * Gets the sample rate for this AudioContext.
