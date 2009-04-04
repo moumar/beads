@@ -127,9 +127,11 @@ OnsetGraph og;
 
 void setup()
 {
+  /*
 	System.out.println("HEY!!!!!");
   System.out.println("Before you run this example, set the dir and filename variables to point to an audio file (and then delete the System.exit(1) command!!!).");
   System.exit(1);
+  */
   
   size(400,400);
   frameRate(60);

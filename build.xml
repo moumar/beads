@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- ====================================================================== 
      Sep 24, 2008 8:20:30 PM                                                        
-                   
      Beads - a computer music and sound art library for Java.                                                            
      ====================================================================== -->
 <project name="beads" default="default">
@@ -11,6 +10,8 @@
 	
 	<property name="exportdir" value="/Users/ollie/Desktop/Beads_Export"></property>
 	<property name="svn" value="/usr/local/bin/svn"></property>
+	<!-- compile for 1.5 jvm, as osx has limited 1.6 support. -->
+	<property name="ant.build.javac.target" value="1.5"></property>
 	<tstamp>
 	    <format property="TODAY" pattern="yyyyMMdd"/>
 	  </tstamp>
