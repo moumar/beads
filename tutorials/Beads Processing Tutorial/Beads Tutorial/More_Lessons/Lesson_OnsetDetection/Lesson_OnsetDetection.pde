@@ -88,7 +88,7 @@ void draw() {
 	
 	// decrease brightness over time
 	int dt = millis() - time;
-	brightness -= (dt*0.001);
+	brightness -= (dt*0.01);
 	if (brightness < 0) brightness = 0;
 	time += dt;
 	

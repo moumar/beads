@@ -1,13 +1,13 @@
-import com.olliebown.beads.analysis.featureextractors.*;
-import com.olliebown.beads.data.buffers.*;
-import com.olliebown.beads.events.*;
-import com.olliebown.beads.analysis.*;
-import com.olliebown.beads.play.*;
-import com.olliebown.beads.core.*;
-import com.olliebown.beads.analysis.segmenters.*;
-import com.olliebown.beads.ugens.*;
-import com.olliebown.beads.data.*;
-import com.olliebown.beads.gui.*;
+import net.beadsproject.beads.events.*;
+import net.beadsproject.beads.data.*;
+import net.beadsproject.beads.ugens.*;
+import net.beadsproject.beads.analysis.segmenters.*;
+import net.beadsproject.beads.analysis.featureextractors.*;
+import net.beadsproject.beads.analysis.*;
+import net.beadsproject.beads.data.buffers.*;
+import net.beadsproject.beads.core.*;
+
+
 import javax.sound.sampled.AudioFormat;
 
 void setup() {
