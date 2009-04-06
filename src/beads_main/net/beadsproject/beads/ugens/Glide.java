@@ -81,7 +81,7 @@ public class Glide extends UGen {
 				while(true) {
 					g.setValue((float)Math.random() * 10000 + 100);
 					try {
-						sleep(50);
+						sleep(500);
 					} catch(Exception e) {
 						e.printStackTrace();
 					}
