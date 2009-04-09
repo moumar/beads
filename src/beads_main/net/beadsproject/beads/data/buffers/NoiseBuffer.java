@@ -9,7 +9,7 @@ import net.beadsproject.beads.data.BufferFactory;
  * @author ben
  *
  */
-class NoiseBuffer extends BufferFactory
+public class NoiseBuffer extends BufferFactory
 {
   public Buffer generateBuffer(int bufferSize) {
     Buffer b = new Buffer(bufferSize);
