@@ -6,9 +6,6 @@ package net.beadsproject.beads.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import com.apple.audio.jdirect.ArrayCopy;
-import com.sun.tools.javac.code.Attribute.Array;
-
 import net.beadsproject.beads.ugens.Clock;
 
 /**
