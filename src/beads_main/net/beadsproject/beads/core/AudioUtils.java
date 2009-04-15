@@ -88,23 +88,40 @@ public final class AudioUtils {
 	 *            true for big endian byte order, false otherwise.
 	 */
 	static final public void byteToFloat(float[] out, byte[] in, boolean bigEndian) {
+		byteToFloat(out,in,bigEndian,out.length);
+	}	
+
+	/**
+	 * Converts a buffer of bytes to a buffer of floats with a given byte order. Will copy numFloat floats to out.
+	 * 
+	 * @param out
+	 *            buffer of floats.
+	 * @param in
+	 *            buffer of bytes.
+	 * @param bigEndian
+	 *            true for big endian byte order, false otherwise.
+	 * @param numFloats
+	 *            number of elements to copy into out
+	 */
+	static final public void byteToFloat(float[] out, byte[] in, boolean bigEndian, int numFloats) {
 		if (bigEndian) {
 			int ib = 0;
-			for (int i = 0; i < out.length; ++i) {
+			int min = Math.min(out.length,numFloats);
+			for (int i = 0; i < min; ++i) {
 				float sample = ((in[ib + 0] << 8) | (in[ib + 1] & 0xFF)) / 32768.0F;
 				ib += 2;
 				out[i] = sample;
 			}
 		} else {
 			int ib = 0;
-			for (int i = 0; i < out.length; ++i) {
+			int min = Math.min(out.length,numFloats);
+			for (int i = 0; i < min; ++i) {
 				float sample = ((in[ib] & 0xFF) | (in[ib + 1] << 8)) / 32768.0F;
 				ib += 2;
 				out[i] = sample;
 			}
 		}
 	}
-
 	/**
 	 * De-interleave an interleaved buffer of floats to form a 2D array of
 	 * floats of size nChannels x nFrames.

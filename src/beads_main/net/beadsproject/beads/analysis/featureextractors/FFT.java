@@ -20,12 +20,14 @@ public class FFT extends FeatureExtractor<float[][], float[]>  {
 	/** The imaginary part. */
 	protected float[] fftImag;
 	
+	private float[] dataCopy = null;
+	
 	/**
 	 * Instantiates a new FFT.
 	 */
 	public FFT() {
 		listeners = new ArrayList<FeatureExtractor<?, float[][]>>();
-		features = new float[2][];
+		features = new float[2][];		
 	}
 	
 	/* (non-Javadoc)
@@ -33,10 +35,10 @@ public class FFT extends FeatureExtractor<float[][], float[]>  {
 	 */
 	@Override
 	public void process(float[] data) {
-		float[] dataCopy = new float[data.length];
-		for(int i = 0; i < data.length; i++) {
-			dataCopy[i] = data[i];
-		}
+		if (dataCopy==null || dataCopy.length!=data.length)
+			dataCopy = new float[data.length];
+		System.arraycopy(data, 0, dataCopy, 0, data.length);
+		
 		fft(dataCopy, dataCopy.length, true);
 		numFeatures = dataCopy.length;
 		fftReal = calculateReal(dataCopy, dataCopy.length);

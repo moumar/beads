@@ -19,3 +19,13 @@ Creator: Holger Crysandt
 License: LGPL
 Files: FFT.java
 Project Site: http://mpeg7audioenc.sourceforge.net/index.html
+
+Library: MP3SPI (+ JLayer + Tritonus as bundled)
+License: LGPL
+Files: dependencies/ jl1.0.jar, mp3spi1.9.4.jar tritonus_share.jar
+Project Site: http://www.javazoom.net/mp3spi/about.html
+
+Library: JarJar
+License: Apache License 2.0
+File: dependencise jarjar.jar
+Project Site: http://code.google.com/p/jarjar/

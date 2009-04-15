@@ -6,15 +6,17 @@ package net.beadsproject.beads.data;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
+
 import net.beadsproject.beads.core.AudioUtils;
+import net.beadsproject.beads.ugens.StreamingAudioIn;
 
 /**
  * A Sample is a multi-channel buffer of audio data which can be read from a file or
@@ -27,7 +29,7 @@ import net.beadsproject.beads.core.AudioUtils;
 public class Sample {
     
 	/** The file name of the Sample. */
-	private String fileName;
+	public String fileName;
 	
     /** The audio format. */
     public final AudioFormat audioFormat;
@@ -56,11 +58,8 @@ public class Sample {
         nChannels = audioFormat.getChannels();
         this.nFrames = totalFrames;
         buf = new float[nChannels][(int)totalFrames]; //TODO
-        for(int i = 0; i < nChannels; i++) {
-            for(int j = 0; j < totalFrames; j++) {
-                buf[i][j] = 0.0f;
-            }
-        }
+        for (float[] b: buf) 
+        	Arrays.fill(b,0);
         length = totalFrames / audioFormat.getSampleRate() * 1000f;
     }
 
@@ -77,7 +76,7 @@ public class Sample {
     public Sample(String fn) throws UnsupportedAudioFileException, IOException {
     	this.fileName = fn;
     	AudioInputStream audioInputStream = null;
-    	try {    		
+    	try {
     		File fileIn = new File(fn);
     		if (fileIn.exists())
     			audioInputStream = AudioSystem.getAudioInputStream(fileIn);
@@ -119,7 +118,7 @@ public class Sample {
         length = nFrames / audioFormat.getSampleRate() * 1000f;
         System.out.println("loaded sample " + this + " with length " + length + "ms.");
     } 
-    
+      
     /**
      * Deinterleaves an interleaved array.
      * 

@@ -26,10 +26,23 @@
           target: compile main              
          ================================= -->
     <target name="compile main" description="compiles main beads project to beads.jar">
+    	<!-- we use jarjar to package up all beads dependencies into a single beads.jar -->
+    	<taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask"
+    	        classpath="dependencies/jarjar-1.0.jar"/>   	
+    	
     	<mkdir dir="build/Beads/library/bin/main"/>
     	<javac srcdir="src/beads_main" destdir="build/Beads/library/bin/main" debug="off"/>
     	<mkdir dir="build"/>
-        <jar destfile="build/Beads/library/beads.jar" basedir="build/Beads/library/bin/main"></jar>
+    		<jarjar jarfile="build/Beads/library/beads.jar">
+    	  	<fileset dir="build/Beads/library/bin/main"/>
+    	    <zipfileset src="dependencies/jl1.0.jar"/>
+    			<zipfileset src="dependencies/mp3spi1.9.4.jar"/>
+    	    <zipfileset src="dependencies/tritonus_share.jar"/>
+    	  </jarjar>
+    	    	
+    		<!--
+    			<jar destfile="build/Beads/library/beads.jar" basedir="build/Beads/library/bin/main"></jar>
+    		-->
     	<delete dir="build/Beads/library/bin"/>
     	<copy file="build/Beads/library/beads.jar" toFile="tutorials/Beads Eclipse Tutorial/Beads Tutorial/beads.jar"/>
     </target>
