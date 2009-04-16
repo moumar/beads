@@ -37,6 +37,41 @@ public abstract class Pitch {
         return 440.0f * (float)Math.pow(2.0f, (midi - 69f) / 12.0f);
     }
 	
+	/**
+	 * Takes a pitch and returns that pitch adjusted downwards to the nearest pitch in the given scale.
+	 * 
+	 * @param pitch the pitch to modify.
+	 * @param scale the scale to use.
+	 * @param notesPerOctave how many notes in your octave (12 if you're not sure).
+	 * @return adjusted pitch.
+	 */
+	public static final int forceToScale(int pitch, int[] scale, int notesPerOctave) {
+		int pitchClass = pitch % notesPerOctave;
+		int register = pitch / notesPerOctave;
+		int newPitchClass = -1;
+		for(int i = scale.length - 1; i >= 0; i--) {
+			if(pitchClass >= scale[i]) {
+				newPitchClass = scale[i];
+				break;
+			}
+		}
+		if(newPitchClass == -1) {
+			newPitchClass = pitchClass;
+		}
+		return register * notesPerOctave + newPitchClass;
+	}
+
+	/**
+	 * Takes a pitch and returns that pitch adjusted downwards to the nearest pitch in the given scale. Assumes 12 pitches per octave.
+	 * 
+	 * @param pitch the pitch to modify.
+	 * @param scale the scale to use.
+	 * @return adjusted pitch.
+	 */
+	public static final int forceToScale(int pitch, int[] scale) {
+		return forceToScale(pitch, scale, 12);
+	}
+	
 	/** The dorian scale relative to root. */
 	public static final int[] dorian = {0, 2, 3, 5, 7, 9, 10};
 
