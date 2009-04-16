@@ -176,8 +176,14 @@ public class StreamingAudioIn extends UGen{
 			{
 				sampleBufferSize = Math.max(sampleBufferSize*2, sampleBufferSize + numFramesJustRead);
 				System.out.printf("Adjusted samplebuffersize to %d\n",sampleBufferSize);
-				for(int i=0;i<nChannels;i++)
-					buf[i] = Arrays.copyOf(buf[i], sampleBufferSize);
+				for(int i=0;i<nChannels;i++) {
+					int length = buf[i].length;
+					buf[i] = new float[sampleBufferSize];
+					length = Math.min(length, sampleBufferSize);
+					for(int j = 0; j < length; j++) {
+							buf[i][j] = buf[i][j];
+					}
+				}
 			}
 			AudioUtils.byteToFloat(bufTemp, audioBytes, decodedFormat.isBigEndian(),numFramesJustRead*nChannels);    		
 			//float[][] bufSegment = new float[nChannels][numFramesJustRead]; 
@@ -197,8 +203,14 @@ public class StreamingAudioIn extends UGen{
 		if (sampleBufferSize > nFramesReadThisTime)
 		{
 			sampleBufferSize = nFramesReadThisTime;
-			for(int i=0;i<nChannels;i++)
-				buf[i] = Arrays.copyOf(buf[i], sampleBufferSize);
+			for(int i=0;i<nChannels;i++) {
+				int length = buf[i].length;
+				buf[i] = new float[sampleBufferSize];
+				length = Math.min(length, sampleBufferSize);
+				for(int j = 0; j < length; j++) {
+						buf[i][j] = buf[i][j];
+				}
+			}
 		}
 		
         stream.close();
