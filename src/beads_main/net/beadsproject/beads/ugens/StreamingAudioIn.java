@@ -76,7 +76,8 @@ public class StreamingAudioIn extends UGen{
 			else
 				audioInputStream = AudioSystem.getAudioInputStream((new URL(this.fileName)).openStream());
 		} catch(Exception e) {
-			throw(new IOException("Cannot find file \"" + this.fileName + "\". It either doesn't exist at the specified location or the URL is malformed."));    		    		
+			e.printStackTrace();
+//			throw(new IOException("Cannot find file \"" + this.fileName + "\". It either doesn't exist at the specified location or the URL is malformed."));    		    		
 		}
 		undecodedFormat = audioInputStream.getFormat();
 		nChannels = undecodedFormat.getChannels();
