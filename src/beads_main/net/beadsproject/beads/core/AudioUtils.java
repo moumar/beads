@@ -104,24 +104,65 @@ public final class AudioUtils {
 	 *            number of elements to copy into out
 	 */
 	static final public void byteToFloat(float[] out, byte[] in, boolean bigEndian, int numFloats) {
+		byteToFloat(out,in,bigEndian,0,numFloats);
+	}
+	
+	/**
+	 * Converts a buffer of bytes to a buffer of floats with a given byte order. Will copy numFloat floats to out.
+	 * 
+	 * @param out
+	 *            buffer of floats.
+	 * @param in
+	 *            buffer of bytes.
+	 * @param bigEndian
+	 *            true for big endian byte order, false otherwise.
+	 * @param startIndexInByteArray
+	 * 			  where to start copying from
+	 * @param numFloats
+	 *            number of elements to copy into out
+	 */
+	static final public void byteToFloat(float[] out, byte[] in, boolean bigEndian, int startIndexInByteArray, int numFloats) {
+		byteToFloat(out,in,bigEndian,startIndexInByteArray,0,numFloats);
+	}
+	
+	/**
+	 * Converts a buffer of bytes to a buffer of floats with a given byte order. Will copy numFloat floats to out.
+	 * 
+	 * @param out
+	 *            buffer of floats.
+	 * @param in
+	 *            buffer of bytes.
+	 * @param bigEndian
+	 *            true for big endian byte order, false otherwise.
+	 * @param startIndexInByteArray
+	 * 			  where to start copying from
+	 * @param startIndexInFloatArray
+	 * 			  where to start copying to
+	 * @param numFloats
+	 *            number of elements to copy into out
+	 */
+	static final public void byteToFloat(float[] out, byte[] in, boolean bigEndian, int startIndexInByteArray, int startIndexInFloatArray, int numFloats) {
 		if (bigEndian) {
-			int ib = 0;
-			int min = Math.min(out.length,numFloats);
-			for (int i = 0; i < min; ++i) {
+			int ib = startIndexInByteArray;
+			int min = Math.min(out.length,startIndexInFloatArray+numFloats);
+			for (int i = startIndexInFloatArray; i < min; ++i) {
 				float sample = ((in[ib + 0] << 8) | (in[ib + 1] & 0xFF)) / 32768.0F;
 				ib += 2;
 				out[i] = sample;
 			}
 		} else {
-			int ib = 0;
-			int min = Math.min(out.length,numFloats);
-			for (int i = 0; i < min; ++i) {
+			int ib = startIndexInByteArray;
+			int min = Math.min(out.length,startIndexInFloatArray+numFloats);
+			for (int i = startIndexInFloatArray; i < min; ++i) {
 				float sample = ((in[ib] & 0xFF) | (in[ib + 1] << 8)) / 32768.0F;
 				ib += 2;
 				out[i] = sample;
 			}
 		}
 	}
+	
+	
+	
 	/**
 	 * De-interleave an interleaved buffer of floats to form a 2D array of
 	 * floats of size nChannels x nFrames.
