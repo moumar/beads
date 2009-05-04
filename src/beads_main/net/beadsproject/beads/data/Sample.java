@@ -16,7 +16,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import net.beadsproject.beads.core.AudioUtils;
-import net.beadsproject.beads.ugens.StreamingAudioIn;
+//import net.beadsproject.beads.ugens.StreamingAudioIn;
 
 /**
  * A Sample is a multi-channel buffer of audio data which can be read from a file or
