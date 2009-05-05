@@ -32,9 +32,9 @@ public class AudioFile {
 	 *  Also see: isFinite
 	 **/
 	public long nFrames;
-	public long nTotalFramesRead = 0;
+	public long nTotalFramesRead = 0; // also a pointer into the current pos
 	public boolean finished = false;
-
+	
 	// stream-specific stuff
 	private AudioFormat encodedFormat;
 	private AudioFormat decodedFormat;
@@ -143,8 +143,15 @@ public class AudioFile {
 	 */
 	public void seek(int frame)
 	{
-		reset();
-		skip(frame);
+		if (frame>nTotalFramesRead)
+		{
+			skip(frame-nTotalFramesRead);
+		}
+		else
+		{
+			reset();
+			skip(frame);
+		}
 	}
 
 	/**
@@ -283,7 +290,7 @@ public class AudioFile {
 			finished = true;
 			return -1;
 		}
-
+		
 		nTotalFramesRead += actualBytesRead / (2*nChannels);
 		return actualBytesRead;
 	}
