@@ -14,7 +14,7 @@ import net.beadsproject.beads.core.AudioContext;
  * Each line contains the running time of the AC and a set of features at that timestep.
  * Each individual feature is separated by whitespace.
  */
-public class BasicTimeDataWriter extends FeatureExtractor<float[], float[]> {
+public class BasicTimeDataWriter<T> extends FeatureExtractor<Object, T> {
 
 	/** The print stream. */
 	private PrintStream ps;
@@ -34,14 +34,19 @@ public class BasicTimeDataWriter extends FeatureExtractor<float[], float[]> {
 	 * @see net.beadsproject.beads.analysis.FeatureExtractor#process(java.lang.Object)
 	 */
 	@Override
-	public void process(float[] data) {
-		ps.print(ac.getTime());
-		ps.print(" ");		 
-		for(int i = 0; i < data.length; i++) {
-			ps.print(data[i]);
-			ps.print(" ");			
+	public void process(T data) {
+		if(data instanceof Object[]) {
+			Object[] dataArray = (Object[])data;
+			ps.print(ac.getTime());
+			ps.print(" ");		 
+			for(int i = 0; i < dataArray.length; i++) {
+				ps.print(dataArray[i]);
+				ps.print(" ");			
+			}
+			ps.println();		
+		} else {
+			ps.println(data);
 		}
-		ps.println();		
 	}
 
 }

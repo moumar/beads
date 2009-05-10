@@ -29,6 +29,9 @@ public class ShortFrameSegmenter extends Segmenter {
 	/** The time in samples. */
 	private int count;
 	
+	/** The number of hops. */
+	private int hopCount;
+	
 	/** The window function used to scale the chunks. */
 	private Buffer window;
 	
@@ -99,6 +102,7 @@ public class ShortFrameSegmenter extends Segmenter {
 		int requiredBuffers = (int)Math.ceil((float)chunkSize / (float)hopSize);
 		chunks = new float[requiredBuffers][chunkSize];
 		count = 0;
+		hopCount = 0;
 	}
 
 	/* (non-Javadoc)
@@ -113,7 +117,8 @@ public class ShortFrameSegmenter extends Segmenter {
 			}
 			count = (count + 1) % chunkSize;
 			if(count % hopSize == 0) {
-				segment(chunks[count / hopSize], i);
+				segment(context.samplesToMs(hopCount * hopSize), context.samplesToMs(hopCount * hopSize + chunkSize), chunks[count / hopSize]);
+				hopCount++;
 			}
 		}
 	}

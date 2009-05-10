@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
+import net.beadsproject.beads.core.Bead;
+import net.beadsproject.beads.core.BeadArray;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.buffers.MeanFilter;
 
@@ -15,19 +17,17 @@ import net.beadsproject.beads.data.buffers.MeanFilter;
  * @author ben
  */
 
-public class PeakDetector extends FeatureExtractor<float[], float[]>{
-	protected ArrayList<FeatureExtractor<?, float[]>> listeners;
+public class PeakDetector extends FeatureExtractor<Float, Float>{
 	private float threshold = 0;
 	private float base_threshold = 0;
 	private int M = 4;
 	private float lastMValues[];
 	private Buffer filter;	
+	private BeadArray listeners;
 	
 	public PeakDetector(){
-		super();
-		listeners = new ArrayList<FeatureExtractor<?,float[]>>();
-		features = new float[1];				
-		
+		super();		
+		listeners = new BeadArray();
 		lastMValues = new float[M];
 		Arrays.fill(lastMValues,0.f);
 		filter = new MeanFilter().generateBuffer(M);
@@ -67,10 +67,8 @@ public class PeakDetector extends FeatureExtractor<float[], float[]>{
 	 * process: assumes input is a 1 element array
 	 */
 	@Override
-	public void process(float[] input) {
-		assert input.length==1;
-		
-		float value = input[0];		
+	public void process(Float input) {
+		float value = input;		
 		boolean exceededThreshold = false;
 		if (value > threshold)
 			exceededThreshold = true;		
@@ -102,19 +100,14 @@ public class PeakDetector extends FeatureExtractor<float[], float[]>{
 			if (lastMValues[M-2] > lastMValues[M-3] && value < lastMValues[M-2])
 			{				
 				// notify the listeners 
-				features[0] = value;
-				for(FeatureExtractor<?, float[]> fe : listeners)
-					fe.process(features);
+				features = value;
+				listeners.message(this);	//any use for a time stamp here?
 			}			
 		}		
 	}
-
-	/**
-	 * Adds a FeatureExtractor as a listener.
-	 * 
-	 * @param the FeatureExtractor.
-	 */
-	public void addListener(FeatureExtractor<?, float[]> fe) {
-		listeners.add(fe);
+	
+	public void addListener(Bead listener) {
+		listeners.add(listener);
 	}
+
 }

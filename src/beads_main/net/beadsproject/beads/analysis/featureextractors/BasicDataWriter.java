@@ -13,10 +13,10 @@ import net.beadsproject.beads.analysis.FeatureExtractor;
  * Each line contains a new set of features.
  * Each individual feature is separated by whitespace.
  */
-public class BasicDataWriter extends FeatureExtractor<float[], float[]> {
+public class BasicDataWriter<T> extends FeatureExtractor<Object, T> {
 
 	/** The print stream. */
-	private PrintStream ps;
+	protected PrintStream ps;
 	
 	/**
 	 * Instantiates a new BasicDataWriter with the given FileOutputStream.
@@ -31,12 +31,24 @@ public class BasicDataWriter extends FeatureExtractor<float[], float[]> {
 	 * @see net.beadsproject.beads.analysis.FeatureExtractor#process(java.lang.Object)
 	 */
 	@Override
-	public void process(float[] data) {
-		for(int i = 0; i < data.length; i++) {
-			ps.print(data[i]);
-			ps.print(" ");			
+	public void process(T data) {
+		if(data instanceof float[]) {
+			float[] dataf = (float[])data;
+			for(int i = 0; i < dataf.length; i++) {
+				ps.print(dataf[i]);
+				ps.print(" ");			
+			}
+			ps.println();	
+		} else if(data instanceof Object[]) {
+			Object[] dataf = (Object[])data;
+			for(int i = 0; i < dataf.length; i++) {
+				ps.print(dataf[i]);
+				ps.print(" ");			
+			}
+			ps.println();		
+		} else {
+			ps.println(data);
 		}
-		ps.println();		
 	}
 
 }

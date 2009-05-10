@@ -1,10 +1,8 @@
 package net.beadsproject.beads.analysis.featureextractors;
 
-import java.util.ArrayList;
 import net.beadsproject.beads.analysis.FeatureExtractor;
 
-
-public class SpectralDifference extends FeatureExtractor<float[], float[]> {
+public class SpectralDifference extends FeatureExtractor<Float, float[]> {
 
 	public enum DifferenceType {POSITIVERMS, RMS, POSITIVEMEANDIFFERENCE, MEANDIFFERENCE};
 	
@@ -13,7 +11,6 @@ public class SpectralDifference extends FeatureExtractor<float[], float[]> {
 	private float maxFreq;
 	private float sampleRate;
 	private DifferenceType differenceType = DifferenceType.POSITIVEMEANDIFFERENCE;
-	protected ArrayList<FeatureExtractor<?, float[]>> listeners;
 		
 	// cached size of last block
 	private int lastBlockSize = 0;
@@ -27,12 +24,8 @@ public class SpectralDifference extends FeatureExtractor<float[], float[]> {
 	 * 
 	 * @param samplerate The sample rate of the AudioContext
 	 */	
-	public SpectralDifference(float samplerate) {		
-		features = new float[1];
-		listeners = new ArrayList<FeatureExtractor<?,float[]>>();		
-		minFreq = 0;		
-		sampleRate = samplerate;
-		maxFreq = sampleRate;
+	public SpectralDifference(float samplerate) {	
+		this(samplerate, 0, samplerate);
 	}
 	
 	/**
@@ -43,8 +36,6 @@ public class SpectralDifference extends FeatureExtractor<float[], float[]> {
 	 * @param maxf The upper frequency of the window
 	 */
 	public SpectralDifference(float samplerate, float minf, float maxf) {
-		features = new float[1];
-		listeners = new ArrayList<FeatureExtractor<?,float[]>>();		
 		minFreq = minf;
 		maxFreq = maxf;
 		sampleRate = samplerate;
@@ -93,25 +84,23 @@ public class SpectralDifference extends FeatureExtractor<float[], float[]> {
 			switch (differenceType)
 			{
 				case POSITIVERMS:
-					features[0] = positiveRms(spectrum,minBin,previousSpectrum,0,numBins);
+					features = positiveRms(spectrum,minBin,previousSpectrum,0,numBins);
 					break;
 				case RMS: 
-					features[0] = rms(spectrum,minBin,previousSpectrum,0,numBins);
+					features = rms(spectrum,minBin,previousSpectrum,0,numBins);
 					break;
 				case POSITIVEMEANDIFFERENCE:
-					features[0] = positiveMeanDifference(spectrum,minBin,previousSpectrum,0,numBins);
+					features = positiveMeanDifference(spectrum,minBin,previousSpectrum,0,numBins);
 					break;
 				case MEANDIFFERENCE:
-					features[0] = meanDifference(spectrum,minBin,previousSpectrum,0,numBins);
+					features = meanDifference(spectrum,minBin,previousSpectrum,0,numBins);
 					break;
 			}
 			
 			// finally copy the current spectrum
 			System.arraycopy(spectrum,minBin,previousSpectrum,0,numBins);
 		}
-		for(FeatureExtractor<?, float[]> fe : listeners) {
-			fe.process(features);
-		}
+		forward();
 	}
 	
 	// helper functions
@@ -199,15 +188,6 @@ public class SpectralDifference extends FeatureExtractor<float[], float[]> {
 	{
 		minBin = Math.min(blocksize-1,Math.max(0,Math.round(FFT.binNumber(sampleRate, blocksize, minFreq))));
 		maxBin = Math.min(blocksize-1,Math.max(0,Math.round(FFT.binNumber(sampleRate, blocksize, maxFreq))));
-	}
-	
-	/**
-	 * Adds a FeatureExtractor as a listener.
-	 * 
-	 * @param the FeatureExtractor.
-	 */
-	public void addListener(FeatureExtractor<?, float[]> fe) {
-		listeners.add(fe);
 	}
 	
 }

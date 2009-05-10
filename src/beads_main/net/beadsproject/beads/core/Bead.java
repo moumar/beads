@@ -92,6 +92,27 @@ public abstract class Bead {
 	}
 	
 	/**
+	 * Send this Bead a TimeStamped message. Typically if another Bead was sending the message, it would send itself as the argument.
+	 * 
+	 * @param message the Bead is the message.
+	 */
+	public final void message(TimeStamp timeStamp, Bead message) {
+		if(!paused) messageReceived(timeStamp, message);
+	}
+	
+	/**
+	 * Responds to an incoming message. Subclasses can override this in order to handle incoming messages. Typically a Bead would send a message to another Bead with itself as the arugment.
+	 * 
+	 * @param message the message
+	 */
+	protected void messageReceived(TimeStamp timeStamp, Bead message) {
+		/*
+		 * To be subclassed, but not compulsory. Default behaviour is to forward without timeStamp.
+		 */
+		messageReceived(message);
+	}
+	
+	/**
 	 * Shortcut for pause(false).
 	 */
 	public void start() {

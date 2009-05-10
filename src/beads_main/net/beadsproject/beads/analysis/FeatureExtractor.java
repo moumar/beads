@@ -3,10 +3,13 @@
  */
 package net.beadsproject.beads.analysis;
 
+import java.util.ArrayList;
 import net.beadsproject.beads.core.Bead;
+import net.beadsproject.beads.core.BeadArray;
 
 /**
  * FeatureExtractor is an abstract base class for classes that perform some kind of analysis on incoming data. Both the incoming data (P) and the generated data (R) are generic types. Implementing classes use the method {@link #process(P)} to process data. 
+ * 
  * @author ollie
  */
 public abstract class FeatureExtractor<R, P> extends Bead {
@@ -23,11 +26,15 @@ public abstract class FeatureExtractor<R, P> extends Bead {
 	/** An array of Strings providing descriptions of the feature data. */
 	protected String[] featureDescriptions;
 	
+	/** A set of FeatureExtractors that this FeatureExtractor forwards its feature data to. */
+	private ArrayList<FeatureExtractor<?, R>> featureExtractorListeners;
+	
 	/**
 	 * Instantiates a new FeatureExtractor. This constructor names the FeatureExtractor with the name of the implementing class.
 	 */
 	public FeatureExtractor() {
 		name = getClass().getSimpleName();
+		featureExtractorListeners = new ArrayList<FeatureExtractor<?, R>>();
 	}
 	
 	/**
@@ -36,6 +43,32 @@ public abstract class FeatureExtractor<R, P> extends Bead {
 	 * @param data the data.
 	 */
 	public abstract void process(P data);
+	
+	/**
+	 * Subclasses should call this at end of their process() method to forward features to listeners.
+	 */
+	public void forward() {
+		//forward to the feature extractor listeners
+		for(FeatureExtractor<?, R> fe : featureExtractorListeners) {
+			fe.process(features);
+		}
+	}
+	
+	/**
+	 * Adds a FeatureExtractor to listen to this FeatureExtractor. 
+	 * @param listener the FeatureExtractor that listens to this one.
+	 */
+	public void addListener(FeatureExtractor<?, R> listener) {
+		featureExtractorListeners.add(listener);
+	}
+	
+	/**
+	 * Removes a FeatureExtractor from the list of listeners.
+	 * @param listener the FeatureExtractor to remove.
+	 */
+	public void removeListener(FeatureExtractor<?, R> listener) {
+		featureExtractorListeners.remove(listener);
+	}
 	
 	/**
 	 * Gets the current features of type R, specified in the class def.

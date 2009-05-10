@@ -6,9 +6,13 @@ package net.beadsproject.beads.analysis;
 import java.util.ArrayList;
 import java.util.List;
 import net.beadsproject.beads.core.Bead;
+import net.beadsproject.beads.core.TimeStamp;
 
 /**
- * A FeatureRecorder records feature data from a feature extraction process to a {@link FeatureTrack}. Typically, a FeatureRecorder is given a set of {@link FeatureExtractor}s to log data from, and is set to listen to a {@link Segmenter}, which lets the FeatureRecorder know when the {@link FeatureExtractor}s have new data to log.
+ * A FeatureRecorder records feature data from a feature extraction process to a {@link FeatureTrack}. 
+ * Typically, a FeatureRecorder is given a set of {@link FeatureExtractor}s to log data from, and is 
+ * set to listen to a TimeStamped message from a {@link Bead}, which lets the FeatureRecorder know when the {@link FeatureExtractor}s 
+ * have new data to log.
  */
 public class FeatureRecorder extends Bead {
 
@@ -47,10 +51,9 @@ public class FeatureRecorder extends Bead {
 	/* (non-Javadoc)
 	 * @see net.beadsproject.beads.core.Bead#messageReceived(net.beadsproject.beads.core.Bead)
 	 */
-	public void messageReceived(Bead bead) {
+	public void logFrame(double startTime, double endTime) {
 		System.out.println("x");
-		Segmenter s = (Segmenter)bead;
-		FeatureFrame ff = new FeatureFrame(s.previousEndTime, s.currentTime);
+		FeatureFrame ff = new FeatureFrame(startTime, endTime);
 		for(FeatureExtractor<?, ?> e : extractors) {
 			ff.add(e.getName(), e.getFeatures());
 		}

@@ -4,8 +4,6 @@
  */
 package net.beadsproject.beads.analysis.featureextractors;
 
-import java.util.ArrayList;
-
 import net.beadsproject.beads.analysis.FeatureExtractor;
 
 /**
@@ -35,10 +33,6 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 
 	/** Hard frequency maximum. */
 	private double hardMax;
-	
-
-	protected ArrayList<FeatureExtractor<?, float[]>> listeners;
-
 
 	/**
 	 * Instantiates a new MelSpectrum.
@@ -51,7 +45,6 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 	public MelSpectrum(float sampleRate, int numCoeffs) {
 		this.sampleRate = sampleRate;
 		setNumberOfFeatures(numCoeffs);
-		listeners = new ArrayList<FeatureExtractor<?,float[]>>();
 		hardMax = 8000.0;
 	}
 	
@@ -120,28 +113,7 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 			// Take log
 			features[bin] = Math.max(0f, (float)(10f * Math.log(features[bin]) / LOG10));
 		}
-		for(FeatureExtractor<?, float[]> fe : listeners) {
-			fe.process(features);
-		}
-	}
-	
-	/**
-	 * Adds a listener to this MFCC.
-	 * 
-	 * @param fe the listener.
-	 */
-	public void addListener(FeatureExtractor<?, float[]> fe) {
-		listeners.add(fe);
-	}
-
-	/**
-	 * Prints the features.
-	 */
-	private void printFeatures() {
-		for (int i = 0; i < features.length; i++) {
-			System.out.print(features[i] + " ");
-		}
-		System.out.println();
+		forward();
 	}
 	
 	public void setNumberOfFeatures(int numFeatures) {

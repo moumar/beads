@@ -10,7 +10,7 @@ import net.beadsproject.beads.analysis.FeatureExtractor;
 /**
  * SpectralCentroid calculates the spectral centroid of a signal. It should be set up to listen to a {@link PowerSpectrum} object.
  */
-public class SpectralCentroid extends FeatureExtractor<float[], float[]>  {
+public class SpectralCentroid extends FeatureExtractor<Float, float[]>  {
 
 	/** The sample rate in samples per second. */
 	private float sampleRate;
@@ -22,7 +22,6 @@ public class SpectralCentroid extends FeatureExtractor<float[], float[]>  {
 	 *            the sample rate in samples per second.
 	 */
 	public SpectralCentroid(float sampleRate) {
-		features = new float[1];
 		this.sampleRate = sampleRate;
 	}
 
@@ -42,14 +41,21 @@ public class SpectralCentroid extends FeatureExtractor<float[], float[]>  {
 			num += freqCenter * p;
 			den += p;
 		}
-		features[0] = (float) (num / den);
+		features = (float) (num / den);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.olliebown.beads.core.FrameFeatureExtractor#getNumFeatures()
+	 */
+	public int getNumberOfFeatures() {
+		return 1;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.core.FrameFeatureExtractor#setNumFeatures(int)
 	 */
-	public void setNumFeatures(int numFeatures) {
-		//Not allowed - only 1 feature
+	public void setNumberOfFeatures(int numFeatures) {
+		//not allowed
 	}
 
 }

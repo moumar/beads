@@ -13,6 +13,8 @@ public class SamplePlayerExample {
     	AudioContext ac = new AudioContext(512);
     	Sample s1 = SampleManager.sample("audio/1234.aif");	
     	System.out.println(s1.length);
+    	
+    	
     	SamplePlayer sp = new SamplePlayer(ac, s1); 	
     	Envelope rateEnv = new Envelope(ac, 1f);
     	rateEnv.addSegment(4f, 5000f);

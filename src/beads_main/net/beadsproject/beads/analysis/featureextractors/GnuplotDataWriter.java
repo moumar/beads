@@ -11,10 +11,7 @@ import net.beadsproject.beads.analysis.FeatureExtractor;
 /**
  * GnuplotDataWriter grabs forwarded feature data and prints it to a file in pm3d format for Gnuplot.
  */
-public class GnuplotDataWriter extends FeatureExtractor<float[], float[]> {
-
-	/** The print stream. */
-	private PrintStream ps;
+public class GnuplotDataWriter<T> extends BasicDataWriter<T> {
 	
 	/** The current integer frame count. */
 	private int count;
@@ -25,7 +22,7 @@ public class GnuplotDataWriter extends FeatureExtractor<float[], float[]> {
 	 * @param fos the FileOutputStream.
 	 */
 	public GnuplotDataWriter(FileOutputStream fos) {
-		ps = new PrintStream(fos);
+		super(fos);
 		count = 0;
 	}
 	
@@ -33,12 +30,18 @@ public class GnuplotDataWriter extends FeatureExtractor<float[], float[]> {
 	 * @see net.beadsproject.beads.analysis.FeatureExtractor#process(java.lang.Object)
 	 */
 	@Override
-	public void process(float[] data) {
-		for(int i = 0; i < data.length; i++) {
-			ps.println(count + " " + i + " " + data[i]);
+	public void process(Object data) {
+		if(data instanceof float[]) {
+			float[] dataf = (float[])data;
+			for(int i = 0; i < dataf.length; i++) {
+				ps.println(count + " " + i + " " + dataf[i]);
+			}
+			ps.println();
+			count++;
+		} else {
+			ps.println(data);
+			count++;
 		}
-		ps.println();
-		count++;
 	}
 
 }

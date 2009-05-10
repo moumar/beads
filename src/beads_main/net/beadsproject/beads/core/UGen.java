@@ -55,7 +55,7 @@ public abstract class UGen extends Bead {
 	private boolean noInputs;
 	
 	/** Counter to track of whether this UGen has been updated at this timeStep (determined by {@link AudioContext}). */
-	private int lastTimeStep;
+	private long lastTimeStep;
 
 	/**
 	 * Create a new UGen from the given AudioContext but with no inputs or
@@ -435,7 +435,7 @@ public abstract class UGen extends Bead {
 	 * 
 	 * @return true if the UGen has been updated in the current timeStep.
 	 */
-	private boolean isUpdated() {
+	public boolean isUpdated() {
 		return lastTimeStep == context.getTimeStep();
 	}
 	

@@ -21,13 +21,12 @@ import net.beadsproject.beads.data.buffers.MeanFilter;
  * @author ben
  */
 
-public class OnsetDetector extends FeatureExtractor<float[], float[]>{
+public class OnsetDetector extends FeatureExtractor<Float, Float> {
 	
 	/** thresholdListeners receive the filtered threshold value 
 	 * TODO: DISABLE AFTER DEBUG, BP170309
 	 */
-	protected ArrayList<FeatureExtractor<?, float[]>> thresholdListeners;
-	/** listeners receive a message when an onset is detected */
+	
     private BeadArray listeners;
         
     private float valueAtOnset = 0;    
@@ -43,13 +42,9 @@ public class OnsetDetector extends FeatureExtractor<float[], float[]>{
 	private final int M = W + WM*W + 1;
 	private float alpha = 0.9f;
 	
-	public OnsetDetector(){
+	public OnsetDetector() {
 		super();
-		thresholdListeners = new ArrayList<FeatureExtractor<?,float[]>>();
-		listeners = new BeadArray();
-	
-		features = new float[1];				
-		
+		listeners = new BeadArray();		
 		lastValues = new float[M];
 		Arrays.fill(lastValues,0.f);
 		filter = new MeanFilter().generateBuffer(M);
@@ -105,9 +100,8 @@ public class OnsetDetector extends FeatureExtractor<float[], float[]>{
 	 * process: assumes input is a 1 element array
 	 */
 	@Override
-	public void process(float[] input) {
-		assert input.length==1;		
-		float value = input[0];
+	public void process(Float input) {	
+		float value = input;
 		
 		// cache the values		
 		for(int i=1;i<M;i++)
@@ -124,9 +118,8 @@ public class OnsetDetector extends FeatureExtractor<float[], float[]>{
 		// 3. lastMValues[M-1-W] > average of lastMValues[M-1-.. .. M-1]
 		float lastValue = lastValues[M-1-W];
 		/* notify the threshold Listeners */
-		features[0] = threshold;
-		for(FeatureExtractor<?,float[]> fe: thresholdListeners)
-			fe.process(features);
+		features = threshold;
+		forward();
 				
 		if (lastValue > threshold)
 		{		
@@ -154,7 +147,7 @@ public class OnsetDetector extends FeatureExtractor<float[], float[]>{
 				{
 					// All tests have passed, therefore we have detected a peak->thus an onset
 					valueAtOnset = lastValue;			
-					listeners.message(this);					
+					listeners.message(this);			//any use for time stamp here?			
 				}
 			}				
 		}		
@@ -170,10 +163,5 @@ public class OnsetDetector extends FeatureExtractor<float[], float[]>{
     public void removeMessageListener(Bead b) {
         listeners.remove(b);
     }
-	
-	public void addThresholdListener(FeatureExtractor<?, float[]> fe){
-		thresholdListeners.add(fe);
-	}
-	
 	
 }

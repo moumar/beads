@@ -61,7 +61,7 @@ public class FeatureTrackExample {
 			}
 		};
 		FeatureRecorder fr = new FeatureRecorder();
-		sfs.addListener(fr);
+		sfs.addRecorder(fr);
 		fr.addFeatureExtractor(ps);
 		fr.addFeatureExtractor(sc);
 		fr.addFeatureExtractor(rb);

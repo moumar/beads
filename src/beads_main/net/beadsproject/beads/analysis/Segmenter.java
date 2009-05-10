@@ -10,22 +10,12 @@ import net.beadsproject.beads.core.BeadArray;
 import net.beadsproject.beads.core.UGen;
 
 public abstract class Segmenter extends UGen {
-
 	
 	/** The set of FeatureExtractors that respond to this Segmenter. */
-	private ArrayList<FeatureExtractor<?, float[]>> responders;
+	private ArrayList<FeatureExtractor<?, float[]>> listeners;
 	
-	/** The set of Beads that are triggered when this Segmenter segments. */
-	private BeadArray listeners;
-
-	/** The current start time in samples. */
-	private long startTime;
-	
-	/** The current time in milliseconds since start. */
-	protected double currentTime;
-
-	/** The previous end time in milliseconds since start. */
-	protected double previousEndTime;
+	/** The set of FeatureRecorders whose recording is triggered by this Segmenter. */
+	private ArrayList<FeatureRecorder> recorders;
 	
 	/**
 	 * Instantiates a new Segmenter.
@@ -34,17 +24,8 @@ public abstract class Segmenter extends UGen {
 	 */
 	public Segmenter(AudioContext context) {
 		super(context, 1, 0);		
-		responders = new ArrayList<FeatureExtractor<?, float[]>>();
-		listeners = new BeadArray();
-		startTime();
-		currentTime = previousEndTime = 0;
-	}
-	
-	/**
-	 * Sets the start time to now (now being determined by the AudioContext).
-	 */
-	public void startTime() {
-		startTime = context.getTimeStep() * context.getBufferSize();
+		listeners = new ArrayList<FeatureExtractor<?, float[]>>();
+		recorders = new ArrayList<FeatureRecorder>();
 	}
 	
 	/**
@@ -53,31 +34,32 @@ public abstract class Segmenter extends UGen {
 	 * @param fe the FeatureExtractor.
 	 */
 	public void addListener(FeatureExtractor<?, float[]> fe) {
-		responders.add(fe);
+		listeners.add(fe);
 	}
 	
 	/**
-	 * Adds a Bead as a listener. Listeners are triggered whenever the {@link #segment(float[], int)} method is called.
+	 * Adds a FeatureRecorder as a listener to this Segmenter.
 	 * 
-	 * @param bead the Bead.
+	 * @param fe the FeatureExtractor.
 	 */
-	public void addListener(Bead bead) {
-		listeners.add(bead);
+	public void addRecorder(FeatureRecorder fr) {
+		recorders.add(fr);
 	}
-	
+
 	/**
-	 * Called by instantiations of Segmenter, to indicate that a new segment has been created. The caller must pass the segment data as well as an integer indicating the number of samples since the last segment.
+	 * Called by instantiations of Segmenter, to indicate that a new segment has been created. 
 	 * 
+	 * @param startTime double indicating the start time of the data chunk in milliseconds.
+	 * @param endTime double indicating the end time of the data chunk in milliseconds.
 	 * @param data the audio data.
-	 * @param length the number of samples since the previous data.
 	 */
-	protected void segment(float[] data, int sampleOffset) {
-		for(FeatureExtractor<?, float[]> fe : responders) {
+	protected void segment(double startTime, double endTime, float[] data) {
+		for(FeatureExtractor<?, float[]> fe : listeners) {
 			fe.process(data);
 		}
-		currentTime = context.samplesToMs(context.getTimeStep() * context.getBufferSize() + sampleOffset - startTime);
-		listeners.message(this);
-		previousEndTime = currentTime;
+		for(FeatureRecorder recorder : recorders) {
+			recorder.logFrame(startTime, endTime);
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -85,7 +67,7 @@ public abstract class Segmenter extends UGen {
 	 */
 	public String toString() {
 		String result = "Segmenter: " + getClass().getSimpleName();
-		for(FeatureExtractor<?, float[]> fe : responders) {
+		for(FeatureExtractor<?, float[]> fe : listeners) {
 			result += "\n    " + fe.getName();
 		}
 		return result;

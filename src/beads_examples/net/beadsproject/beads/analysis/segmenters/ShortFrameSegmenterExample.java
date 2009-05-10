@@ -10,9 +10,9 @@ public class ShortFrameSegmenterExample {
 	public static void main(String[] args) {
 		AudioContext ac = new AudioContext(512);
 		ShortFrameSegmenter sfs = new ShortFrameSegmenter(ac) {
-			public void segment(float[] data, int length) {
-				super.segment(data, length);
-				for(int i = 0; i < length; i++) {
+			public void segment(double startTime, double endTime, float[] data) {
+				super.segment(startTime, endTime, data);
+				for(int i = 0; i < data.length; i++) {
 					System.out.print(data[i] + " ");
 				}
 				System.out.println();

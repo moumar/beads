@@ -8,13 +8,12 @@ import net.beadsproject.beads.analysis.FeatureExtractor;
 /**
  * Power calculates the RMS power over a frame directly from an audio signal.
  */
-public class Power extends FeatureExtractor<float[], float[]>  {
+public class Power extends FeatureExtractor<Float, float[]>  {
 
 	/**
 	 * Instantiates a new Power.
 	 */
 	public Power() {
-		features = new float[1];
 	}
 
 	/* (non-Javadoc)
@@ -43,11 +42,11 @@ public class Power extends FeatureExtractor<float[], float[]>  {
 	 */
 	@Override
 	public void process(float[] audioData) {
-		features[0] = 0.0f;
+		features = 0.0f;
 		for(int i = 0; i < audioData.length; i++) {
-			features[0] += audioData[i] * audioData[i];
+			features += audioData[i] * audioData[i];
 		}
-		features[0] = (float)Math.sqrt(features[0] / (float)audioData.length);
+		features = (float)Math.sqrt(features / (float)audioData.length);
 	}
 
 }

@@ -26,7 +26,7 @@ public class PowerExample {
 		Power p = new Power() {
 			public void process(float[] f) {
 				super.process(f);
-				System.out.println(getFeatures()[0]);
+				System.out.println(getFeatures());
 			}
 		};
 		//attach power to segmenter

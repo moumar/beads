@@ -61,7 +61,7 @@ public class AudioContext {
 	private boolean checkForDroppedFrames;
 	
 	/** The current time step. */
-	public int timeStep; //FIXME I've temporarily made this public for easier debugging in the RTAudio test project.
+	private long timeStep; 
 	
 	/** Flag for logging time to System.out. */
 	private boolean logTime;
@@ -71,8 +71,6 @@ public class AudioContext {
 	
 	/** The system buffer size in frames. */
 	private int systemBufferSizeInFrames;
-	
-	private boolean checkForThreadBlocking;
 
 	/**
 	 * Creates a new AudioContext with default settings. The default buffer size
@@ -122,7 +120,6 @@ public class AudioContext {
 		stop = true;
 		checkForDroppedFrames = true;
 		logTime = false;
-		checkForThreadBlocking = false;
 		// set audio format
 		this.audioFormat = audioFormat;
 		// set buffer size
@@ -227,9 +224,6 @@ public class AudioContext {
 		long nanoStart = System.nanoTime();
 		long nanoLeap = (long) (1000000000 / (audioFormat.getSampleRate() / (float) bufferSizeInFrames));
 		boolean skipFrame = false;
-		if(checkForThreadBlocking) {
-			doCheckForThreadBlocking();
-		}
 		byte b = 0;
 		Arrays.fill(bbuf, b);
 		timeStep = 0;
@@ -266,22 +260,6 @@ public class AudioContext {
 		sourceDataLine.drain();
 		sourceDataLine.stop();
 		sourceDataLine.close();
-	}
-	
-	private void doCheckForThreadBlocking() {
-		Thread t = new Thread() {
-			public void run() {
-				while(true) {
-					//TODO
-					try {
-						sleep(1000);
-					} catch(Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		};
-		t.start();
 	}
 	
 	/**
@@ -456,8 +434,17 @@ public class AudioContext {
 	 * 
 	 * @return current time step.
 	 */
-	public int getTimeStep() {
+	public long getTimeStep() {
 		return timeStep;
+	}
+	
+	/**
+	 * Generates a TimeStamp with the current time step and the given index into the time step.
+	 * @param index the index into the current time step.
+	 * @return a TimeStamp.
+	 */
+	public TimeStamp generateTimeStamp(int index) {
+		return new TimeStamp(this, timeStep, index);
 	}
 	
 	/**
@@ -483,15 +470,6 @@ public class AudioContext {
 	 */
 	public void checkForDroppedFrames(boolean checkForDroppedFrames) {
 		this.checkForDroppedFrames = checkForDroppedFrames;
-	}
-	
-	/**
-	 * Switch on/off checking for blocking of audio thread when running in realtime.
-	 * 
-	 * @param checkForThreadBlocking set true to check for thread blocking.
-	 */
-	public void checkForThreadBlocking(boolean checkForThreadBlocking) {
-		this.checkForThreadBlocking = checkForThreadBlocking;
 	}
 	
 	/**

@@ -13,9 +13,6 @@ import net.beadsproject.beads.analysis.FeatureExtractor;
  * MFCC generates mel-frequency cepstral coefficients, an important feature type in music and speech processing. MFCC receives feature data from a {@link MelSpectrum}, and must be set as a listener to a {@link MelSpectrum}, not a pure audio stream, in order to work properly.
  */
 public class MFCC extends FeatureExtractor<float[], float[]> {
-
-	/** Array of listeners. */
-	private ArrayList<FeatureExtractor<?, float[]>> listeners;
 	
 	/** Matrix used for discrete cosine transform. */
 	private double[][] DCTcoeffs; 
@@ -36,7 +33,6 @@ public class MFCC extends FeatureExtractor<float[], float[]> {
 			if(i < 9) featureDescriptions[i] = "mfcc0" + (i + 1);
 			else featureDescriptions[i] = "mfcc" + (i + 1);
 		}
-		listeners = new ArrayList<FeatureExtractor<?,float[]>>();
 	}
 	
 	/* (non-Javadoc)
@@ -83,9 +79,7 @@ public class MFCC extends FeatureExtractor<float[], float[]> {
                 features[y] += (float)(DCTcoeffs[x][y]*melSpectrumCopy[x]);
             }
         }
-        for(FeatureExtractor<?, float[]> fe : listeners) {
-        	fe.process(features);
-        }
+        forward();
 	}
 	
 
@@ -97,15 +91,6 @@ public class MFCC extends FeatureExtractor<float[], float[]> {
 			System.out.print(features[i] + " ");
 		}
 		System.out.println();
-	}
-
-	/**
-	 * Adds a listener to this MFCC.
-	 * 
-	 * @param fe the listener.
-	 */
-	public void addListener(FeatureExtractor<?, float[]> fe) {
-		listeners.add(fe);
 	}
 
 }

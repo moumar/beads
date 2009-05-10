@@ -74,19 +74,7 @@ public class SpectralPeaks extends FeatureExtractor<float[], float[]>  {
 			if(Float.isNaN(features[i]) || features[i] < 0f) features[i] = 0f;	//hack
 			linSpec[maxbin] = -1f;
 		}
-		//printFeatures();
 	}
-
-	/**
-	 * Prints the features.
-	 */
-	public void printFeatures() {
-		for(int i = 0; i < features.length; i++) {
-			System.out.print(features[i]);
-		}
-		System.out.println();
-	}
-
 
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.core.FrameFeatureExtractor#setNumFeatures(int)

@@ -3,21 +3,17 @@
  */
 package net.beadsproject.beads.analysis.featureextractors;
 
-import java.util.ArrayList;
 import net.beadsproject.beads.analysis.FeatureExtractor;
 
 /**
  * PowerSpectrum calculates the power spectrum from the output of {@link FFT}. PowerSpectrum forwards the full power spectrum data to its listeners.
  */
 public class PowerSpectrum extends FeatureExtractor<float[], float[][]> {
-
-	protected ArrayList<FeatureExtractor<?, float[]>> listeners;
 	
 	/**
 	 * Instantiates a new PowerSpectrum.
 	 */
 	public PowerSpectrum() {
-		listeners = new ArrayList<FeatureExtractor<?,float[]>>();
 	}
 	
 	/* (non-Javadoc)
@@ -31,18 +27,7 @@ public class PowerSpectrum extends FeatureExtractor<float[], float[][]> {
 			features[i] = (float)(data[0][i] * data[0][i] + data[1][i] * data[1][i]);
 		}
 		//update the listeners
-		for(FeatureExtractor<?, float[]> fe : listeners) {
-			fe.process(features);
-		}
-	}
-
-	/**
-	 * Adds a FeatureExtractor as a listener.
-	 * 
-	 * @param the FeatureExtractor.
-	 */
-	public void addListener(FeatureExtractor<?, float[]> fe) {
-		listeners.add(fe);
+		forward();
 	}
 
 }

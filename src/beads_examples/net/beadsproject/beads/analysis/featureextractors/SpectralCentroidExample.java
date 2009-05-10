@@ -43,12 +43,7 @@ public class SpectralCentroidExample {
 		//set up spectral centroid
 		final SpectralCentroid sc = new SpectralCentroid(ac.getSampleRate()) {
 			public void process(float[] f) {
-				super.process(f);
-				float[] fts = getFeatures();
-				for(int i = 0; i < fts.length; i++) {
-					System.out.print(fts[i] + " ");
-				}
-				System.out.println();
+				System.out.println(getFeatures());
 			}
 		};
 		ps.addListener(sc);
@@ -56,7 +51,7 @@ public class SpectralCentroidExample {
 		//bonus mark - make a sine wave play the spectral centroid
 		WavePlayer wp = new WavePlayer(ac, 500f, new SineBuffer().getDefault()) {
 			public void calculateBuffer() {
-				getFrequencyEnvelope().setValue(sc.getFeatures()[0]);
+				getFrequencyEnvelope().setValue(sc.getFeatures());
 				super.calculateBuffer();
 			}
 		};
