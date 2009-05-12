@@ -119,6 +119,15 @@ public class Sample implements Runnable {
         isBigEndian = true;
     }
 	
+    /**
+	 * Create a sample. Call setFile to initialise the sample.
+ 	 *
+	 */
+	public Sample()
+	{
+		
+	}
+	
 	/**
 	 * Create a sample from a file. This constructor immediately loads the entire audio file into memory.
 	 * If you want buffered behaviour, then use the blank constructor.
