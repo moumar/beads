@@ -4,6 +4,7 @@
 package net.beadsproject.beads.analysis.featureextractors;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
+import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * Power calculates the RMS power over a frame directly from an audio signal.
@@ -41,7 +42,7 @@ public class Power extends FeatureExtractor<Float, float[]>  {
 	 * @see com.olliebown.beads.core.UGen#calculateBuffer()
 	 */
 	@Override
-	public void process(float[] audioData) {
+	public void process(TimeStamp startTime, TimeStamp endTime, float[] audioData) {
 		features = 0.0f;
 		for(int i = 0; i < audioData.length; i++) {
 			features += audioData[i] * audioData[i];

@@ -4,6 +4,7 @@
 package net.beadsproject.beads.analysis.featureextractors;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
+import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * PowerSpectrum calculates the power spectrum from the output of {@link FFT}. PowerSpectrum forwards the full power spectrum data to its listeners.
@@ -19,7 +20,7 @@ public class PowerSpectrum extends FeatureExtractor<float[], float[][]> {
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.analysis.FFT#calculateBuffer()
 	 */
-	public void process(float[][] data) {
+	public void process(TimeStamp startTime, TimeStamp endTime, float[][] data) {
 		if(features == null || features.length != data[0].length / 2) {
 			features = new float[data[0].length / 2];
 		}
@@ -27,7 +28,7 @@ public class PowerSpectrum extends FeatureExtractor<float[], float[][]> {
 			features[i] = (float)(data[0][i] * data[0][i] + data[1][i] * data[1][i]);
 		}
 		//update the listeners
-		forward();
+		forward(startTime, endTime);
 	}
 
 }

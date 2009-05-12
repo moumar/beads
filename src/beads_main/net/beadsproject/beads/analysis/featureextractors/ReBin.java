@@ -4,6 +4,7 @@
 package net.beadsproject.beads.analysis.featureextractors;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
+import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * ReBin takes an array of float data and places the data into a smaller array, the size of which is specified by the number of features.
@@ -29,7 +30,7 @@ public class ReBin extends FeatureExtractor<float[], float[]> {
 	 * @see net.beadsproject.beads.analysis.FeatureExtractor#process(java.lang.Object)
 	 */
 	@Override
-	public void process(float[] original) {
+	public void process(TimeStamp startTime, TimeStamp endTime, float[] original) {
 		//features = new float[numFeatures];
 		if(original != null) {
 			float scale = (float)original.length / (float)features.length;
@@ -41,7 +42,7 @@ public class ReBin extends FeatureExtractor<float[], float[]> {
 				if(Float.isNaN(features[i])) features[i] = 0f;
 			}
 		}
-		forward();
+		forward(startTime, endTime);
 	}
 
 }

@@ -6,6 +6,7 @@ package net.beadsproject.beads.analysis.featureextractors;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * Frequency processes spectral data forwarded to it by a {@link PowerSpectrum} to determine the best estimate for the frequency of the current signal.
@@ -37,7 +38,7 @@ public class Frequency extends FeatureExtractor<float[], float[]> {
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.core.PowerSpectrumListener#calculateFeatures(float[])
 	 */
-	public synchronized void process(float[] powerSpectrum) {
+	public synchronized void process(TimeStamp startTime, TimeStamp endTime, float[] powerSpectrum) {
 		if(bufferSize != powerSpectrum.length) {
 			bufferSize = powerSpectrum.length;
 			bin2hz = sampleRate / (2 * bufferSize);

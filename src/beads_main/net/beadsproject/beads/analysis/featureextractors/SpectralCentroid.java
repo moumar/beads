@@ -6,6 +6,7 @@
 package net.beadsproject.beads.analysis.featureextractors;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
+import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * SpectralCentroid calculates the spectral centroid of a signal. It should be set up to listen to a {@link PowerSpectrum} object.
@@ -28,7 +29,7 @@ public class SpectralCentroid extends FeatureExtractor<Float, float[]>  {
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.core.PowerSpectrumListener#calculateFeatures(float[])
 	 */
-	public void process(float[] powerSpectrum) {
+	public void process(TimeStamp startTime, TimeStamp endTime, float[] powerSpectrum) {
 		double num = 0;
 		double den = 0;
 		num = 0;

@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
+import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * BasicDataWriter grabs forwarded feature data and prints it to a file in a simple format.
@@ -31,7 +32,7 @@ public class BasicDataWriter<T> extends FeatureExtractor<Object, T> {
 	 * @see net.beadsproject.beads.analysis.FeatureExtractor#process(java.lang.Object)
 	 */
 	@Override
-	public void process(T data) {
+	public void process(TimeStamp startTime, TimeStamp endTime, T data) {
 		if(data instanceof float[]) {
 			float[] dataf = (float[])data;
 			for(int i = 0; i < dataf.length; i++) {

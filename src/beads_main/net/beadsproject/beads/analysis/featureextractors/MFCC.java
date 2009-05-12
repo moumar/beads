@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
+import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * MFCC generates mel-frequency cepstral coefficients, an important feature type in music and speech processing. MFCC receives feature data from a {@link MelSpectrum}, and must be set as a listener to a {@link MelSpectrum}, not a pure audio stream, in order to work properly.
@@ -59,7 +60,7 @@ public class MFCC extends FeatureExtractor<float[], float[]> {
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.analysis.MelSpectrum#calculateFeatures(float[])
 	 */
-	public void process(float[] melSpectrum) {
+	public void process(TimeStamp startTime, TimeStamp endTime, float[] melSpectrum) {
 		Arrays.fill(features, 0f);
         // precompute DCT matrix
 		float[] melSpectrumCopy = new float[melSpectrum.length];
@@ -79,7 +80,7 @@ public class MFCC extends FeatureExtractor<float[], float[]> {
                 features[y] += (float)(DCTcoeffs[x][y]*melSpectrumCopy[x]);
             }
         }
-        forward();
+        forward(startTime, endTime);
 	}
 	
 

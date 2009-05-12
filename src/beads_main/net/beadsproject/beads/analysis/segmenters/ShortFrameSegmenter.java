@@ -3,19 +3,20 @@
  */
 package net.beadsproject.beads.analysis.segmenters;
 
-import net.beadsproject.beads.analysis.Segmenter;
+import net.beadsproject.beads.analysis.AudioSegmenter;
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.TimeStamp;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.buffers.HanningWindow;
 
 /**
  * A ShortFrameSegmenter slices audio data in short regular overlapping chunks.
  * 
- * @see Segmenter
+ * @see AudioSegmenter
  * 
  * @author ollie
  */
-public class ShortFrameSegmenter extends Segmenter {
+public class ShortFrameSegmenter extends AudioSegmenter {
 
 	/** The chunk size. */
 	private int chunkSize;
@@ -29,8 +30,8 @@ public class ShortFrameSegmenter extends Segmenter {
 	/** The time in samples. */
 	private int count;
 	
-	/** The number of hops. */
-	private int hopCount;
+	/** The previous TimeStamp. */
+	private TimeStamp lastTimeStamp;
 	
 	/** The window function used to scale the chunks. */
 	private Buffer window;
@@ -45,7 +46,9 @@ public class ShortFrameSegmenter extends Segmenter {
 		chunkSize = context.getBufferSize();
 		hopSize = chunkSize;
 		window = new HanningWindow().getDefault();
-		init();
+		count = 0;
+		lastTimeStamp = context.generateTimeStamp(0);
+		setupBuffers();
 	}
 	
 	/**
@@ -64,7 +67,7 @@ public class ShortFrameSegmenter extends Segmenter {
 	 */
 	public void setChunkSize(int chunkSize) {
 		this.chunkSize = chunkSize;
-		init();
+		setupBuffers();
 	}
 
 	/**
@@ -83,7 +86,7 @@ public class ShortFrameSegmenter extends Segmenter {
 	 */
 	public void setHopSize(int hopSize) {
 		this.hopSize = hopSize;
-		init();
+		setupBuffers();
 	}
 	
 	/**
@@ -98,11 +101,9 @@ public class ShortFrameSegmenter extends Segmenter {
 	/**
 	 * Resets the chunks array and count when anything affecting the chunk array gets changed.
 	 */
-	private void init() {
+	private void setupBuffers() {
 		int requiredBuffers = (int)Math.ceil((float)chunkSize / (float)hopSize);
 		chunks = new float[requiredBuffers][chunkSize];
-		count = 0;
-		hopCount = 0;
 	}
 
 	/* (non-Javadoc)
@@ -117,8 +118,9 @@ public class ShortFrameSegmenter extends Segmenter {
 			}
 			count = (count + 1) % chunkSize;
 			if(count % hopSize == 0) {
-				segment(context.samplesToMs(hopCount * hopSize), context.samplesToMs(hopCount * hopSize + chunkSize), chunks[count / hopSize]);
-				hopCount++;
+				TimeStamp nextTimeStamp = context.generateTimeStamp(i);
+				segment(lastTimeStamp, nextTimeStamp, chunks[count / hopSize]);
+				lastTimeStamp = nextTimeStamp;
 			}
 		}
 	}

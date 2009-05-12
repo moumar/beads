@@ -5,6 +5,7 @@
 package net.beadsproject.beads.analysis.featureextractors;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
+import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * FFT performs a Fast Fourier Transform and forwards the complex data to any listeners. The complex data is a float of the form float[2][frameSize], with real and imaginary parts stored respectively.
@@ -30,7 +31,7 @@ public class FFT extends FeatureExtractor<float[][], float[]>  {
 	 * @see com.olliebown.beads.core.UGen#calculateBuffer()
 	 */
 	@Override
-	public void process(float[] data) {
+	public void process(TimeStamp startTime, TimeStamp endTime, float[] data) {
 		if (dataCopy==null || dataCopy.length!=data.length)
 			dataCopy = new float[data.length];
 		System.arraycopy(data, 0, dataCopy, 0, data.length);
@@ -41,7 +42,7 @@ public class FFT extends FeatureExtractor<float[][], float[]>  {
 		fftImag = calculateImaginary(dataCopy, dataCopy.length);
 		features[0] = fftReal;
 		features[1] = fftImag;
-		forward();
+		forward(startTime, endTime);
 	}
 
 	/**

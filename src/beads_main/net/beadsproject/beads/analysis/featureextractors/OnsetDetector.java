@@ -2,10 +2,14 @@ package net.beadsproject.beads.analysis.featureextractors;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
+import net.beadsproject.beads.analysis.SegmentListener;
+import net.beadsproject.beads.analysis.SegmentMaker;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.BeadArray;
+import net.beadsproject.beads.core.TimeStamp;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.buffers.MeanFilter;
 
@@ -21,13 +25,15 @@ import net.beadsproject.beads.data.buffers.MeanFilter;
  * @author ben
  */
 
-public class OnsetDetector extends FeatureExtractor<Float, Float> {
+public class OnsetDetector extends FeatureExtractor<Float, Float> implements SegmentMaker {
 	
 	/** thresholdListeners receive the filtered threshold value 
 	 * TODO: DISABLE AFTER DEBUG, BP170309
 	 */
 	
     private BeadArray listeners;
+    private List<SegmentListener> segmentListeners;
+    private TimeStamp lastStartTime;
         
     private float valueAtOnset = 0;    
     private float threshold = 0;    
@@ -44,7 +50,8 @@ public class OnsetDetector extends FeatureExtractor<Float, Float> {
 	
 	public OnsetDetector() {
 		super();
-		listeners = new BeadArray();		
+		listeners = new BeadArray();	
+		segmentListeners = new ArrayList<SegmentListener>();
 		lastValues = new float[M];
 		Arrays.fill(lastValues,0.f);
 		filter = new MeanFilter().generateBuffer(M);
@@ -100,7 +107,10 @@ public class OnsetDetector extends FeatureExtractor<Float, Float> {
 	 * process: assumes input is a 1 element array
 	 */
 	@Override
-	public void process(Float input) {	
+	public void process(TimeStamp startTime, TimeStamp endTime, Float input) {	
+		
+		if(lastStartTime == null) lastStartTime = startTime;
+		
 		float value = input;
 		
 		// cache the values		
@@ -119,7 +129,7 @@ public class OnsetDetector extends FeatureExtractor<Float, Float> {
 		float lastValue = lastValues[M-1-W];
 		/* notify the threshold Listeners */
 		features = threshold;
-		forward();
+//		forward(startTime, endTime);
 				
 		if (lastValue > threshold)
 		{		
@@ -147,7 +157,12 @@ public class OnsetDetector extends FeatureExtractor<Float, Float> {
 				{
 					// All tests have passed, therefore we have detected a peak->thus an onset
 					valueAtOnset = lastValue;			
-					listeners.message(this);			//any use for time stamp here?			
+					listeners.message(this);			//any use for time stamp here? The option is now available.		
+					forward(startTime, endTime);	//TODO feature should be 'strength'
+					for(SegmentListener sl : segmentListeners) {
+						sl.newSegment(lastStartTime, endTime);
+					}
+					lastStartTime = endTime;
 				}
 			}				
 		}		
@@ -163,5 +178,14 @@ public class OnsetDetector extends FeatureExtractor<Float, Float> {
     public void removeMessageListener(Bead b) {
         listeners.remove(b);
     }
+
+	public void addSegmentListener(SegmentListener sl) {
+		segmentListeners.add(sl);
+	}
+
+	public void removeSegmentListener(SegmentListener sl) {
+		segmentListeners.remove(sl);	
+	}
+
 	
 }

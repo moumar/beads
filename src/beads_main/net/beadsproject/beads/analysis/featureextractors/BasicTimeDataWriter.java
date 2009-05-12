@@ -8,6 +8,7 @@ import java.io.PrintStream;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * BasicTimeDataWriter grabs forwarded feature data and prints it to a file in a simple format.
@@ -34,7 +35,7 @@ public class BasicTimeDataWriter<T> extends FeatureExtractor<Object, T> {
 	 * @see net.beadsproject.beads.analysis.FeatureExtractor#process(java.lang.Object)
 	 */
 	@Override
-	public void process(T data) {
+	public void process(TimeStamp startTime, TimeStamp endTime, T data) {
 		if(data instanceof Object[]) {
 			Object[] dataArray = (Object[])data;
 			ps.print(ac.getTime());

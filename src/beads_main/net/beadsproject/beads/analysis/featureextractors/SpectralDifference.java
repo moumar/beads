@@ -1,6 +1,7 @@
 package net.beadsproject.beads.analysis.featureextractors;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
+import net.beadsproject.beads.core.TimeStamp;
 
 public class SpectralDifference extends FeatureExtractor<Float, float[]> {
 
@@ -62,7 +63,7 @@ public class SpectralDifference extends FeatureExtractor<Float, float[]> {
 	}	
 	
 	@Override
-	public void process(float[] spectrum) {		
+	public void process(TimeStamp startTime, TimeStamp endTime, float[] spectrum) {		
 		// compare this spectrum with the last
 		int numBins = maxBin - minBin;
 		
@@ -100,7 +101,7 @@ public class SpectralDifference extends FeatureExtractor<Float, float[]> {
 			// finally copy the current spectrum
 			System.arraycopy(spectrum,minBin,previousSpectrum,0,numBins);
 		}
-		forward();
+		forward(startTime, endTime);
 	}
 	
 	// helper functions

@@ -6,6 +6,7 @@ package net.beadsproject.beads.analysis;
 import java.util.ArrayList;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.BeadArray;
+import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * FeatureExtractor is an abstract base class for classes that perform some kind of analysis on incoming data. Both the incoming data (P) and the generated data (R) are generic types. Implementing classes use the method {@link #process(P)} to process data. 
@@ -18,7 +19,7 @@ public abstract class FeatureExtractor<R, P> extends Bead {
 	protected int numFeatures;
 	
 	/** The current feature data. */
-	protected R features;
+	protected R features = null;
 	
 	/** The name of the FeatureExtractor. */
 	protected String name;
@@ -42,15 +43,15 @@ public abstract class FeatureExtractor<R, P> extends Bead {
 	 * 
 	 * @param data the data.
 	 */
-	public abstract void process(P data);
+	public abstract void process(TimeStamp startTime, TimeStamp endTime, P data);
 	
 	/**
 	 * Subclasses should call this at end of their process() method to forward features to listeners.
 	 */
-	public void forward() {
+	public void forward(TimeStamp startTime, TimeStamp endTime) {
 		//forward to the feature extractor listeners
 		for(FeatureExtractor<?, R> fe : featureExtractorListeners) {
-			fe.process(features);
+			fe.process(startTime, endTime, features);
 		}
 	}
 	

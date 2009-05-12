@@ -60,12 +60,10 @@ public class FeatureTrackExample {
 				System.out.println(ff);
 			}
 		};
-		FeatureRecorder fr = new FeatureRecorder();
-		sfs.addRecorder(fr);
-		fr.addFeatureExtractor(ps);
-		fr.addFeatureExtractor(sc);
-		fr.addFeatureExtractor(rb);
-		fr.setFeatureTrack(ft);
+		sfs.addSegmentListener(ft);
+		ft.addFeatureExtractor(ps);
+		ft.addFeatureExtractor(sc);
+		ft.addFeatureExtractor(rb);
 		
 		//connect audio
 		sfs.addInput(g);

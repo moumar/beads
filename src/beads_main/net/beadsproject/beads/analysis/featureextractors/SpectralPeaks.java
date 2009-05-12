@@ -6,6 +6,7 @@ package net.beadsproject.beads.analysis.featureextractors;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * Peaks finds the strongest N peaks in a signal passed from a {@link PowerSpectrum}, where N is the specified number of features. Peaks must be set as a listener to a {@link PowerSpectrum} object to work properly.
@@ -44,7 +45,7 @@ public class SpectralPeaks extends FeatureExtractor<float[], float[]>  {
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.core.PowerSpectrumListener#calculateFeatures(float[])
 	 */
-	public synchronized void process(float[] powerSpectrum) {
+	public synchronized void process(TimeStamp startTime, TimeStamp endTime, float[] powerSpectrum) {
 		// collect average linear spectrum
 		double[] linSpec = new double[powerSpectrum.length];
 		for (int band = 0; band < linSpec.length; band++) {

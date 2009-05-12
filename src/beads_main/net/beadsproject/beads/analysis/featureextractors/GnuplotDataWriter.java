@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
+import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * GnuplotDataWriter grabs forwarded feature data and prints it to a file in pm3d format for Gnuplot.
@@ -30,7 +31,7 @@ public class GnuplotDataWriter<T> extends BasicDataWriter<T> {
 	 * @see net.beadsproject.beads.analysis.FeatureExtractor#process(java.lang.Object)
 	 */
 	@Override
-	public void process(Object data) {
+	public void process(TimeStamp startTime, TimeStamp endTime, Object data) {
 		if(data instanceof float[]) {
 			float[] dataf = (float[])data;
 			for(int i = 0; i < dataf.length; i++) {

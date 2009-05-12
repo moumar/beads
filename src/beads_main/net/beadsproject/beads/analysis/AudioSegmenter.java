@@ -4,28 +4,30 @@
 package net.beadsproject.beads.analysis;
 
 import java.util.ArrayList;
+import java.util.List;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.BeadArray;
+import net.beadsproject.beads.core.TimeStamp;
 import net.beadsproject.beads.core.UGen;
 
-public abstract class Segmenter extends UGen {
+public abstract class AudioSegmenter extends UGen {
 	
 	/** The set of FeatureExtractors that respond to this Segmenter. */
 	private ArrayList<FeatureExtractor<?, float[]>> listeners;
 	
-	/** The set of FeatureRecorders whose recording is triggered by this Segmenter. */
-	private ArrayList<FeatureRecorder> recorders;
+	/** The set of SegmentListener who are triggered by this Segmenter. */
+	private List<SegmentListener> segmentListeners;
 	
 	/**
 	 * Instantiates a new Segmenter.
 	 * 
 	 * @param context the AudioContext.
 	 */
-	public Segmenter(AudioContext context) {
+	public AudioSegmenter(AudioContext context) {
 		super(context, 1, 0);		
 		listeners = new ArrayList<FeatureExtractor<?, float[]>>();
-		recorders = new ArrayList<FeatureRecorder>();
+		segmentListeners = new ArrayList<SegmentListener>();
 	}
 	
 	/**
@@ -42,8 +44,8 @@ public abstract class Segmenter extends UGen {
 	 * 
 	 * @param fe the FeatureExtractor.
 	 */
-	public void addRecorder(FeatureRecorder fr) {
-		recorders.add(fr);
+	public void addSegmentListener(SegmentListener fr) {
+		segmentListeners.add(fr);
 	}
 
 	/**
@@ -53,12 +55,14 @@ public abstract class Segmenter extends UGen {
 	 * @param endTime double indicating the end time of the data chunk in milliseconds.
 	 * @param data the audio data.
 	 */
-	protected void segment(double startTime, double endTime, float[] data) {
-		for(FeatureExtractor<?, float[]> fe : listeners) {
-			fe.process(data);
+	protected void segment(TimeStamp startTime, TimeStamp endTime, float[] data) {
+		if(data != null) {
+			for(FeatureExtractor<?, float[]> fe : listeners) {
+				fe.process(startTime, endTime, data);
+			}
 		}
-		for(FeatureRecorder recorder : recorders) {
-			recorder.logFrame(startTime, endTime);
+		for(SegmentListener recorder : segmentListeners) {
+			recorder.newSegment(startTime, endTime);
 		}
 	}
 	

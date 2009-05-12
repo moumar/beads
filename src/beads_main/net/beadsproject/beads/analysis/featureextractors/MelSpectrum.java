@@ -5,6 +5,7 @@
 package net.beadsproject.beads.analysis.featureextractors;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
+import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * MelSpectrum receives spectral data from a {@link PowerSpectrum} object and converts it to the mel frequency spectrum. To use MelSpectrum, make sure it is set as a listener to a {@link PowerSpectrum} object, not directly from an audio stream.
@@ -89,7 +90,7 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 	/* (non-Javadoc)
 	 * @see com.olliebown.beads.core.PowerSpectrumListener#calculateFeatures(float[])
 	 */
-	public void process(float[] powerSpectrum) {
+	public void process(TimeStamp startTime, TimeStamp endTime, float[] powerSpectrum) {
 		if(powerSpectrum.length != bufferSize) {
 			bufferSize = powerSpectrum.length;
 			setup();
@@ -113,7 +114,7 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 			// Take log
 			features[bin] = Math.max(0f, (float)(10f * Math.log(features[bin]) / LOG10));
 		}
-		forward();
+		forward(startTime, endTime);
 	}
 	
 	public void setNumberOfFeatures(int numFeatures) {

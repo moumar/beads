@@ -3,6 +3,7 @@ package net.beadsproject.beads.analysis.featureextractors;
 import net.beadsproject.beads.analysis.featureextractors.Power;
 import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.TimeStamp;
 import net.beadsproject.beads.data.buffers.SineBuffer;
 import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.WavePlayer;
@@ -24,8 +25,8 @@ public class PowerExample {
 		ShortFrameSegmenter sfs = new ShortFrameSegmenter(ac);
 		//set up power
 		Power p = new Power() {
-			public void process(float[] f) {
-				super.process(f);
+			public void process(TimeStamp st, TimeStamp et, float[] f) {
+				super.process(st, et, f);
 				System.out.println(getFeatures());
 			}
 		};

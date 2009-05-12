@@ -6,7 +6,9 @@ package net.beadsproject.beads.analysis;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
+import net.beadsproject.beads.core.TimeStamp;
 import net.beadsproject.beads.data.Sample;
 
 /**
@@ -16,30 +18,23 @@ import net.beadsproject.beads.data.Sample;
  * 
  * @author ollie
  */
-public class FeatureTrack implements Serializable, Iterable<FeatureFrame> {
+public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, SegmentListener {
 	
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 	
 	/** The list of FeatureFrames. */
 	private ArrayList<FeatureFrame> frames;
-	
-	/** Optional {@link Sample} that this FeatureTrack refers to. */
-	private Sample sample;
+
+	/** The list of FeatureExtractors used to extract data. */
+	private transient List<FeatureExtractor<?, ?>> extractors;
 	
 	/**
 	 * Instantiates a new FeatureTrack.
 	 */
 	public FeatureTrack() {
-		this(null);
-	}
-	
-	/** Instantiates a new FeatureTrack referring to the given sample. 
-	 * @param sample the Sample to refer to. 
-	 */
-	public FeatureTrack(Sample sample) {
 		frames = new ArrayList<FeatureFrame>();
-		this.sample = sample;
+		extractors = new ArrayList<FeatureExtractor<?,?>>();
 	}
 	
 	/**
@@ -74,6 +69,35 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame> {
 			if(ff.containsTime(timeMS)) return ff;
 		}
 		return null;
+	}
+	
+	/**
+	 * Adds a new FeatureExtractor.
+	 * 
+	 * @param e the FeatureExtractor.
+	 */
+	public void addFeatureExtractor(FeatureExtractor<?, ?> e) {
+		extractors.add(e);
+	}
+	
+	/**
+	 * Removes the specified FeatureExtractor.
+	 * 
+	 * @param e the FeatureExtractor.
+	 */
+	public void removeFeatureExtractor(FeatureExtractor<?, ?> e) {
+		extractors.remove(e);
+	}
+	
+	/* (non-Javadoc)
+	 * @see net.beadsproject.beads.core.Bead#messageReceived(net.beadsproject.beads.core.Bead)
+	 */
+	public void newSegment(TimeStamp startTime, TimeStamp endTime) {
+		FeatureFrame ff = new FeatureFrame(startTime.getTimeMS(), endTime.getTimeMS());
+		for(FeatureExtractor<?, ?> e : extractors) {
+			ff.add(e.getName(), e.getFeatures());
+		}
+		add(ff);
 	}
 
 	/* (non-Javadoc)
