@@ -417,7 +417,7 @@ public class SamplePlayer extends UGen {
 	}
 
 	/**
-	 * Sets/unsets option for SamplePlayer to kill itself when it reaches the end of the Sample it is playing.
+	 * Sets/unsets option for SamplePlayer to kill itself when it reaches the end of the Sample it is playing. True by default.
 	 * 
 	 * @param killOnEnd true to kill on end.
 	 */

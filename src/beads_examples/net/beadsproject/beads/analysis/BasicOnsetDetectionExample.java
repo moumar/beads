@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import net.beadsproject.beads.analysis.featureextractors.FFT;
 import net.beadsproject.beads.analysis.featureextractors.GnuplotDataWriter;
-import net.beadsproject.beads.analysis.featureextractors.OnsetDetector;
+import net.beadsproject.beads.analysis.featureextractors.PeakDetector;
 import net.beadsproject.beads.analysis.featureextractors.PowerSpectrum;
 import net.beadsproject.beads.analysis.featureextractors.SpectralDifference;
 import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
@@ -34,7 +34,7 @@ public class BasicOnsetDetectionExample {
 		FFT fft = new FFT();
 		PowerSpectrum ps = new PowerSpectrum();
 		SpectralDifference sd = new SpectralDifference(ac.getSampleRate());
-		OnsetDetector d = new OnsetDetector();
+		PeakDetector d = new PeakDetector();
 		//connect extractor stuff
 		sfs.addListener(fft);
 		fft.addListener(ps);
@@ -53,6 +53,7 @@ public class BasicOnsetDetectionExample {
 		//make another feature track to record the onset times
 		FeatureTrack onsetData = new FeatureTrack();
 		d.addSegmentListener(onsetData);
+		onsetData.addFeatureExtractor(d);
 		//set experiment to fixed length
 		DelayTrigger dt = new DelayTrigger(ac, 3000f, new AudioContextStopTrigger(ac));
 		ac.out.addDependent(dt);

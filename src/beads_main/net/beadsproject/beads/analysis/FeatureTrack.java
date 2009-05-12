@@ -106,4 +106,13 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	public Iterator<FeatureFrame> iterator() {
 		return frames.iterator();
 	}
+
+	/**
+	 * Returns the number of FeatureFrames stored in this FeatureTrack.
+	 * 
+	 * @return number of FeatureFrames.
+	 */
+	public int getNumberOfFrames() {
+		return frames.size();
+	}
 }
