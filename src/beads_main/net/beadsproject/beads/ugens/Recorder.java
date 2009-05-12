@@ -33,6 +33,12 @@ public class Recorder extends UGen {
         super(context, sample.nChannels, 0);
         this.sample = sample;
         setLoopRecord(false);
+        
+        if (sample!=null && !this.sample.isWriteable())
+        {
+        	System.out.println("Recorder can only write to a writeable sample.");
+        	System.exit(1);
+        }
     }
 
 	/**
@@ -52,6 +58,12 @@ public class Recorder extends UGen {
 	 */
     public void setSample(Sample sample) {
         this.sample = sample;
+        
+        if (this.sample!=null && !this.sample.isWriteable())
+        {
+        	System.out.println("Recorder can only write to a writeable sample.");
+        	System.exit(1);
+        }
     }
     
     /**
@@ -75,6 +87,32 @@ public class Recorder extends UGen {
      * @see com.olliebown.beads.core.UGen#calculateBuffer()
      */
     @Override
+    public void calculateBuffer() {    	
+    	if (position + bufferSize > sample.nFrames)
+    	{
+    		// handle loop around
+    		sample.putFrames((int)position, bufIn, 0, (int)(sample.nFrames-position));
+    		if(loopRecord) 
+    		{
+    			position = 0;
+    			int numframesleft = bufferSize - (int)(sample.nFrames-position);
+        		sample.putFrames((int)position, bufIn, (int)(sample.nFrames-position), numframesleft);
+        		position += numframesleft;
+    		}
+        	else 
+        	{
+        		kill();
+        	}
+    	}
+    	else // general case
+    	{
+    		sample.putFrames((int)position, bufIn);    		
+    		position += bufferSize;
+    	}    	
+    }
+    
+    /*
+     * Old sample method
     public void calculateBuffer() {
         for(int i = 0; i < bufferSize; i++) {
             for(int j = 0; j < ins; j++) {
@@ -90,6 +128,7 @@ public class Recorder extends UGen {
             }
         }
     }
+    */
     
     /**
 	 * Gets the position.

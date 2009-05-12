@@ -23,19 +23,21 @@ import net.beadsproject.beads.core.AudioUtils;
 public class AudioFile {
 	public File file;
 	public AudioFileFormat audioFileFormat;
-
 	/** The number of channels. */
 	public int nChannels;
-
 	/** The total number of frames.
-	 *  nFrames = -1 means that we don't know when this stream will end. 
-	 *  Also see: isFinite
+	 *  If it equals AudioSystem.NOT_SPECIFIED then the length is unknown. 
 	 **/
 	public long nFrames;
+	/** Length of the file in milliseconds */
+	public float length;
+	
 	public long nTotalFramesRead = 0; // also a pointer into the current pos
 	public boolean finished = false;
 	
 	// stream-specific stuff
+	private Map<String,Object> audioInfo;
+	private long lengthInBytes; // length of file in bytes
 	private AudioFormat encodedFormat;
 	private AudioFormat decodedFormat;
 	private AudioInputStream encodedStream = null;
@@ -43,7 +45,7 @@ public class AudioFile {
 	private int numBytes = 2; // number of bytes per frame per channel (e.g., numBytes=2 for a 16-bit audio file)	
 	private boolean isEncoded = false; // is the audio file encoded 
 	private int bufferSize;
-
+	
 	/**
 	 * Load an audio file from disk. The audiofile needs to be open()'ed before it's data can be read.
 	 * Note: AudioFile provides low-level access to audio files -- If you just want to access the data of a sound file use a Sample.
@@ -110,25 +112,41 @@ public class AudioFile {
 	 * Skips a number of frames.
 	 * Note: this function skips frames, not bytes.
 	 * Doesn't work for vbr!
-	 * 
+	 *
 	 * @param frames
 	 */
 	public void skip(long frames)
 	{
+		if (frames<=0) return;
+		//System.out.printf("skip %d frames\n",frames);
+		
 		try {
-			if (isEncoded)
+			if (isEncoded && nFrames!=AudioSystem.NOT_SPECIFIED)
 			{
-				/* GAH, DOESN'T WORK!
-				int framesizebytes = Integer.decode(audioFileFormat.properties().get("mp3.framesize.bytes").toString());
-				System.out.println(framesizebytes);				
-				long numbytes = frames * framesizebytes;
-				encodedStream.skip(numbytes);
-				*/
-				System.out.println("FIX THE SKIP METHOD FOR ENCODED STREAMS!");
-				System.exit(1);
+				if (!audioInfo.containsKey("mp3.vbr") || (Boolean)audioInfo.get("mp3.vbr"))
+				{
+					System.out.println("Beads does not currently support seeking on variable bit rate mp3s.");
+					System.exit(1);					
+				}
+							
+				// skip by a proportion of the file
+				// this technique is used in jlGui
+				double rate = 1.0*frames/nFrames;
+				long skipBytes = (long) Math.round(lengthInBytes * rate);
+                long totalSkipped = 0;
+                while (totalSkipped < skipBytes)
+                {
+                    long skipped = encodedStream.skip(skipBytes - totalSkipped);
+                    totalSkipped += skipped;
+                    if (skipped == 0) break;
+                }             
+                //System.out.printf("skip want: %db, got %db\n",skipBytes,totalSkipped);
 			}
 			else
-				decodedStream.skip(nChannels*numBytes*frames);			
+			{
+				long skipped = decodedStream.skip(nChannels*numBytes*frames);
+				//System.out.printf("skip want: %db, got %db\n",nChannels*numBytes*frames,skipped);
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -143,7 +161,7 @@ public class AudioFile {
 	 */
 	public void seek(int frame)
 	{
-		if (frame>nTotalFramesRead)
+		if (frame>=nTotalFramesRead)
 		{
 			skip(frame-nTotalFramesRead);
 		}
@@ -163,7 +181,6 @@ public class AudioFile {
 	public void open() throws UnsupportedAudioFileException, IOException
 	{
 		// TODO: Implement reset() to takes some shortcuts - rather than executing all of the logic below
-
 		if (file.exists()) encodedStream = AudioSystem.getAudioInputStream(file);
 		encodedFormat = encodedStream.getFormat();
 		decodedFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
@@ -174,19 +191,26 @@ public class AudioFile {
 				44100,
 				encodedFormat.isBigEndian());
 
+		audioInfo = decodedFormat.properties();
+		
 		if (AudioSystem.isConversionSupported(decodedFormat, encodedFormat))
 		{
 			isEncoded = true;
 			decodedStream = AudioSystem.getAudioInputStream(decodedFormat, encodedStream);
 			nFrames = AudioSystem.NOT_SPECIFIED;
 
-			Map<String,Object> properties = audioFileFormat.properties();
-			if (properties.containsKey("duration"))
+			lengthInBytes = audioFileFormat.getByteLength();
+			audioInfo = audioFileFormat.properties();
+			length = getTimeLengthEstimation(audioInfo);
+			if (length<0)
 			{
-				long mslength = Long.decode(properties.get("duration").toString()) / 1000;
-				// convert to samples
-				nFrames = (long)((decodedFormat.getSampleRate()/1000) * mslength);				
+				System.out.println("Beads cannot determine the duration of the file - is it missing the duration tag?\n");
+				System.exit(1);
 			}
+			else
+			{
+				nFrames = (long)(decodedFormat.getSampleRate() * (length/1000.));
+			}			
 		}
 		else
 		{
@@ -196,6 +220,7 @@ public class AudioFile {
 			decodedStream = encodedStream;
 
 			nFrames = (int)(decodedStream.getFrameLength());
+			length = 1000.f * decodedStream.getFrameLength() / decodedFormat.getSampleRate();
 		}
 
 		numBytes = decodedFormat.getSampleSizeInBits()/8;
@@ -213,6 +238,30 @@ public class AudioFile {
 
 		if (encodedStream.markSupported())
 			encodedStream.mark(Math.min(bufferSize,(int) file.length()));
+	}
+	
+	/*
+	 * Returns some useful information about this audiofile.
+	 */
+	public String info()
+	{
+		String str = "Filename: " + file.getName() + "\n";
+		str += "Number of channels: " + nChannels + "\n";
+		str += "Number of frames: " + nFrames + "\n";
+		str += "Number of bytes per frame per channel: " + numBytes + "\n";
+		str += "Is encoded? " + isEncoded + "\n";
+		str += "Audio File Format\n" + audioFileFormat.toString() + "\n";
+		if (isEncoded)
+		{
+			str += "Audio Format (Encoded)\n" + encodedFormat.toString();
+			str += "\nAudio Format (Decoded)\n" + decodedFormat.toString();
+		}
+		else
+		{
+			str += "Audio Format\n" + decodedFormat.toString();
+		}
+		str += "\nAudio Properties\n" + audioInfo + "\n";
+		return str;		
 	}
 
 	/**
@@ -280,6 +329,45 @@ public class AudioFile {
 		// read the next bufferSize frames from the input stream		
 		int actualBytesRead = -1;
 		try {
+			// loop while reading data in
+			int totalBytesRead = 0;
+			while (totalBytesRead < buffer.length)
+			{
+				actualBytesRead = decodedStream.read(buffer,totalBytesRead,buffer.length-totalBytesRead);
+				if (actualBytesRead == -1)
+				{
+					finished = true;
+					if (totalBytesRead>0)
+						actualBytesRead = totalBytesRead;
+					break;
+				}
+				else
+					totalBytesRead += actualBytesRead;
+			}
+			if (totalBytesRead==buffer.length)
+				actualBytesRead = totalBytesRead;
+			
+		} catch (IOException e) {
+			finished = true;
+		}
+
+		if (finished || actualBytesRead==-1)
+		{
+			finished = true;
+			return actualBytesRead;
+		}
+		
+		nTotalFramesRead += actualBytesRead / (2*nChannels);
+		return actualBytesRead;
+	}
+	
+	/* old version..
+	public int read(byte[] buffer) {
+		if (finished) return -1;
+
+		// read the next bufferSize frames from the input stream		
+		int actualBytesRead = -1;
+		try {
 			actualBytesRead = decodedStream.read(buffer,0,buffer.length);
 		} catch (IOException e) {
 			finished = true;
@@ -294,6 +382,8 @@ public class AudioFile {
 		nTotalFramesRead += actualBytesRead / (2*nChannels);
 		return actualBytesRead;
 	}
+	*/
+	
 
 	/**
 	 * Read decoded audio data in a non-interleaved, Beads-friendly format.
@@ -335,5 +425,60 @@ public class AudioFile {
 
 		return numFramesJustRead;
 	}
+	
+	 /**
+	  * THIS CODE IS FROM jlGui PlayerUI.java.
+	  * jlGui can be obtained at: http://www.javazoom.net/jlgui/jlgui.html
+	  */
+    public long getTimeLengthEstimation(Map properties)
+    {
+        long milliseconds = -1;
+        int byteslength = -1;
+        if (properties != null)
+        {
+            if (properties.containsKey("audio.length.bytes"))
+            {
+                byteslength = ((Integer) properties.get("audio.length.bytes")).intValue();
+            }
+            if (properties.containsKey("duration"))
+            {
+                milliseconds = (int) (((Long) properties.get("duration")).longValue()) / 1000;
+            }
+            else
+            {
+                // Try to compute duration
+                int bitspersample = -1;
+                int channels = -1;
+                float samplerate = -1.0f;
+                int framesize = -1;
+                if (properties.containsKey("audio.samplesize.bits"))
+                {
+                    bitspersample = ((Integer) properties.get("audio.samplesize.bits")).intValue();
+                }
+                if (properties.containsKey("audio.channels"))
+                {
+                    channels = ((Integer) properties.get("audio.channels")).intValue();
+                }
+                if (properties.containsKey("audio.samplerate.hz"))
+                {
+                    samplerate = ((Float) properties.get("audio.samplerate.hz")).floatValue();
+                }
+                if (properties.containsKey("audio.framesize.bytes"))
+                {
+                    framesize = ((Integer) properties.get("audio.framesize.bytes")).intValue();
+                }
+                if (bitspersample > 0)
+                {
+                    milliseconds = (int) (1000.0f * byteslength / (samplerate * channels * (bitspersample / 8)));
+                }
+                else
+                {
+                    milliseconds = (int) (1000.0f * byteslength / (samplerate * framesize));
+                }
+            }
+        }
+        return milliseconds;
+    }
+    
 }
 

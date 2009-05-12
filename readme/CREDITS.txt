@@ -29,3 +29,8 @@ Library: JarJar
 License: Apache License 2.0
 File: dependencise jarjar.jar
 Project Site: http://code.google.com/p/jarjar/
+
+Library: JLGui
+License: GPL
+Code: Some snippets adapted into AudioFile
+Project Site: http://www.javazoom.net/jlgui/jlgui.html

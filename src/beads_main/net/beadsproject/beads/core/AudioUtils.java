@@ -59,18 +59,33 @@ public final class AudioUtils {
 	 *            true for big endian byte order, false otherwise.
 	 */
 	static final public void floatToByte(byte[] out, float[] in, boolean bigEndian) {
-		int bufsz = in.length;
-		int ib = 0;
+		floatToByte(out,0,in,0,in.length,bigEndian);
+	}
+	
+	/**
+	 * Converts a buffer of floats to a buffer of bytes with a given byte order.
+	 * 
+	 * @param out Output array
+	 * @param outstart Start index of output 
+	 * @param in Input array 
+	 * @param instart Start index of input 
+	 * @param inlength Number of floats to copy
+	 * @param bigEndian Format
+	 */
+	static final public void floatToByte(byte[] out, int outstart, float[] in, int instart, int inlength, boolean bigEndian)
+	{
+		int bufsz = Math.min(inlength,in.length);
+		int ib = outstart;
 		if (bigEndian) {
 			for (int i = 0; i < bufsz; ++i) {
-				short y = (short) (32767. * Math.min(Math.max(in[i], -1.0f),
+				short y = (short) (32767. * Math.min(Math.max(in[i+instart], -1.0f),
 						1.0f));
 				out[ib++] = (byte) ((y >> 8) & 0xFF);
 				out[ib++] = (byte) (y & 0xFF);
 			}
 		} else {
 			for (int i = 0; i < bufsz; ++i) {
-				short y = (short) (32767. * in[i]);
+				short y = (short) (32767. * in[i+instart]);
 				out[ib++] = (byte) (y & 0xFF);
 				out[ib++] = (byte) ((y >> 8) & 0xFF);
 			}
@@ -199,7 +214,31 @@ public final class AudioUtils {
 	 */
 	static final public void interleave(float[][] source, int nChannels,
 			int nFrames, float[] result) {
-		for (int i = 0, counter = 0; i < nFrames; ++i) {
+		for (int i = 0, counter = 0; counter<result.length && i < nFrames; ++i) {
+			for (int j = 0; j < nChannels; ++j) {
+				result[counter++] = source[j][i];
+			}
+		}
+	}
+	
+	/**
+	 * Interleave a 2D array of floats of size nChannels x nFrames to form a
+	 * single interleaved buffer of floats.
+	 * 
+	 * @param source
+	 *            2D array of floats.
+	 * @param nChannels
+	 *            first dimension of input 2D array.
+	 * @param nFrames
+	 *            second dimension of input 2D array.
+	 * @param offset
+	 * 			  the number of frames offset
+	 * @param result
+	 *            the result
+	 */
+	static final public void interleave(float[][] source, int nChannels,
+			int nFrames, int offset, float[] result) {
+		for (int i = offset, counter = 0; counter<result.length && i < nFrames; ++i) {
 			for (int j = 0; j < nChannels; ++j) {
 				result[counter++] = source[j][i];
 			}
