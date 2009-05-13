@@ -40,27 +40,27 @@ public class Sample implements Runnable {
 		TIMED,
 		TOTAL
 	};
+	
 	public BufferingRegime bufferingRegime = BufferingRegime.TOTAL;
 	
 	/** Store the sample data with native bit-depth. 
 	 * Storing in native bit-depth reduces memory load, but increases cpu-load. 
 	 */ 
 	//public boolean storeInNativeBitDepth = true;	
-	public String fileName;
 	
 	private AudioFile audioFile;
 
 	/** The audio format. */
-	public AudioFormat audioFormat;
+	private AudioFormat audioFormat;
 
 	/** The number of channels. */
-	public int nChannels;
+	private int nChannels;
 
 	/** The number of sample frames. */
-	public long nFrames;
+	private long nFrames;
 
 	/** The length in milliseconds. */
-	public float length;	
+	private float length;	
 	
 	private boolean isBigEndian;
 
@@ -222,8 +222,7 @@ public class Sample implements Runnable {
 	{
 		audioFile = af;
 		audioFile.open();
-		
-		fileName = audioFile.file.getName();
+
 		audioFormat = audioFile.getDecodedFormat();
 		nFrames = audioFile.nFrames;
 		nChannels = audioFile.nChannels;
@@ -243,6 +242,9 @@ public class Sample implements Runnable {
 			// lot of crap left over, so call the gc
 			// TODO: should probably call gc() only once after ALL samples are loaded
 			// Can do this in sample manager, for instance
+			// Ollie: or two alternatives: advise user to do this, or AudioContext calls gc() before starting
+			//which assumes that most samples are loaded before system is turned on.
+			//On the other hand, this is probably fine since it is only a hint to the system.
 			System.gc();
 		}
 		else if (bufferingRegime==BufferingRegime.TIMED)
@@ -314,6 +316,16 @@ public class Sample implements Runnable {
 			*/
 		}
 	}
+	
+//	/**
+//	 * Returns a single frame given the time in milliseconds.
+//	 * If the data is not readily available this function blocks until it is.
+//	 * 
+//	 * @param timeMs the time in milliseconds.
+//	 */
+//	public void getFrame(double timeMs, float[] frame) {
+//		getFrame((int)msToSamples(timeMs), frame);
+//	}
 
 	/**
 	 * Return a single frame. 
@@ -635,17 +647,27 @@ public class Sample implements Runnable {
      * @see java.lang.Object#toString()
      */
     public String toString() {
-    	return fileName;
+    	return getFileName();
     }
     
     
     /**
-     * Gets the full file name.
+     * Gets the full file path.
      * 
-     * @return the file name
+     * @return the file path.
      */
     public String getFileName() {
-    	return fileName;
+    	return audioFile.file.getAbsolutePath();
+    }
+    
+    
+    /**
+     * Gets the simple file name.
+     * 
+     * @return the file name.
+     */
+    public String getSimpleFileName() {
+    	return audioFile.file.getName();
     }
     
     /**
@@ -876,5 +898,36 @@ public class Sample implements Runnable {
     	
         
     }
+
+	
+	public AudioFile getAudioFile() {
+		return audioFile;
+	}
+
+	
+	public AudioFormat getAudioFormat() {
+		return audioFormat;
+	}
+
+	
+	public int getNumChannels() {
+		return nChannels;
+	}
+
+	
+	public long getNumFrames() {
+		return nFrames;
+	}
+
+	
+	public float getLength() {
+		return length;
+	}
+
+	public float getSampleRate() {
+		return audioFormat.getSampleRate();
+	}
+    
+    
     
 }

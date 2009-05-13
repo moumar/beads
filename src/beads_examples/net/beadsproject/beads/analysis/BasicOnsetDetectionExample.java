@@ -26,7 +26,7 @@ public class BasicOnsetDetectionExample {
 		//set up playback
 		final Sample samp = SampleManager.sample("audio/1234.aif");
 		SamplePlayer player = new SamplePlayer(ac, samp);
-		Gain sampleTrack = new Gain(ac, samp.nChannels);
+		Gain sampleTrack = new Gain(ac, samp.getNumChannels());
 		sampleTrack.addInput(player);
 		ac.out.addInput(sampleTrack);
 		//set up extractor stuff

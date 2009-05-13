@@ -12,7 +12,7 @@ public class SamplePlayerExample {
     	System.out.println("Testing: " + SamplePlayer.class);
     	AudioContext ac = new AudioContext(512);
     	Sample s1 = SampleManager.sample("audio/1234.aif");	
-    	System.out.println(s1.length);
+    	System.out.println(s1.getLength());
     	
     	
     	SamplePlayer sp = new SamplePlayer(ac, s1); 	

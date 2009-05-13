@@ -13,7 +13,7 @@ public class GranularSamplePlayerExample {
     	System.out.println("Testing: " + GranularSamplePlayer.class);
     	AudioContext ac = new AudioContext(512);
     	Sample s1 = SampleManager.sample("audio/1234.aif");	
-    	System.out.println(s1.length);
+    	System.out.println(s1.getLength());
     	GranularSamplePlayer gsp = new GranularSamplePlayer(ac, s1); 	
     	gsp.getGrainIntervalEnvelope().setValue(20f);
     	gsp.getGrainSizeEnvelope().setValue(50f);

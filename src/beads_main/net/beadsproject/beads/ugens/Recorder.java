@@ -30,7 +30,7 @@ public class Recorder extends UGen {
 	 *            the Sample.
 	 */
     public Recorder(AudioContext context, Sample sample) {
-        super(context, sample.nChannels, 0);
+        super(context, sample.getNumChannels(), 0);
         this.sample = sample;
         setLoopRecord(false);
         
@@ -88,15 +88,16 @@ public class Recorder extends UGen {
      */
     @Override
     public void calculateBuffer() {    	
-    	if (position + bufferSize > sample.nFrames)
+    	long nFrames = sample.getNumFrames();
+    	if (position + bufferSize > sample.getNumFrames())
     	{
     		// handle loop around
-    		sample.putFrames((int)position, bufIn, 0, (int)(sample.nFrames-position));
+    		sample.putFrames((int)position, bufIn, 0, (int)(nFrames-position));
     		if(loopRecord) 
     		{
     			position = 0;
-    			int numframesleft = bufferSize - (int)(sample.nFrames-position);
-        		sample.putFrames((int)position, bufIn, (int)(sample.nFrames-position), numframesleft);
+    			int numframesleft = bufferSize - (int)(nFrames-position);
+        		sample.putFrames((int)position, bufIn, (int)(nFrames-position), numframesleft);
         		position += numframesleft;
     		}
         	else 

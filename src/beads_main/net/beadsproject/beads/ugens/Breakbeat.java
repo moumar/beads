@@ -30,7 +30,7 @@ public class Breakbeat extends Gain {
 	 * @param masterIntervalEnvelope a UGen which also controls a {@link Clock}. If the Breakbeat is triggered by the {@link Clock} then the Breakbeat and the {@link Clock} will be in synch.
 	 */
 	public Breakbeat(AudioContext context, Sample s, final float sampleInterval, UGen masterIntervalEnvelope) {
-		super(context, s.nChannels);
+		super(context, s.getNumChannels());
 		gsp = new GranularSamplePlayer(context, s);
 		UGen rateCalculator = new UGen(context, 1, 1) {
 			@Override
@@ -44,8 +44,8 @@ public class Breakbeat extends Gain {
 		gsp.setRateEnvelope(rateCalculator);
 		gsp.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
 		gsp.getLoopStartEnvelope().setValue(0f);
-		gsp.getLoopEndEnvelope().setValue(s.length);
-		System.out.println(s.length);
+		gsp.getLoopEndEnvelope().setValue(s.getLength());
+		System.out.println(s.getLength());
 		addInput(gsp);	
 		setGainEnvelope(new Envelope(context, 1f));
 	}

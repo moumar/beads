@@ -129,9 +129,9 @@ public class SamplePlayer extends UGen {
 	 * @param buffer the Sample.
 	 */
 	public SamplePlayer(AudioContext context, Sample buffer) {
-		this(context, buffer.nChannels);
+		this(context, buffer.getNumChannels());
 		setBuffer(buffer);
-		loopEndEnvelope.setValue(buffer.length);
+		loopEndEnvelope.setValue(buffer.getLength());
 	}
 
 	/**
@@ -141,7 +141,7 @@ public class SamplePlayer extends UGen {
 	 */
 	public void setBuffer(Sample buffer) {
 		this.buffer = buffer;
-		sampleRate = buffer.audioFormat.getSampleRate();
+		sampleRate = buffer.getSampleRate();
 		updatePositionIncrement();
 	}
 
@@ -158,7 +158,7 @@ public class SamplePlayer extends UGen {
 	 * Sets the playback position to the end of the Sample.
 	 */
 	public void setToEnd() {
-		position = buffer.length;
+		position = buffer.getLength();
 	}
 
 	/**
@@ -335,8 +335,8 @@ public class SamplePlayer extends UGen {
 	 * @param end the end value, as fraction of the Sample length.
 	 */
 	public void setLoopPointsFraction(float start, float end) {
-		loopStartEnvelope = new Static(context, start * (float)buffer.length);
-		loopEndEnvelope = new Static(context, end * (float)buffer.length);
+		loopStartEnvelope = new Static(context, start * (float)buffer.getLength());
+		loopEndEnvelope = new Static(context, end * (float)buffer.getLength());
 	}
 
 	/**
@@ -398,7 +398,7 @@ public class SamplePlayer extends UGen {
 					break;
 				}
 				for (int j = 0; j < outs; j++) {
-					bufOut[j][i] = frame[j % buffer.nChannels];
+					bufOut[j][i] = frame[j % buffer.getNumChannels()];
 				}
 				//update the position, loop state, direction
 				calculateNextPosition(i);
@@ -470,11 +470,11 @@ public class SamplePlayer extends UGen {
 		switch(loopType) {
 		case NO_LOOP_FORWARDS:
 			position += positionIncrement * rate;
-			if(position > buffer.length || position < 0) atEnd();
+			if(position > buffer.getLength() || position < 0) atEnd();
 			break;
 		case NO_LOOP_BACKWARDS:
 			position -= positionIncrement * rate;
-			if(position > buffer.length || position < 0) atEnd();
+			if(position > buffer.getLength() || position < 0) atEnd();
 			break;
 		case LOOP_FORWARDS:
 			position += positionIncrement * rate;

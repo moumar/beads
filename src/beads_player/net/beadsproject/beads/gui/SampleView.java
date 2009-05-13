@@ -90,14 +90,16 @@ public class SampleView implements InterfaceElement {
 	}
 
 	private void calculateOverview() {
+		float[] frame = new float[sample.getNumChannels()];
 		if(sample != null) {
-			double hop = (double)sample.buf[0].length / width;
+			double hop = (double)sample.getNumFrames() / width;
 			for(int i = 0; i < width; i++) {
 				int index = (int)(i * hop);
 				float average = 0;
-				int maxJ = Math.min(chunkSize, sample.buf[0].length - index);
+				int maxJ = Math.min(chunkSize, (int)sample.getNumFrames() - index);
 				for(int j = 0; j < maxJ; j++) {
-					average += Math.abs(sample.buf[0][index + j]);
+					sample.getFrame(index + j, frame);
+					average += Math.abs(frame[0]);
 				}
 				if(maxJ != 0) {
 					average /= maxJ;
@@ -172,11 +174,11 @@ public class SampleView implements InterfaceElement {
 	}
 	
 	public double pixelsToMS(int pixels) {
-		return (double)pixels / (double)width * sample.length;
+		return (double)pixels / (double)width * sample.getLength();
 	}
 
 	public int msToPixels(double ms) {
-		return (int)(ms * (double)width / sample.length);
+		return (int)(ms * (double)width / sample.getLength());
 	}
 	
 	public interface SampleViewListener {

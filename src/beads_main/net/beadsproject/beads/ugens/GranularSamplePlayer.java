@@ -108,10 +108,10 @@ public class GranularSamplePlayer extends SamplePlayer {
 	 * @param buffer the Sample played by the GranularSamplePlayer.
 	 */
 	public GranularSamplePlayer(AudioContext context, Sample buffer) {
-		this(context, buffer.nChannels);
+		this(context, buffer.getNumChannels());
 		setBuffer(buffer);
 		loopStartEnvelope = new Static(context, 0.0f);
-		loopEndEnvelope = new Static(context, buffer.length);
+		loopEndEnvelope = new Static(context, buffer.getLength());
 	}
 
 	/**
@@ -291,7 +291,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 					}
 					//add it to the current output frame
 					for (int j = 0; j < outs; j++) {
-						bufOut[j][i] += windowScale * frame[j % buffer.nChannels];
+						bufOut[j][i] += windowScale * frame[j % buffer.getNumChannels()];
 					}
 				}
 				//increment time and stuff

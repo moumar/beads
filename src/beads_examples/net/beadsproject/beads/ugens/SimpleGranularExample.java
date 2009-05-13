@@ -10,7 +10,7 @@ public class SimpleGranularExample {
     	System.out.println("Testing: " + GranularSamplePlayer.class);
     	AudioContext ac = new AudioContext();
     	Sample s1 = SampleManager.sample("audio/1234.aif");	
-    	System.out.println(s1.length);
+    	System.out.println(s1.getLength());
     	GranularSamplePlayer gsp = new GranularSamplePlayer(ac, s1); 
 
     	gsp.getRateEnvelope().setValue(0.5f);
