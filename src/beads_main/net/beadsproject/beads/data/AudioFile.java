@@ -89,6 +89,7 @@ public class AudioFile {
 				try{
 					encodedStream.reset();					
 					nTotalFramesRead = 0;
+					finished = false;
 				}
 				catch(IOException e)
 				{
@@ -225,7 +226,7 @@ public class AudioFile {
 
 		numBytes = decodedFormat.getSampleSizeInBits()/8;
 		nChannels = decodedFormat.getChannels();
-
+		finished = false;
 		nTotalFramesRead = 0;
 
 		if (nFrames==AudioSystem.NOT_SPECIFIED)

@@ -362,9 +362,12 @@ public class Sample implements Runnable {
 			
 			try {
 				byte[] regionData = getRegion(whichRegion);
-				// convert it to the correct format,
-				int startIndex = (frame % regionSize) * 2 * nChannels;
-				AudioUtils.byteToFloat(frameData,regionData,isBigEndian,startIndex,frameData.length);			
+				if (regionData!=null)
+				{
+					// convert it to the correct format,
+					int startIndex = (frame % regionSize) * 2 * nChannels;
+					AudioUtils.byteToFloat(frameData,regionData,isBigEndian,startIndex,frameData.length);
+				}
 			}
 			finally {
 				regionLocks[whichRegion].unlock();
@@ -417,7 +420,8 @@ public class Sample implements Runnable {
 				
 				try {
 					byte[] regionData = getRegion(whichregion);
-					AudioUtils.byteToFloat(floatdata, regionData, isBigEndian, regionindex*2*nChannels, floatdataindex*nChannels, numfloatstocopy*nChannels);
+					if (regionData!=null)
+						AudioUtils.byteToFloat(floatdata, regionData, isBigEndian, regionindex*2*nChannels, floatdataindex*nChannels, numfloatstocopy*nChannels);
 				}
 				finally {
 					regionLocks[whichregion].unlock();
