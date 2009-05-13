@@ -194,12 +194,13 @@ public class AudioFile {
 		
 		if (AudioSystem.isConversionSupported(decodedFormat, encodedFormat))
 		{
+			//TODO this might not be true - and sometimes we get stupid values for duration
 			isEncoded = true;
 			decodedStream = AudioSystem.getAudioInputStream(decodedFormat, encodedStream);
 			nFrames = AudioSystem.NOT_SPECIFIED;
-//			System.out.printf("frames: %d\n",(int)(decodedStream.getFrameLength()));
-//			System.out.printf("frames: %d\n",(int)(encodedStream.getFrameLength()));
-//			System.out.println((Long)audioFileFormat.properties().get("duration") / 60000000.);
+//			System.out.printf("frames (encoded): %d\n",(int)(encodedStream.getFrameLength()));
+//			System.out.printf("frames (decoded): %d\n",(int)(decodedStream.getFrameLength()));
+//			System.out.println("estimated duration " + (Long)audioFileFormat.properties().get("duration") / 60000000.);
 
 			lengthInBytes = audioFileFormat.getByteLength();
 			audioInfo = audioFileFormat.properties();

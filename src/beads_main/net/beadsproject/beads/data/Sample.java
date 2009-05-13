@@ -147,6 +147,7 @@ public class Sample implements Runnable {
 	 */
 	public void setBufferingRegime(Sample.BufferingRegime br)
 	{
+		//FIXME what if the sample has already been loaded? Can we switch regimes mid flow? 
 		bufferingRegime = br;
 	}
 

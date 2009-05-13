@@ -54,6 +54,6 @@ public class MashupExample {
 	
 	public static void main(String[] args) {
 		//use a folder full of audio
-		new MashupExample("/Users/ollie/Music/iTunes/iTunes Music");
+		new MashupExample("/Users/ollie/Music/iTunes/iTunes Music/Unknown Artist/Unknown Album");
 	}
 }
