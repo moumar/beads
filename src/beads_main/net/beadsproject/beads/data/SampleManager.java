@@ -22,6 +22,11 @@ import javax.sound.sampled.UnsupportedAudioFileException;
  */
 public class SampleManager {
 
+	/*
+	 * TODO perhaps SampleManager should run the thread that takes care of the data removal that is currently
+	 * running in Sample.
+	 */
+	
 	/** List of all Samples, indexed by name. */
 	private final static Map<String, Sample> samples = new TreeMap<String, Sample>();
 	
@@ -50,6 +55,17 @@ public class SampleManager {
 			}
 		}
 		return sample;
+	}
+
+	/**
+	 * Adds a sample by name to the sample list. This lets you load samples with a different buffering regime.
+	 * @param name
+	 * @param sample
+	 */
+	public static void sample(String name, Sample sample) {
+		if (samples.get(name) == null) {
+			samples.put(name, sample);
+		}
 	}
 	
 	/**

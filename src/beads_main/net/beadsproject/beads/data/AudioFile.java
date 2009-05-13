@@ -3,13 +3,11 @@ package net.beadsproject.beads.data;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
-
 import net.beadsproject.beads.core.AudioUtils;
 
 /**
@@ -199,13 +197,18 @@ public class AudioFile {
 			isEncoded = true;
 			decodedStream = AudioSystem.getAudioInputStream(decodedFormat, encodedStream);
 			nFrames = AudioSystem.NOT_SPECIFIED;
+//			System.out.printf("frames: %d\n",(int)(decodedStream.getFrameLength()));
+//			System.out.printf("frames: %d\n",(int)(encodedStream.getFrameLength()));
+//			System.out.println((Long)audioFileFormat.properties().get("duration") / 60000000.);
 
 			lengthInBytes = audioFileFormat.getByteLength();
 			audioInfo = audioFileFormat.properties();
 			length = getTimeLengthEstimation(audioInfo);
+//			System.out.println("audio info " + audioInfo);
+//			System.out.println("length " + length);
 			if (length<0)
 			{
-				System.out.println("Beads cannot determine the duration of the file - is it missing the duration tag?\n");
+				System.out.println("Beads cannot determine the duration of the file " + file.getAbsolutePath() + " - is it missing the duration tag?\n");
 				System.exit(1);
 			}
 			else
@@ -443,7 +446,13 @@ public class AudioFile {
             }
             if (properties.containsKey("duration"))
             {
-                milliseconds = (int) (((Long) properties.get("duration")).longValue()) / 1000;
+            	//TODO Ben - just wondering why divide by 1000, is this duration nanoseconds?
+            	//something is wrong... numbers generated are too large to be length in milliseconds
+            	//perhaps duration is not of type long?
+                milliseconds = (((Long) properties.get("duration")).longValue()) / 1000;
+//            	System.out.println("duration (string) " + properties.get("duration"));
+//            	System.out.println("duration (long)   " + ((Long)properties.get("duration")).longValue());
+//            	System.out.println("milliseconds      " + milliseconds);
             }
             else
             {

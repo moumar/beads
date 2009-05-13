@@ -5,14 +5,10 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.State;
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -41,12 +37,14 @@ public class Sample implements Runnable {
 		TOTAL
 	};
 	
-	public BufferingRegime bufferingRegime = BufferingRegime.TOTAL;
+	private BufferingRegime bufferingRegime;
 	
 	/** Store the sample data with native bit-depth. 
 	 * Storing in native bit-depth reduces memory load, but increases cpu-load. 
 	 */ 
 	//public boolean storeInNativeBitDepth = true;	
+	
+	private boolean verbose;
 	
 	private AudioFile audioFile;
 
@@ -86,7 +84,7 @@ public class Sample implements Runnable {
 	
 	// REGION DATA	
 	private int numberOfRegions; // total number of regions
-	public int numberOfRegionsLoaded; // number of loaded regions
+	private int numberOfRegionsLoaded; // number of loaded regions
 	private byte[][] regions; // the actual data
 	
 	private long[] regionAge; // the age of each region (in ms)
@@ -109,14 +107,13 @@ public class Sample implements Runnable {
      * @param totalFrames the number of sample frames.
      */
     public Sample(AudioFormat audioFormat, long totalFrames) {
-        this.audioFormat = audioFormat;
+        this();
+    	this.audioFormat = audioFormat;
         nChannels = audioFormat.getChannels();
         nFrames = totalFrames;
-        bufferingRegime = BufferingRegime.TOTAL;
         sampleData = new byte[2*nChannels*(int)totalFrames]; //16-bit
         Arrays.fill(sampleData,(byte)0);
         length = totalFrames / audioFormat.getSampleRate() * 1000f;
-        isBigEndian = true;
     }
 	
     /**
@@ -125,7 +122,9 @@ public class Sample implements Runnable {
 	 */
 	public Sample()
 	{
-		
+        bufferingRegime = BufferingRegime.TOTAL;
+        isBigEndian = true;
+        verbose = false;
 	}
 	
 	/**
@@ -279,7 +278,7 @@ public class Sample implements Runnable {
 				maxRegionsLoadedAtOnce = (int)Math.ceil(1.0*t_bufferMax/regionSizeInBytes);
 			*/
 			
-			System.out.printf("regionsize: %d frames,lookahead: %d regions ,lookback: %d regions, memory: %d ms\n",regionSize,lookahead,lookback,memory);
+			if(verbose) System.out.printf("regionsize: %d frames,lookahead: %d regions ,lookback: %d regions, memory: %d ms\n",regionSize,lookahead,lookback,memory);
 			
 			// the last region may contain 0 to (regionSize-1) samples
 			
@@ -290,7 +289,7 @@ public class Sample implements Runnable {
 			Arrays.fill(regions,null);
 			Arrays.fill(regionAge,0);
 						
-			System.out.printf("Timed Sample has %d regions of %d bytes each.\n",numberOfRegions,regionSizeInBytes);
+			if(verbose) System.out.printf("Timed Sample has %d regions of %d bytes each.\n",numberOfRegions,regionSizeInBytes);
 						
 			// initialise region thread stuff
 			regionQueue = new ConcurrentLinkedQueue<Integer>();
@@ -300,6 +299,7 @@ public class Sample implements Runnable {
 			{
 				regionLocks[j] = new ReentrantLock();
 			}
+			//TODO might want to actually switch thread on and off
 			regionThread = new Thread(this);
 			regionThread.setDaemon(true);
 			
@@ -940,6 +940,8 @@ public class Sample implements Runnable {
 		return audioFormat.getSampleRate();
 	}
     
-    
+    public int getNumberOfRegionsLoaded() {
+    	return numberOfRegionsLoaded;
+    }
     
 }
