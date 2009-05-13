@@ -151,16 +151,24 @@ public class Sample implements Runnable {
 		bufferingRegime = br;
 	}
 
-	//set how many milliseconds from last loaded point to look ahead
-	public void setLookAhead(int lookahead) 
+	/**
+	 * Set how many milliseconds from last loaded point to look ahead.
+	 * 
+	 * @param lookahead time to look ahead in ms.
+	 */
+	public void setLookAhead(float lookahead) 
 	{
-		this.t_lookahead = lookahead;
+		this.t_lookahead = (int)lookahead;
 	}
 
-	//set how many milliseconds  from last loaded  point to look back
-	public void setLookBack(int lookback) 
+	/**
+	 * Set how many milliseconds from last loaded point to look backwards.
+	 * 
+	 * @param lookback time to look backwards in ms.
+	 */
+	public void setLookBack(float lookback) 
 	{
-		this.t_lookback = lookback;
+		this.t_lookback = (int)lookback;
 	}
 
 	/**
@@ -170,9 +178,9 @@ public class Sample implements Runnable {
 	 * 
 	 * @param ms Duration in milliseconds that unaccessed regions remain loaded.  
 	 */
-	public void setMemory(int ms)
+	public void setMemory(float ms)
 	{
-		this.t_memory = ms;
+		this.t_memory = (int)ms;
 	}
 
 	/**
