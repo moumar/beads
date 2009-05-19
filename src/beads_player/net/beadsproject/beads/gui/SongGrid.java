@@ -254,4 +254,8 @@ public class SongGrid extends BeadsPanel {
 		player.setCurrentGroup(currentGroup);
 	}
 
+	public void setCurrentGroup(int i) {
+		player.setCurrentGroup(groups.get(i));
+	}
+
 }

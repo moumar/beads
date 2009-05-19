@@ -20,6 +20,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+import net.beadsproject.beads.data.SampleManager;
 import net.beadsproject.beads.play.InterfaceElement;
 
 
@@ -215,17 +216,17 @@ public class Chooser implements InterfaceElement {
 			component.repaint();
 		}
 	}
-
-	public static void main(String[] args) {
-		Chooser c = new Chooser("test");
-		JFrame f = new JFrame();
-		f.add(c.getComponent());
-		c.elements.add("Hello");
-		c.elements.add("Hffff");
-		c.elements.add("xx");
-		c.elements.add("xxfff");
-		f.pack();
-		f.setVisible(true);
+	
+	public static Chooser sampleGroupChooser() {
+		return new Chooser("group") {
+			public void refreshList() {
+				clear();
+				for(String s : SampleManager.groups()) {
+					add(s);
+				}
+				repaint();
+			}
+		};
 	}
 
 }

@@ -4,7 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.play.Environment;
 import net.beadsproject.beads.play.Player;
@@ -86,6 +85,10 @@ public class BeadsGui {
 	public synchronized void addSongGroup(SongGroup sg) {
 		songGrid.addSongGroup(sg);
 		repack();
+	}
+	
+	public void setCurrentGroup(int i) {
+		songGrid.setCurrentGroup(i);
 	}
 
 	public synchronized void addSongPart(SongPart sp) {
