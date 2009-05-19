@@ -38,6 +38,8 @@ public class Sample implements Runnable {
 	};
 	
 	private BufferingRegime bufferingRegime;
+ 
+	
 	
 	/** Store the sample data with native bit-depth. 
 	 * Storing in native bit-depth reduces memory load, but increases cpu-load. 
@@ -94,6 +96,13 @@ public class Sample implements Runnable {
 	private ConcurrentLinkedQueue<Integer> regionQueue; // a queue of regions to be loaded
 	private Thread regionThread; // the thread that loads regions in the background
 	private Lock[] regionLocks; // to support safe deletion/writing of regions
+	
+	public enum LoadingRegime {
+		NEAREST,
+		ORDERED
+	};
+	
+	private LoadingRegime loadingRegime = LoadingRegime.NEAREST;
 	
 	// this parameter is only used if regime==TOTAL
 	private byte[] sampleData;
@@ -206,6 +215,24 @@ public class Sample implements Runnable {
 	public void setRegionSize(float ms)
 	{
 		this.t_regionSize = ms;
+	}
+	
+	/**
+	 * When a region is loaded, nearby regions are put on a queue to be 
+	 * loaded also. The loading regime affects the order in which the nearby 
+	 * regions (defined by lookback and lookahead) are loaded.
+	 * 
+	 * NEAREST (the default) will load regions nearest to the region first.
+	 * ORDERED will load the regions from lowest to highest.
+	 * 
+	 * NEAREST makes sense if you are accessing the near regions first, e.g., playing a sample backwards or forwards.
+	 * ORDERED makes sense if you are accessing random nearby regions. Loading regions in order is generally quicker.
+	 * 
+	 * @param lr The loading regime to use.
+	 */
+	public void setLoadingRegime(LoadingRegime lr)
+	{
+		this.loadingRegime = lr;
 	}
 
 	/**
@@ -378,6 +405,13 @@ public class Sample implements Runnable {
 					int startIndex = (frame % regionSize) * 2 * nChannels;
 					AudioUtils.byteToFloat(frameData,regionData,isBigEndian,startIndex,frameData.length);
 				}
+				else
+				{
+					System.err.println("Sample.java:409 no region data!");
+					//System.exit(1);
+				}
+					
+					
 			}
 			finally {
 				regionLocks[whichRegion].unlock();
@@ -456,13 +490,45 @@ public class Sample implements Runnable {
 		// first determine whether the region is valid
 		if (!isRegionAvailable(r))
 		{
+			//System.out.println("REGION NOT THERE!");
 			loadRegion(r);
 		}
-		// then queue some regions, in the appropriate order
-		for(int i=Math.max(0,r-lookback);i<Math.min(r+lookahead,numberOfRegions);i++)
+		
+		if (loadingRegime==LoadingRegime.ORDERED)
 		{
-			if (i!=r) queueRegionForLoading(i);
+			// queue the regions from back to front
+			for(int i=Math.max(0,r-lookback);i<Math.min(r+lookahead,numberOfRegions);i++)
+			{
+				if (i!=r) queueRegionForLoading(i);
+			}
 		}
+		else if (loadingRegime==LoadingRegime.NEAREST)
+		{
+			// queue the regions from nearest to furthest, back to front...
+			int br = Math.min(r,lookback); // number of back regions
+			int fr = Math.min(lookahead,numberOfRegions-1-r); // number of ahead regions			
+			
+			// have two pointers, one going backwards the other going forwards			
+			int bp = 1;
+			int fp = 1;
+			boolean backwards = (bp<=br); // start backwards (if there are backward regions)			
+			while(bp<=br || fp<=fr)
+			{
+				if (backwards)
+				{
+					queueRegionForLoading(r-bp);					
+					bp++;
+					if (fp<=fr) backwards = false;
+				}
+				else // if forwards
+				{
+					queueRegionForLoading(r+fp);
+					fp++;
+					if (bp<=br) backwards = true;
+				}				
+			}
+		}
+		
 		// touch the region, make it new
 		synchronized (regionAge)
 		{	regionAge[r] = 0; }

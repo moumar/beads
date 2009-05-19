@@ -16,6 +16,11 @@ import net.beadsproject.beads.core.AudioUtils;
  * A sample can be made to wrap an AudioFile and provide intelligent buffered access to the data.  
  * TODO: Intelligently approximate the length of the audio stream..?
  * 
+ * NOTE: At the moment certain .wav files will be incorrectly loaded. 
+ * This is due to the mp3 spi recognizing them, incorrectly, as mp3s.
+ * There is no obvious way around this problem, besides reordering the 
+ * way the spi's are loaded - which may not even be possible.
+ * 
  * @author ben
  */
 public class AudioFile {
@@ -23,6 +28,7 @@ public class AudioFile {
 	public AudioFileFormat audioFileFormat;
 	/** The number of channels. */
 	public int nChannels;
+	
 	/** The total number of frames.
 	 *  If it equals AudioSystem.NOT_SPECIFIED then the length is unknown. 
 	 **/
@@ -38,18 +44,25 @@ public class AudioFile {
 	private long lengthInBytes; // length of file in bytes
 	private AudioFormat encodedFormat;
 	private AudioFormat decodedFormat;
-	private AudioInputStream encodedStream = null;
-	private AudioInputStream decodedStream = null;	
+	private AudioInputStream encodedStream;
+	private AudioInputStream decodedStream;	
 	private int numBytes = 2; // number of bytes per frame per channel (e.g., numBytes=2 for a 16-bit audio file)	
 	private boolean isEncoded = false; // is the audio file encoded 
 	private int bufferSize;
 	
+	/** Advanced
+	 * 
+	 * Trace the open, closing, and resetting of this audio file. Useful to debug and tune the parameters of AudioFile and Sample. 
+	 * */ 
+	public boolean trace = false;
+	
 	/**
-	 * Load an audio file from disk. The audiofile needs to be open()'ed before it's data can be read.
+	 * Load an audio file from disk. 
+	 * The audiofile needs to be open()'ed before it's data can be read.
 	 * Note: AudioFile provides low-level access to audio files -- If you just want to access the data of a sound file use a Sample.
 	 * @see Sample 
 	 * 
-	 * @param filename
+	 * @param filename The name of the file to open.
 	 *
 	 * @throws IOException If the file cannot be found or opened.  
 	 * @throws UnsupportedAudioFileException If the file is of an unsupported audio type.
@@ -74,31 +87,40 @@ public class AudioFile {
 		nFrames = audioFileFormat.getFrameLength();
 		this.bufferSize = bufferSize;
 		nTotalFramesRead = 0;
+		encodedStream = null;
+		decodedStream = null;	
 	}
 
 	/**
-	 * Reset the audio input stream. For some audio formats, this may involve re-opening the associated file.
+	 * Reset the audio input stream. 
+	 * 
+	 * For some audio formats, this may involve re-opening the associated file.
 	 */
 	public void reset()
 	{
+		if (trace) System.err.printf("AudioFile %s reset\n",file.getName());
+		
 		try{
 			if (encodedStream.markSupported())		
-			{
+			{		
 				try{
-					encodedStream.reset();					
+					encodedStream.reset();
+					if (finished)
+						reopen();
 					nTotalFramesRead = 0;
-					finished = false;
+					finished = false;					
 				}
 				catch(IOException e)
-				{
+				{	
+					e.printStackTrace();
 					close();
 					open();
-				}			
+				}		
 			}
 			else
 			{
 				close();			
-				open();
+				reopen();
 			}
 		}
 		catch(Exception e)
@@ -111,13 +133,16 @@ public class AudioFile {
 	 * Skips a number of frames.
 	 * Note: this function skips frames, not bytes.
 	 * Doesn't work for vbr!
+	 * 
+	 * Known issue, MP3 seeking is not precise.
+	 * TODO: Fix this issue.
 	 *
-	 * @param frames
+	 * @param frames Number of frames to skip
 	 */
 	public void skip(long frames)
 	{
 		if (frames<=0) return;
-		//System.out.printf("skip %d frames\n",frames);
+		if (trace) System.err.printf("AudioFile skip %d frames\n",frames);
 		
 		try {
 			if (isEncoded && nFrames!=AudioSystem.NOT_SPECIFIED)
@@ -126,8 +151,12 @@ public class AudioFile {
 				{
 					System.out.println("Beads does not currently support seeking on variable bit rate mp3s.");
 					System.exit(1);					
-				}
-							
+				}							
+				
+				/* test method, _read_ n frames */
+				//byte[] foo = new byte[(int) (frames*nChannels*2)];
+				//read(foo);				
+				
 				// skip by a proportion of the file
 				// this technique is used in jlGui
 				double rate = 1.0*frames/nFrames;
@@ -139,7 +168,7 @@ public class AudioFile {
                     totalSkipped += skipped;
                     if (skipped == 0) break;
                 }             
-                //System.out.printf("skip want: %db, got %db\n",skipBytes,totalSkipped);
+                //System.out.printf("skip want: %db, got %db\n",skipBytes,totalSkipped);                
 			}
 			else
 			{
@@ -180,6 +209,11 @@ public class AudioFile {
 	public void open() throws UnsupportedAudioFileException, IOException
 	{
 		// TODO: Implement reset() to takes some shortcuts - rather than executing all of the logic below
+		
+		if (trace) System.err.printf("AudioFile %s open\n",file.getName());
+		finished = false;
+		nTotalFramesRead = 0;
+		
 		if (file.exists()) encodedStream = AudioSystem.getAudioInputStream(file);
 		encodedFormat = encodedStream.getFormat();
 		decodedFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
@@ -230,8 +264,7 @@ public class AudioFile {
 
 		numBytes = decodedFormat.getSampleSizeInBits()/8;
 		nChannels = decodedFormat.getChannels();
-		finished = false;
-		nTotalFramesRead = 0;
+		
 
 		if (nFrames==AudioSystem.NOT_SPECIFIED)
 		{
@@ -245,28 +278,60 @@ public class AudioFile {
 			encodedStream.mark(Math.min(bufferSize,(int) file.length()));
 	}
 	
+	/// re-opens a file, resetting the file pointers, etc..
+	/// note that this will not recalculate length, etc. 
+	private void reopen() throws UnsupportedAudioFileException, IOException
+	{
+		if (trace) System.err.printf("AudioFile %s reopen\n",file.getName());
+		finished = false;
+		nTotalFramesRead = 0;
+		
+		if (file.exists()) encodedStream = AudioSystem.getAudioInputStream(file);
+		if (isEncoded)		
+			decodedStream = AudioSystem.getAudioInputStream(decodedFormat, encodedStream);
+		else
+			decodedStream = encodedStream;
+
+		if (encodedStream.markSupported())
+			encodedStream.mark(Math.min(bufferSize,(int) file.length()));
+	}	
+	
 	/*
 	 * Returns some useful information about this audiofile.
 	 */
 	public String info()
 	{
-		String str = "Filename: " + file.getName() + "\n";
-		str += "Number of channels: " + nChannels + "\n";
-		str += "Number of frames: " + nFrames + "\n";
-		str += "Number of bytes per frame per channel: " + numBytes + "\n";
-		str += "Is encoded? " + isEncoded + "\n";
-		str += "Audio File Format\n" + audioFileFormat.toString() + "\n";
-		if (isEncoded)
+		if (!isOpen())
 		{
-			str += "Audio Format (Encoded)\n" + encodedFormat.toString();
-			str += "\nAudio Format (Decoded)\n" + decodedFormat.toString();
+			String str = "Filename: " + file.getName() + "\n";
+			str += "File not open.\n";
+			return str;
 		}
 		else
-		{
-			str += "Audio Format\n" + decodedFormat.toString();
+		{		
+			String str = "Filename: " + file.getName() + "\n";
+			str += "Number of channels: " + nChannels + "\n";
+			str += "Number of frames: " + nFrames + "\n";
+			// str += "Number of bytes per frame per channel: " + numBytes + "\n";
+			// str += "Is encoded? " + isEncoded + "\n";
+			str += "Audio File Format\n" + audioFileFormat.toString() + "\n";
+			if (isEncoded)
+			{
+				str += "Audio Format (Encoded)\n" + encodedFormat.toString();
+				str += "\nAudio Format (Decoded)\n" + decodedFormat.toString();
+			}
+			else
+			{
+				str += "Audio Format\n" + decodedFormat.toString();
+			}			
+			str += "\nAudio Properties {\n";
+			for (String key: audioInfo.keySet())
+			{			
+				str += "\t" + key + ": " + audioInfo.get(key) + "\n";
+			}
+			str += "}\n";
+			return str;		
 		}
-		str += "\nAudio Properties\n" + audioInfo + "\n";
-		return str;		
 	}
 
 	/**
@@ -276,6 +341,8 @@ public class AudioFile {
 	 */
 	public void close() throws IOException
 	{
+		if (trace) System.err.printf("AudioFile %s close\n",file.getName());
+		
 		if (isEncoded)
 			decodedStream.close();
 		encodedStream.close();
@@ -329,7 +396,11 @@ public class AudioFile {
 	 * @return The number of bytes read. A value of -1 indicates the file has no data left.
 	 */
 	public int read(byte[] buffer) {
-		if (finished) return -1;
+		if (finished) 
+		{
+			if (trace) System.out.println("AudioFile finished!");
+			return -1;
+		}
 
 		// read the next bufferSize frames from the input stream		
 		int actualBytesRead = -1;
@@ -341,6 +412,7 @@ public class AudioFile {
 				actualBytesRead = decodedStream.read(buffer,totalBytesRead,buffer.length-totalBytesRead);
 				if (actualBytesRead == -1)
 				{
+					System.err.print("!");
 					finished = true;
 					if (totalBytesRead>0)
 						actualBytesRead = totalBytesRead;
@@ -388,7 +460,6 @@ public class AudioFile {
 		return actualBytesRead;
 	}
 	*/
-	
 
 	/**
 	 * Read decoded audio data in a non-interleaved, Beads-friendly format.

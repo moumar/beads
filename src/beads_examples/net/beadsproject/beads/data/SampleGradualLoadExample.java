@@ -7,17 +7,18 @@ import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.SamplePlayer;
 
-
 public class SampleGradualLoadExample {
 
 	public static void main(String[] args) throws IOException, UnsupportedAudioFileException {
 		
 		//find a long file to play back
-//		String pathToFile = "/Users/ollie/Music/Audio/Igor/Petrouchka.aif";
-		String pathToFile = "/Users/ollie/Programming/Eclipse/BeadsTests/audio/gammaBrosTheme.mp3";
+		//String pathToFile = "/Users/ollie/Music/Audio/Igor/Petrouchka.aif";
+		//String pathToFile = "/Users/ollie/Programming/Eclipse/BeadsTests/audio/gammaBrosTheme.mp3";
+		//String pathToFile = "../BeadsTests/audio/gammaBrosTheme.mp3.aif";
+		String pathToFile = "../BeadsTests/audio/gammaBrosTheme.mp3";
 		
-		//FIXME problem with mp3s, 
 		//example settings: TIMED, regionsize 100, lookahead 2000, lookback 2000, memory 5000.
+		//BP: Fixed a few problems, added new loading regime, seems to work okay now...
 		
 		AudioContext ac = new AudioContext();
 		final Sample samp = new Sample();
@@ -25,15 +26,17 @@ public class SampleGradualLoadExample {
 		//-------------------------
 		//Sample buffering settings
 		samp.setBufferingRegime(Sample.BufferingRegime.TIMED);
-//		samp.setBufferingRegime(Sample.BufferingRegime.TOTAL);
+		//samp.setBufferingRegime(Sample.BufferingRegime.TOTAL);
 		//only apply to the timed regime
 		samp.setRegionSize(100);
 		samp.setLookAhead(2000);
 		samp.setLookBack(2000);
 		samp.setMemory(5000);
 		//-------------------------
-
-		samp.setFile(pathToFile);
+		AudioFile af = new AudioFile(pathToFile);
+		af.trace = true; // trace access ops
+		samp.setFile(af);				
+		
 		final SamplePlayer play = new SamplePlayer(ac, samp);
 		play.setKillOnEnd(false);
 		ac.out.addInput(play);
