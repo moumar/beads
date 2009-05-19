@@ -12,11 +12,13 @@ public class MashupExample {
 	private Hashtable<String, Sample> samples;
 	private Hashtable<String, FeatureTrack> features;
 	private int maxSamples;
+	private long previousTimeMS;
 	
 	public MashupExample(String dir) {
 		maxSamples = 200;
 		samples = new Hashtable<String, Sample>();
 		features = new Hashtable<String, FeatureTrack>();
+		previousTimeMS = System.currentTimeMillis();
 		loadSamples(new File(dir));
 		System.out.println("samples loaded: " + samples.size());
 	}
@@ -38,7 +40,10 @@ public class MashupExample {
 					s.setMemory(5000);
 					s.setFile(f.getAbsolutePath());
 					samples.put(f.getAbsolutePath(), s);
-					System.out.println("Loaded " + f.getAbsolutePath());
+					long timeMS = System.currentTimeMillis();
+					float timeTakenMS = (timeMS - previousTimeMS);
+					previousTimeMS = timeMS;
+					System.out.println("Loaded " + f.getAbsolutePath() + " in " + timeTakenMS + "ms");
 				} catch(Exception e) {
 					System.out.println("Didn't load " + f.getAbsolutePath());
 //					e.printStackTrace();

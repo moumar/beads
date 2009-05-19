@@ -90,25 +90,27 @@ public class SampleView implements InterfaceElement {
 	}
 
 	private void calculateOverview() {
-		float[] frame = new float[sample.getNumChannels()];
 		if(sample != null) {
-			double hop = (double)sample.getNumFrames() / width;
-			for(int i = 0; i < width; i++) {
-				int index = (int)(i * hop);
-				float average = 0;
-				int maxJ = Math.min(chunkSize, (int)sample.getNumFrames() - index);
-				for(int j = 0; j < maxJ; j++) {
-					sample.getFrame(index + j, frame);
-					average += Math.abs(frame[0]);
+			float[] frame = new float[sample.getNumChannels()];
+			if(sample != null) {
+				double hop = (double)sample.getNumFrames() / width;
+				for(int i = 0; i < width; i++) {
+					int index = (int)(i * hop);
+					float average = 0;
+					int maxJ = Math.min(chunkSize, (int)sample.getNumFrames() - index);
+					for(int j = 0; j < maxJ; j++) {
+						sample.getFrame(index + j, frame);
+						average += Math.abs(frame[0]);
+					}
+					if(maxJ != 0) {
+						average /= maxJ;
+					}
+					view[i] = (int)((average + 1f) * (float)height / 2f);
 				}
-				if(maxJ != 0) {
-					average /= maxJ;
-				}
-				view[i] = (int)((average + 1f) * (float)height / 2f);
 			}
-		}
-		if(component != null) {
-			component.getTopLevelAncestor().repaint();
+			if(component != null) {
+				component.getTopLevelAncestor().repaint();
+			}
 		}
 	}
 

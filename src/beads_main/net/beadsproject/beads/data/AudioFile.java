@@ -198,9 +198,9 @@ public class AudioFile {
 			isEncoded = true;
 			decodedStream = AudioSystem.getAudioInputStream(decodedFormat, encodedStream);
 			nFrames = AudioSystem.NOT_SPECIFIED;
-//			System.out.printf("frames (encoded): %d\n",(int)(encodedStream.getFrameLength()));
-//			System.out.printf("frames (decoded): %d\n",(int)(decodedStream.getFrameLength()));
-//			System.out.println("estimated duration " + (Long)audioFileFormat.properties().get("duration") / 60000000.);
+			System.out.printf("frames (encoded): %d\n",(int)(encodedStream.getFrameLength()));
+			System.out.printf("frames (decoded): %d\n",(int)(decodedStream.getFrameLength()));
+			System.out.println("estimated duration " + (Long)audioFileFormat.properties().get("duration") / 60000000.);
 
 			lengthInBytes = audioFileFormat.getByteLength();
 			audioInfo = audioFileFormat.properties();
