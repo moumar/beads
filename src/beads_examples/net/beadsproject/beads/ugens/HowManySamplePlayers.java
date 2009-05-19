@@ -14,7 +14,7 @@ public class HowManySamplePlayers {
 	public static void main(String[] args) {
 		final AudioContext ac = new AudioContext();
 //		final AudioContext ac = new AudioContext(BUFFER_SIZE, IO_BUFFER_SIZE * 4);
-		ac.chooseMixerCommandLine();
+//		ac.chooseMixerCommandLine();
 		Sample s = SampleManager.sample("audio/1234.aif");
 		final Gain g = new Gain(ac, 2, 0.5f / NUM_OSCS);
 		for(int i = 0; i < NUM_OSCS; i++) {

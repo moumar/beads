@@ -45,7 +45,7 @@ public class Power extends FeatureExtractor<Float, float[]>  {
 	public void process(TimeStamp startTime, TimeStamp endTime, float[] audioData) {
 		features = 0.0f;
 		for(int i = 0; i < audioData.length; i++) {
-			features += audioData[i] * audioData[i];
+			features = features + audioData[i] * audioData[i];
 		}
 		features = (float)Math.sqrt(features / (float)audioData.length);
 	}
