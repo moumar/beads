@@ -37,7 +37,7 @@ public class PeakDetector extends FeatureExtractor<Float, Float> implements Segm
 
 	private float valueAtOnset = 0;
 	private float threshold = 0;
-	private float base_threshold = 0;
+	private float baseThreshold;
 
 	private float lastValues[];
 	private Buffer filter;
@@ -57,10 +57,13 @@ public class PeakDetector extends FeatureExtractor<Float, Float> implements Segm
 		segmentListeners = new ArrayList<SegmentListener>();
 		lastValues = new float[M];
 		filter = new MeanFilter().generateBuffer(M);
+		baseThreshold = 0.1f;
+		valueAtOnset = 0;
+		threshold = 0;
 	}
 
 	public void setThreshold(float thresh) {
-		base_threshold = thresh;
+		baseThreshold = thresh;
 	}
 
 	public void setAlpha(float alpha) {
@@ -140,7 +143,7 @@ public class PeakDetector extends FeatureExtractor<Float, Float> implements Segm
 					average += lastValues[i] * filter.buf[i];
 				}
 				average += input * filter.buf[M - 1];
-				if (lastValue > average + base_threshold) {
+				if (lastValue > average + baseThreshold) {
 					// All tests have passed, therefore we have detected a
 					// peak->thus an onset
 					valueAtOnset = lastValue;

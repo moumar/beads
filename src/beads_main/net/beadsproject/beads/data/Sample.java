@@ -135,6 +135,7 @@ public class Sample implements Runnable {
 	 */
 	public Sample(String filename) throws IOException, UnsupportedAudioFileException
 	{    	
+		this();
 		setFile(filename);
 	}
 

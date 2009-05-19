@@ -11,7 +11,7 @@ import net.beadsproject.beads.core.TimeStamp;
 /**
  * Frequency processes spectral data forwarded to it by a {@link PowerSpectrum} to determine the best estimate for the frequency of the current signal.
  */
-public class Frequency extends FeatureExtractor<float[], float[]> {
+public class Frequency extends FeatureExtractor<Float, float[]> {
 
 	/** The Constant FIRSTBAND. */
 	static final int FIRSTBAND = 3;
@@ -32,7 +32,7 @@ public class Frequency extends FeatureExtractor<float[], float[]> {
 	public Frequency(float sampleRate) {
 		bufferSize = -1;
 		this.sampleRate = sampleRate;
-		features = new float[1];
+		features = null;
 	}
 	
 	/* (non-Javadoc)
@@ -43,7 +43,7 @@ public class Frequency extends FeatureExtractor<float[], float[]> {
 			bufferSize = powerSpectrum.length;
 			bin2hz = sampleRate / (2 * bufferSize);
 		}
-		features = new float[1];
+		features = null;
 		// now pick best peak from linspec
 		double pmax = -1;
 		int maxbin = 0;
@@ -60,7 +60,7 @@ public class Frequency extends FeatureExtractor<float[], float[]> {
 		double yp = maxbin < powerSpectrum.length - 1 ? powerSpectrum[maxbin + 1] : powerSpectrum[maxbin];
 		double k = (yp + ym) / 2 - yz;
 		double x0 = (ym - yp) / (4 * k);
-		features[0] = (float)(bin2hz * (maxbin + x0));
+		features = (float)(bin2hz * (maxbin + x0));
 	}
 
 	/* (non-Javadoc)

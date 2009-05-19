@@ -32,7 +32,7 @@ public class SelfModifyingSampleExample {
 		final Frequency f = new Frequency(ac.getSampleRate()) {
 			public void process(TimeStamp startTime, TimeStamp endTime, float[] f) {
 				super.process(startTime, endTime, f);
-				System.out.println(getFeatures()[0]);
+				System.out.println(getFeatures());
 			}
 		};
 		
@@ -52,9 +52,9 @@ public class SelfModifyingSampleExample {
 		ac.out.addDependent(x);
 		x.addMessageListener(new Bead() {
 			public void messageReceived(Bead b) {
-				float features = f.getFeatures()[0];
+				float features = f.getFeatures();
 				if(Float.isNaN(features)) features = 10000f;
-				sp.getRateEnvelope().setValue(10000f / f.getFeatures()[0]);
+				sp.getRateEnvelope().setValue(10000f / f.getFeatures());
 			}
 		});
 	}

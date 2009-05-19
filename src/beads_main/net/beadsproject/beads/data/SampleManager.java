@@ -33,6 +33,8 @@ public class SampleManager {
 	/** List of Sample groups, indexed by group name. */
 	private final static Map<String, ArrayList<Sample>> groups = new TreeMap<String, ArrayList<Sample>>();
 
+	private static boolean verbose = true;
+	
 	/**
 	 * Returns a new Sample from the given filename. If the Sample has already
 	 * been loaded, it will not be loaded again, but will simply be retrieved
@@ -48,6 +50,7 @@ public class SampleManager {
 			try {
 				sample = new Sample(fn);
 				samples.put(fn, sample);
+				if(verbose) System.out.println("Loaded " + fn);
 			} catch (UnsupportedAudioFileException e) {
 				 e.printStackTrace();
 			} catch (IOException e) {
@@ -83,6 +86,7 @@ public class SampleManager {
 		if (sample == null) {
 			sample = new Sample(fn);
 			samples.put(ref, sample);
+			if(verbose) System.out.println("Loaded " + fn);
 		}
 		return sample;
 	}
@@ -270,4 +274,24 @@ public class SampleManager {
 	public static List<String> getSampleNameList() {
 		return new ArrayList<String>(samples.keySet());
 	}
+
+	/**
+	 * Determines if SampleManager is being verbose.
+	 * 
+	 * @return true if verbose.
+	 */
+	public static boolean isVerbose() {
+		return verbose;
+	}
+
+	/**
+	 * Tells SampleManager to produce verbose output.
+	 * 
+	 * @param verbose true for verbose output.
+	 */
+	public static void setVerbose(boolean verbose) {
+		SampleManager.verbose = verbose;
+	}
+	
+	
 }
