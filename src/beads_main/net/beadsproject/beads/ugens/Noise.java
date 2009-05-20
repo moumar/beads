@@ -3,9 +3,10 @@
  */
 package net.beadsproject.beads.ugens;
 
-import java.util.Random;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
+import net.beadsproject.beads.data.Buffer;
+import net.beadsproject.beads.data.buffers.NoiseBuffer;
 
 /**
  * Noise generates white noise.
@@ -14,8 +15,8 @@ import net.beadsproject.beads.core.UGen;
  */
 public class Noise extends UGen {
 
-	/** The random number generator used to generate the noise. */
-	private Random rng;
+	private Buffer noiseBuffer;
+	private int index;
 	
 	/**
 	 * Instantiates a new Noise.
@@ -24,7 +25,13 @@ public class Noise extends UGen {
 	 */
 	public Noise(AudioContext context) {
 		super(context, 1);
-		rng = new Random();
+		if(!Buffer.staticBufs.containsKey("noise")) {
+			noiseBuffer = new NoiseBuffer().generateBuffer(200000);
+        	Buffer.staticBufs.put("noise", noiseBuffer);
+    	} else {
+    		noiseBuffer = Buffer.staticBufs.get("noise");
+    	}
+		index = 0;
 	}
 
 	/* (non-Javadoc)
@@ -33,8 +40,18 @@ public class Noise extends UGen {
 	@Override
 	public void calculateBuffer() {
 		for(int i = 0; i < bufferSize; i++) {
-			bufOut[0][i] = rng.nextFloat();
+			bufOut[0][i] = noiseBuffer.getValueIndex(index);
+			index++;
+			if(index == noiseBuffer.buf.length) {
+				index = 0;
+			}
 		}
+	}
+	
+	public static void main(String[] args) {
+		AudioContext ac = new AudioContext();
+		ac.out.addInput(new Noise(ac));
+		ac.start();
 	}
 
 }

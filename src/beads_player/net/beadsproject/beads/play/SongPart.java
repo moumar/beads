@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import javax.swing.JComponent;
 import net.beadsproject.beads.events.PauseTrigger;
 import net.beadsproject.beads.gui.BeadsPanel;
+import net.beadsproject.beads.gui.LevelMeter;
 import net.beadsproject.beads.gui.Slider;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.Envelope;
@@ -49,6 +50,7 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 		interfaceElements = new ArrayList<InterfaceElement>();
 		pause(true);
 		state = 0;
+		interfaceElements.add(new LevelMeter(this));
 		controllableGain = new Gain(context, inouts);
 		Slider s = new Slider(context, "gain", 0f, 1f, 0f);
 		controllableGain.setGainEnvelope(s);

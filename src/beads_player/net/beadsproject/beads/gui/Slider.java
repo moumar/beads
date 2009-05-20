@@ -156,7 +156,7 @@ public class Slider extends Envelope implements InterfaceElement {
 	public void calculateBuffer() {
 		super.calculateBuffer();
 		value = bufOut[0][0];
-//		if(component != null) component.repaint();
+		if(component != null) component.repaint();
 	}
 	
 	/**
