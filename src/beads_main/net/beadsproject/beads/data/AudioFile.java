@@ -412,7 +412,7 @@ public class AudioFile {
 				actualBytesRead = decodedStream.read(buffer,totalBytesRead,buffer.length-totalBytesRead);
 				if (actualBytesRead == -1)
 				{
-					System.err.print("!");
+//					System.err.print("!");	//TODO 
 					finished = true;
 					if (totalBytesRead>0)
 						actualBytesRead = totalBytesRead;
