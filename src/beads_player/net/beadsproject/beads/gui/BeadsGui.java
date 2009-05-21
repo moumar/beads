@@ -96,18 +96,24 @@ public class BeadsGui {
 		((JFrame)songGrid.getTopLevelAncestor()).pack();
 	}
 	
-	public synchronized void addSongGroup(SongGroup sg) {
+	public void addSongGroup(SongGroup sg) {
 		songGrid.addSongGroup(sg);
-		repack();
+	}
+	
+	public void addSongGroup() {
+		songGrid.addSongGroup();
+	}
+	
+	public void addSongGroups(int numGroups) {
+		songGrid.addSongGroups(numGroups);
 	}
 	
 	public void setCurrentGroup(int i) {
 		songGrid.setCurrentGroup(i);
 	}
 
-	public synchronized void addSongPart(SongPart sp) {
+	public void addSongPart(SongPart sp) {
 		songGrid.addSongPart(sp);
-		repack();
 	}
 
 }

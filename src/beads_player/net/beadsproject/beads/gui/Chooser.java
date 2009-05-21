@@ -218,7 +218,7 @@ public class Chooser implements InterfaceElement {
 	}
 	
 	public static Chooser sampleGroupChooser() {
-		return new Chooser("group") {
+		Chooser c = new Chooser("group") {
 			public void refreshList() {
 				clear();
 				for(String s : SampleManager.groups()) {
@@ -227,6 +227,8 @@ public class Chooser implements InterfaceElement {
 				repaint();
 			}
 		};
+		c.refreshList();
+		return c;
 	}
 
 }

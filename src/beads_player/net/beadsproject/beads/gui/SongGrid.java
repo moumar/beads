@@ -87,7 +87,20 @@ public class SongGrid extends BeadsPanel {
 							m.show(partPanel, e.getX(), e.getY());
 						}
 					}
-				} 
+				} else {
+					if((e.getModifiers() & MouseEvent.CTRL_MASK) != 0) {
+						JPopupMenu m = new JPopupMenu();
+						//get list of possible song parts??
+						JMenuItem newGroupItem = new JMenuItem("new group");
+						newGroupItem.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent e) {
+								addSongGroup();
+							}
+						});
+						m.add(newGroupItem);
+						m.show(partPanel, e.getX(), e.getY());
+					}
+				}
 			}
 		});
 		add(partPanel);
@@ -197,6 +210,16 @@ public class SongGrid extends BeadsPanel {
 		environmentPanel.getSelectedPathway().add(sp);
 		sp.setClock(environmentPanel.getSelectedClock());
 		resize();
+	}
+	
+	public void addSongGroups(int numGroups) {
+		for(int i = 0; i < numGroups; i++) {
+			addSongGroup();
+		}
+	}
+	
+	public void addSongGroup() {
+		addSongGroup(new SongGroup("g" + (groups.size() + 1)));
 	}
 	
 	public void addSongGroup(SongGroup sg) {
