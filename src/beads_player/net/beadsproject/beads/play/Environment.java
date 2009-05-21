@@ -31,11 +31,11 @@ public class Environment {
 		rng = new Random();
 	}
 	
-	public static Environment loadEnvironment(String environmentFactoryClassName) throws Exception {
+	public static Environment loadEnvironment(String environmentFactoryClassName, AudioContext ac) throws Exception {
 		Class environmentFactoryClass = Class.forName(environmentFactoryClassName);
 		Object environmentFactoryInstance = environmentFactoryClass.getConstructor(null).newInstance();
-		Method initMethod = environmentFactoryClass.getMethod("createEnvironment", null);	
-		Environment env = (Environment)initMethod.invoke(environmentFactoryInstance, null);
+		Method initMethod = environmentFactoryClass.getMethod("createEnvironment", new Class[] {AudioContext.class});	
+		Environment env = (Environment)initMethod.invoke(environmentFactoryInstance, new Object[] {ac});
 		return env;
 	}
 	

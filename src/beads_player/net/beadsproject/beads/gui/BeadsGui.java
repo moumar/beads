@@ -2,8 +2,13 @@ package net.beadsproject.beads.gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 import javax.swing.JButton;
 import javax.swing.JFrame;
+
+import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.play.Environment;
 import net.beadsproject.beads.play.Player;
@@ -20,7 +25,8 @@ public class BeadsGui {
 	public BeadsGui() {
 		Environment env = null;
 		try {
-			env = Environment.loadEnvironment("com.olliebown.beads.play.DefaultEnvironmentFactory");
+			AudioContext ac = new AudioContext();
+			env = Environment.loadEnvironment("com.olliebown.beads.play.DefaultEnvironmentFactory", ac);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -53,7 +59,7 @@ public class BeadsGui {
 		songGrid = new SongGrid(p, environmentPanel);
 		songGrid.titledBorder("Song Parts");
 		environmentFrame.content.add(songGrid);
-		Clock clock = (Clock)env.elements.get("master clock");
+		final Clock clock = (Clock)env.elements.get("master clock");
 		Slider slider = new Slider(env.ac, "tempo", 5, 500, 175);
 		UGen tempoToInterval = new UGen(clock.getContext(), 1, 1) {
 			@Override
@@ -72,6 +78,14 @@ public class BeadsGui {
 		((Gain)env.ac.out).setGainEnvelope(slider);
 		ci.add(slider.getComponent());
 		ci.titledBorder("Master Controls");
+		TimeGraph tg = new TimeGraph(4);
+		clock.addMessageListener(tg);
+		tg.getComponent().addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				clock.reset();
+			}
+		});
+		ci.add(tg.getComponent());
 		environmentFrame.content.add(ci);
 		environmentFrame.setResizable(true);
 		environmentFrame.setVisible(true);

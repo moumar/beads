@@ -24,10 +24,12 @@ public class Player {
 		//However, it will be a problem if one were to change environments after initial startup.
 		e.pathways.get("master clock").add(new Bead() {
 			public void messageReceived(Bead message) {
-				if(nextGroup != null) {
-					System.out.println("tick");
-					if(((Clock)message).getCount() % nextGroup.getFlipQuantisation() == 0) {
-						doPlayGroupNow(nextGroup);
+				Clock c = (Clock)message;
+				if(c.isBeat()) {
+					if(nextGroup != null) {
+						if(c.getBeatCount() % nextGroup.getFlipQuantisation() == 0) {
+							doPlayGroupNow(nextGroup);
+						}
 					}
 				}
 			}
@@ -39,7 +41,6 @@ public class Player {
 			doPlayGroupNow(newGroup);
 		} else {
 			nextGroup = newGroup;
-			System.out.println("timed start");
 		}
 	}
 	
@@ -67,8 +68,10 @@ public class Player {
 	}
 
 	public void stop() {
-		endPlayingList(currentGroup.parts());
-		currentGroup = null;
+		if(currentGroup != null) {
+			endPlayingList(currentGroup.parts());
+			currentGroup = null;
+		}
 	}
 	
 	private void beginPlayingList(List<SongPart> list) {
@@ -95,7 +98,8 @@ public class Player {
 	}
 	
 	public SongGroup getCurrentGroup() {
-		return currentGroup;
+		if(nextGroup != null) return nextGroup;
+		else return currentGroup;
 	}
 
 	public void setCurrentGroup(SongGroup currentGroup) {

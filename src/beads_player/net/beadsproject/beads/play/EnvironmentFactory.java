@@ -4,6 +4,6 @@ import net.beadsproject.beads.core.AudioContext;
 
 public abstract class EnvironmentFactory {
 	
-	public abstract Environment createEnvironment();
+	public abstract Environment createEnvironment(AudioContext ac);
 	
 }

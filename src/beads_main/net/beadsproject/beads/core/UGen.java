@@ -333,6 +333,27 @@ public abstract class UGen extends Bead {
 	}
 
 	/**
+	 * Checks if this UGen has the given UGen plugged into it.
+	 * @param ugen the UGen to test.
+	 * @return true if the given UGen is plugged into this UGen.
+	 */
+	public boolean containsInput(UGen ugen) {
+		if(noInputs) {
+			return false;
+		} else {
+			for (int i = 0; i < inputs.length; i++) {
+				ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputs[i].clone();
+				for (BufferPointer bp : bplist) {
+					if (ugen.equals(bp.ugen)) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+	}
+	
+	/**
 	 * Disconnects the specified UGen from this UGen at all inputs.
 	 * 
 	 * @param sourceUGen the UGen to disconnect.

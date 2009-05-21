@@ -8,9 +8,9 @@ import net.beadsproject.beads.ugens.RTInput;
 
 public class DefaultEnvironmentFactory extends EnvironmentFactory {
 
-	public Environment createEnvironment() {
+	public Environment createEnvironment(AudioContext ac) {
 		Environment e = new Environment();
-		e.ac = new AudioContext();
+		e.ac = ac;
 		//set up clock as a pathway
 		Clock c = new Clock(e.ac, 500f);
 		c.setName("master clock");

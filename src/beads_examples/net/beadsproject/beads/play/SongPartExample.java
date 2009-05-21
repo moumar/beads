@@ -21,7 +21,8 @@ public class SongPartExample {
 	
 	public static void main(String[] args) {
 		//set it up
-		Environment e = new DefaultEnvironmentFactory().createEnvironment();
+		AudioContext ac = new AudioContext();
+		Environment e = new DefaultEnvironmentFactory().createEnvironment(ac);
 		SongPart sp = new MySongPart("track1", e);
 		e.ac.out.addInput(sp);
 		e.pathways.get("master clock").add(sp);

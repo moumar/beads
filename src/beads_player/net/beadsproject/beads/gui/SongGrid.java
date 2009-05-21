@@ -64,27 +64,30 @@ public class SongGrid extends BeadsPanel {
 		};
 		partPanel.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mousePressed(MouseEvent e) {
-				if((e.getModifiers() & MouseEvent.CTRL_MASK) != 0) {
-					// TODO
-				}
-			}
-			@Override
 			public void mouseClicked(MouseEvent e) {
-				if(e.getClickCount() > 1) {
+				if(e.getY() > groupTextHeight) {
 					SongPart sp = parts.get((e.getY() - groupTextHeight) / boxWidth);
-					if(partWindows.containsKey(sp)) {
-						partWindows.get(sp).setVisible(true);
-						partWindows.get(sp).toFront();
+					if(e.getClickCount() > 1) {
+						if(partWindows.containsKey(sp)) {
+							partWindows.get(sp).setVisible(true);
+							partWindows.get(sp).toFront();
+						} else {
+							BeadsWindow bw = new BeadsWindow(sp.getName());
+							bw.content.add(sp.getComponent());
+							bw.pack();
+							bw.setVisible(true);
+							bw.setResizable(false);
+							partWindows.put(sp, bw);
+						}
 					} else {
-						BeadsWindow bw = new BeadsWindow(sp.getName());
-						bw.content.add(sp.getComponent());
-						bw.pack();
-						bw.setVisible(true);
-						bw.setResizable(false);
-						partWindows.put(sp, bw);
+						if((e.getModifiers() & MouseEvent.CTRL_MASK) != 0) {
+							//TODO connect this SongPart to the element in the environment panel
+							//build a popup
+							JPopupMenu m = environmentPanel.getChannelsPathwaysPopupMenu(sp);
+							m.show(partPanel, e.getX(), e.getY());
+						}
 					}
-				}
+				} 
 			}
 		});
 		add(partPanel);

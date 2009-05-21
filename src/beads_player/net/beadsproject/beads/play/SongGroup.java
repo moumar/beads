@@ -33,7 +33,7 @@ public class SongGroup {
 		setName(name);
 		parts = new ArrayList<SongPart>();
 		partVisibility = new Hashtable<SongPart, Boolean>();
-		flipQuantisation = 0;
+		flipQuantisation = 4;
 	}
 
 	public void add(SongPart sp) {

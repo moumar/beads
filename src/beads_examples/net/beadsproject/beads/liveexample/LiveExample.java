@@ -1,5 +1,6 @@
 package net.beadsproject.beads.liveexample;
 
+import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.gui.BeadsGui;
 import net.beadsproject.beads.play.Environment;
 import net.beadsproject.beads.play.SongGroup;
@@ -9,7 +10,8 @@ public class LiveExample {
 	public static void main(String[] args) {
 		Environment env = null;
 		try {
-			env = Environment.loadEnvironment("com.olliebown.beads.play.DefaultEnvironmentFactory");
+			AudioContext ac = new AudioContext();
+			env = Environment.loadEnvironment("com.olliebown.beads.play.DefaultEnvironmentFactory", ac);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(1);

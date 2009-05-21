@@ -40,7 +40,7 @@ public class AudioContext {
 	private SourceDataLine sourceDataLine;
 	
 	/** The mixer. */
-	private Mixer mixer = null;
+	private Mixer mixer;
 	
 	/** The buffer size in bytes. */
 	private int bufferSizeInBytes;
@@ -117,6 +117,7 @@ public class AudioContext {
 	 */
 	public AudioContext(int bufferSizeInFrames, int systemBufferSizeInFrames, AudioFormat audioFormat) {
 		// set up other basic stuff
+		mixer = null;
 		stop = true;
 		checkForDroppedFrames = true;
 		logTime = false;
@@ -230,17 +231,15 @@ public class AudioContext {
 		float[] interleavedOutput = new float[audioFormat.getChannels() * bufferSizeInFrames];
 		while (!stop) {
 			if (!skipFrame) {
-				if(timeStep > 20) {
-					synchronized(this) {	//This was causing permanent freezing
-						out.update(); // this will propagate all of the updates
-					}
+				synchronized(this) {	//This was causing permanent freezing
+					out.update(); // this will propagate all of the updates
 					interleave(out.bufOut, interleavedOutput);
 					AudioUtils.floatToByte(bbuf, interleavedOutput,
 							audioFormat.isBigEndian());
 				}
 				sourceDataLine.write(bbuf, 0, bbuf.length);
 			}
-			if (timeStep > 20 && checkForDroppedFrames) {
+			if (checkForDroppedFrames) {
 				long expectedNanoTime = nanoLeap * (timeStep + 1);
 				long realNanoTime = System.nanoTime() - nanoStart;
 				float frameDifference = (float) (expectedNanoTime - realNanoTime)
@@ -260,6 +259,8 @@ public class AudioContext {
 		sourceDataLine.drain();
 		sourceDataLine.stop();
 		sourceDataLine.close();
+		sourceDataLine = null;
+		mixer = null;
 	}
 	
 	/**
