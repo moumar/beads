@@ -58,9 +58,11 @@ public class Buffer implements Serializable {
 	 * @return the value at that point.
 	 */
 	public float getValueIndex(int index) {
-	       if(index < buf.length && index >= 0) 
+		if(index < 0) index = 0;
+		if(index >= buf.length) index = buf.length - 1;
+//	       if(index < buf.length && index >= 0) 
 	        	return buf[index];
-	        else return 0.0f;
+//	        else return 0.0f;
 	}
 
 

@@ -15,7 +15,6 @@ public class RampBuffer extends BufferFactory {
 
 	@Override
 	public Buffer generateBuffer(int bufferSize) {
-		// TODO Auto-generated method stub
 		Buffer b = new Buffer(bufferSize);
 		
 		for (int i=0;i<bufferSize;i++)
@@ -32,8 +31,7 @@ public class RampBuffer extends BufferFactory {
 
 	@Override
 	public String getName() {
-		// TODO Auto-generated method stub
-		return "MeanFilter";
+		return "Ramp";
 	}
 
 }

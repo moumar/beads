@@ -5,6 +5,8 @@ package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
+import net.beadsproject.beads.data.Buffer;
+import net.beadsproject.beads.data.buffers.Log01Buffer;
 
 /**
  * Gain modifies the gain of a multi-channel audio signal. The gain value can be controlled by an audio signal.
@@ -76,7 +78,7 @@ public class Gain extends UGen {
         this.gainEnvelope = gainEnvelope;
     }
     
-    /* (non-Javadoc)
+	/* (non-Javadoc)
      * @see com.olliebown.beads.core.UGen#calculateBuffer()
      */
     @Override

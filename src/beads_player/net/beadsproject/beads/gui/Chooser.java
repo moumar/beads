@@ -228,6 +228,7 @@ public class Chooser implements InterfaceElement {
 			}
 		};
 		c.refreshList();
+		c.setChoice(0);
 		return c;
 	}
 

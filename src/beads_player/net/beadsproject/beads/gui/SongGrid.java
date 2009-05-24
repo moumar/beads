@@ -173,6 +173,7 @@ public class SongGrid extends BeadsPanel {
 				SongGroup g = groups.get(e.getX() / boxWidth);
 				SongPart p = parts.get(e.getY() / boxWidth);
 				if(g != null && p != null) {
+					//TODO make this work with quantisation - might require a bit of redesign
 					if(g.contains(p)) {
 						g.remove(p);
 					} else {

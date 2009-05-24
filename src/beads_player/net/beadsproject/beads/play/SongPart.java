@@ -52,7 +52,7 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 		state = 0;
 		interfaceElements.add(new LevelMeter(this));
 		controllableGain = new Gain(context, inouts);
-		Slider s = new Slider(context, "gain", 0.2f, 1f, 0f);
+		Slider s = new Slider(context, "gain", 0f, 1f, 0.2f);
 		controllableGain.setGainEnvelope(s);
 		addInput(controllableGain);
 		interfaceElements.add(s);

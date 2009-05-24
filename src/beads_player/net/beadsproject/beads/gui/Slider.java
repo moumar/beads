@@ -17,6 +17,9 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JWindow;
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.data.Buffer;
+import net.beadsproject.beads.data.buffers.Exp01Buffer;
+import net.beadsproject.beads.data.buffers.Log01Buffer;
 import net.beadsproject.beads.data.buffers.SineBuffer;
 import net.beadsproject.beads.play.InterfaceElement;
 import net.beadsproject.beads.ugens.Envelope;
@@ -51,6 +54,9 @@ public class Slider extends Envelope implements InterfaceElement {
 	
 	private String name;
 	
+	private Buffer logBuffer;
+	private Buffer expBuffer;
+	
 	/**
 	 * Instantiates a new slider.
 	 * 
@@ -73,18 +79,24 @@ public class Slider extends Envelope implements InterfaceElement {
 		setMax(max);
 		setValue(val);
 		smoothnessInterval = 20;
+		useLogBuffer(true);
+//		useLogBuffer(false);
 	}
 	
 	public float calculateValueFromFract(float fract) {
+		if(logBuffer != null) fract = expBuffer.getValueFraction(fract);
 		return fract * (max - min) + min;
 	}
 	
-	public void setValueFract(float fract) {
+	public void setValueFract(float fract) { 
+		if(logBuffer != null) fract = expBuffer.getValueFraction(fract);
 		setValue(fract * (max - min) + min);
 	}
 	
 	public float getValueFract() {
-		return (value - min) / (max - min);
+		float fract = (value - min) / (max - min);
+		if(logBuffer != null) fract = logBuffer.getValueFraction(fract);
+		return fract;
 	}
 	
 	public String getName() {
@@ -181,7 +193,8 @@ public class Slider extends Envelope implements InterfaceElement {
 					g.setColor(Color.black);
 					g.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
 					//value fract
-					int sliderHeight = (int)(getHeight() * (1f - getValueFract()));
+					float fract = getValueFract();
+					int sliderHeight = (int)(getHeight() * (1f - fract));
 					if(isLocked()) {
 						g.setColor(Color.gray);
 					}
@@ -255,6 +268,16 @@ public class Slider extends Envelope implements InterfaceElement {
 		drawWindow.setSize(new Dimension(component.getWidth() + 100, component.getHeight()));
 		drawWindow.setLocation(new Point(component.getLocationOnScreen().x + component.getWidth(), component.getLocationOnScreen().y));
 		drawWindow.setVisible(true);
+	}
+	
+	public void useLogBuffer(boolean useLogBuffer) {
+		if(useLogBuffer) {
+			logBuffer = new Log01Buffer().getDefault();
+			expBuffer = new Exp01Buffer().getDefault();
+		} else {
+			logBuffer = null;
+			expBuffer = null;
+		}
 	}
 
 	public static void main(String[] args) {
