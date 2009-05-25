@@ -30,15 +30,14 @@ public class Recorder extends UGen {
 	 *            the Sample.
 	 */
     public Recorder(AudioContext context, Sample sample) {
-        super(context, sample.getNumChannels(), 0);
-        this.sample = sample;
+        this(context, sample.getNumChannels());
+        setSample(sample);
+    }
+    
+    public Recorder(AudioContext context, int numChannels) {
+    	super(context, numChannels, 0);
         setLoopRecord(false);
-        
-        if (sample!=null && !this.sample.isWriteable())
-        {
-        	System.out.println("Recorder can only write to a writeable sample.");
-        	System.exit(1);
-        }
+        sample = null;
     }
 
 	/**
@@ -58,11 +57,8 @@ public class Recorder extends UGen {
 	 */
     public void setSample(Sample sample) {
         this.sample = sample;
-        
-        if (this.sample!=null && !this.sample.isWriteable())
-        {
-        	System.out.println("Recorder can only write to a writeable sample.");
-        	System.exit(1);
+        if (this.sample!=null && !this.sample.isWriteable()) {
+        	System.err.println("Recorder can only write to a writeable sample.");
         }
     }
     
@@ -87,49 +83,32 @@ public class Recorder extends UGen {
      * @see com.olliebown.beads.core.UGen#calculateBuffer()
      */
     @Override
-    public void calculateBuffer() {    	
-    	long nFrames = sample.getNumFrames();
-    	if (position + bufferSize > sample.getNumFrames())
-    	{
-    		// handle loop around
-    		sample.putFrames((int)position, bufIn, 0, (int)(nFrames-position));
-    		if(loopRecord) 
-    		{
-    			position = 0;
-    			int numframesleft = bufferSize - (int)(nFrames-position);
-        		sample.putFrames((int)position, bufIn, (int)(nFrames-position), numframesleft);
-        		position += numframesleft;
-    		}
-        	else 
-        	{
-        		kill();
-        	}
+    public void calculateBuffer() {   
+    	if(sample != null && this.sample.isWriteable()) {
+	    	long nFrames = sample.getNumFrames();
+	    	if (position + bufferSize > sample.getNumFrames())
+	    	{
+	    		// handle loop around
+	    		sample.putFrames((int)position, bufIn, 0, (int)(nFrames-position));
+	    		if(loopRecord) 
+	    		{
+	    			position = 0;
+	    			int numframesleft = bufferSize - (int)(nFrames-position);
+	        		sample.putFrames((int)position, bufIn, (int)(nFrames-position), numframesleft);
+	        		position += numframesleft;
+	    		}
+	        	else 
+	        	{
+	        		kill();
+	        	}
+	    	}
+	    	else // general case
+	    	{
+	    		sample.putFrames((int)position, bufIn);    		
+	    		position += bufferSize;
+	    	}   
     	}
-    	else // general case
-    	{
-    		sample.putFrames((int)position, bufIn);    		
-    		position += bufferSize;
-    	}    	
     }
-    
-    /*
-     * Old sample method
-    public void calculateBuffer() {
-        for(int i = 0; i < bufferSize; i++) {
-            for(int j = 0; j < ins; j++) {
-                sample.buf[j][(int)position] = bufIn[j][i];
-            }
-            position++;
-            if(position >= sample.buf[0].length) {
-            	if(loopRecord) position = 0;
-            	else {
-            		kill();
-            		break;
-            	}
-            }
-        }
-    }
-    */
     
     /**
 	 * Gets the position.

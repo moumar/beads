@@ -294,7 +294,7 @@ public class Sample implements Runnable {
 	 * If BufferedRegime is TOTAL, this will block until the sample is loaded.
 	 * 
 	 */
-	public void setFile(String file) throws IOException, UnsupportedAudioFileException
+	private void setFile(String file) throws IOException, UnsupportedAudioFileException
 	{
 		audioFile = new AudioFile(file);
 		setFile(audioFile);
@@ -307,7 +307,7 @@ public class Sample implements Runnable {
 	 * If BufferedRegime is TOTAL, this will block until the sample is loaded.
 	 * 
 	 */
-	public void setFile(AudioFile af) throws IOException, UnsupportedAudioFileException
+	private void setFile(AudioFile af) throws IOException, UnsupportedAudioFileException
 	{
 		audioFile = af;
 		audioFile.open();

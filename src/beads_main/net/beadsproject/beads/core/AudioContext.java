@@ -374,6 +374,13 @@ public class AudioContext {
 	public AudioFormat getAudioFormat() {
 		return audioFormat;
 	}
+	
+//	public AudioFormat copyOfAudioFormatWithChannels(int numChannels) {
+//		AudioFormat newFormat = new AudioFormat(audioFormat.getSampleRate(),
+//												audioFormat.getSampleSizeInBits(),
+//												numChannels,
+//												audioFormat.);
+//	}
 
 	/**
 	 * Stops the AudioContext if running either in realtime or non-realtime.
