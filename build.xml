@@ -35,9 +35,9 @@
     	<mkdir dir="build"/>
     		<jarjar jarfile="build/Beads/library/beads.jar">
     	  	<fileset dir="build/Beads/library/bin/main"/>
-    	    <zipfileset src="dependencies/jl1.0.jar"/>
+    	    <zipfileset src="dependencies/jl1.0.1.jar"/>
     			<zipfileset src="dependencies/mp3spi1.9.4.jar"/>
-    	    <zipfileset src="dependencies/tritonus_share.jar"/>
+    	    <zipfileset src="dependencies/tritonus_share.jar"/> 	    	
     	  </jarjar>
     	    	
     		<!--

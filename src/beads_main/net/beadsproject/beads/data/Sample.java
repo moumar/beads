@@ -26,21 +26,131 @@ import net.beadsproject.beads.core.AudioUtils;
  * Notes:
  * - BufferedSample is not particularly thread-safe. 
  *   This shouldn't matter because SamplePlayers are not executed in parallel 
- *   when used in a UGen chain.
+ *   when used in a UGen chain.    
  *    
  * @author ben
  */
 public class Sample implements Runnable {
 
-	public enum BufferingRegime {
-		TIMED,
-		TOTAL
+	private Regime bufferingRegime;
+	
+	static public class Regime
+	{
+		// defaults 
+		static final public TotalRegime TOTAL = new TotalRegime(); 
+		static final public TimedRegime TIMED = new TimedRegime(); 
 	};
 	
-	private BufferingRegime bufferingRegime;
- 
+	/**
+	 * Only some parts of the audio file are stored in memory. 
+	 * Useful for very large audio files. 
+	 * Various parameters affect the buffering behaviour.
+	 */  
+	static public class TimedRegime extends Regime
+	{
+		public int lookAhead; // time lookahead, ms
+		public int lookBack; // time lookback, ms 
+		public long memory;   // age (ms) at which regions get removed		
+		public float regionSize; // size of each region (by default 10s)
+		
+		static public enum Order {
+			NEAREST,
+			ORDERED
+		};
+		
+		public Order loadingOrder;
 	
+		public TimedRegime()
+		{
+			lookAhead = 100;
+			lookBack = 0;
+			memory = 1000;
+			regionSize = 100;
+			loadingOrder = Order.ORDERED;
+		}
+		
+		public TimedRegime(int regionSize, 
+						   int lookAhead, 
+						   int lookBack, 
+						   int memory, 
+						   Order loadingOrder)
+		{
+			this.regionSize = regionSize;
+			this.lookAhead = lookAhead;
+			this.lookBack = lookBack;
+			this.memory = memory;
+			this.loadingOrder = loadingOrder;
+		}
+		
+		/**
+		 * Set how many milliseconds from last loaded point to look ahead.
+		 * 
+		 * @param lookahead time to look ahead in ms.
+		 */
+		public void setLookAhead(float lookahead) 
+		{
+			this.lookAhead = (int)lookahead;
+		}
+
+		/**
+		 * Set how many milliseconds from last loaded point to look backwards.
+		 * 
+		 * @param lookback time to look backwards in ms.
+		 */
+		public void setLookBack(float lookback) 
+		{
+			this.lookBack = (int)lookback;
+		}
+
+		/**
+		 * If a part of an audio file has not been accessed for some amount of time it is discarded.
+		 * The time that the part remains in memory is specified by setMemory().
+		 * Passing a value of -1 to this function will set the memory to the maximum value possible.
+		 * 
+		 * @param ms Duration in milliseconds that unaccessed regions remain loaded.  
+		 */
+		public void setMemory(float ms)
+		{
+			this.memory = (int)ms;
+		}
+
+		/**
+		 * Specify the size of each buffered region.
+		 * 
+		 * @param ms Size of the region (ms)
+		 */
+		public void setRegionSize(float ms)
+		{
+			this.regionSize = ms;
+		}
+		
+		/**
+		 * When a region is loaded, nearby regions are put on a queue to be 
+		 * loaded also. The loading regime affects the order in which the nearby 
+		 * regions (defined by lookback and lookahead) are loaded.
+		 * 
+		 * NEAREST (the default) will load regions nearest to the region first.
+		 * ORDERED will load the regions from lowest to highest.
+		 * 
+		 * NEAREST makes sense if you are accessing the near regions first, e.g., playing a sample backwards or forwards.
+		 * ORDERED makes sense if you are accessing random nearby regions. Loading regions in order is generally quicker.
+		 * 
+		 * @param lr The order to load regions.
+		 */
+		public void setLoadingRegime(Order lr)
+		{
+			this.loadingOrder = lr;
+		}
+	};
 	
+	/**
+	 * The entire file is read into memory, providing fast access at the cost of more memory used.
+	 */
+	static public class TotalRegime extends Regime
+	{
+		
+	};
+	 	
 	/** Store the sample data with native bit-depth. 
 	 * Storing in native bit-depth reduces memory load, but increases cpu-load. 
 	 */ 
@@ -65,28 +175,16 @@ public class Sample implements Runnable {
 	private boolean isBigEndian;
 
 	// regionSize is the number of frames per region
-	// TODO: atm it is a static parameter - waiting to be tuned
-	// TODO: does it make sense that regionSize = AudioContext.bufferSize is a suitable size?
 	// these parameters are only used in the TIMED regime
-	private int regionSize;    
+	private int r_regionSize;
+	private int r_lookahead; // num region lookahead
+	private int r_lookback; // num regions lookback
+	private long r_memory;
+	
 	private int regionSizeInBytes; // the number of bytes per region (regionSize * nChannels * bitconversionfactor)
-	
-	private int lookahead = 1; // num region lookahead
-	private int lookback = 0; // num regions lookback
-	private int maxRegionsLoadedAtOnce; // when memory conservation is more important than run-time performance
-	private long memory = 0;
-	
-	// time-based versions of the above variables, 
-	// these ones get transformed into the above ones when samplerate/etc is known..
-	private int t_lookahead = 100; // time lookahead, ms
-	private int t_lookback = 0; 
-	private long t_memory = 10000;   // age (ms) at which regions get removed (once they haven't been touched)
-	private int t_bufferMax = 0; // max space we can use (in MB) (0 == unlimited)
-	private float t_regionSize = 10000; // by default 10s
-	
-	// REGION DATA	
 	private int numberOfRegions; // total number of regions
 	private int numberOfRegionsLoaded; // number of loaded regions
+	
 	private byte[][] regions; // the actual data
 	
 	private long[] regionAge; // the age of each region (in ms)
@@ -96,17 +194,9 @@ public class Sample implements Runnable {
 	private ConcurrentLinkedQueue<Integer> regionQueue; // a queue of regions to be loaded
 	private Thread regionThread; // the thread that loads regions in the background
 	private Lock[] regionLocks; // to support safe deletion/writing of regions
-	
-	public enum LoadingRegime {
-		NEAREST,
-		ORDERED
-	};
-	
-	private LoadingRegime loadingRegime = LoadingRegime.NEAREST;
-	
+		
 	// this parameter is only used if regime==TOTAL
-	private byte[] sampleData;
-	
+	private byte[] sampleData;	
 
 	/**
      * Instantiates a new empty buffer with the specified audio format and
@@ -126,19 +216,20 @@ public class Sample implements Runnable {
     }
 	
     /**
-	 * Create a sample. Call setFile to initialise the sample.
+	 * Create a sample.
+	 * Call setFile to initialise the sample.
  	 *
 	 */
 	public Sample()
 	{
-        bufferingRegime = BufferingRegime.TOTAL;
+        bufferingRegime = Regime.TOTAL;
         isBigEndian = true;
         verbose = false;
 	}
 	
 	/**
 	 * Create a sample from a file. This constructor immediately loads the entire audio file into memory.
-	 * If you want buffered behaviour, then use the blank constructor.
+	 * 
 	 * @throws UnsupportedAudioFileException 
 	 * @throws IOException 
 	 */
@@ -147,92 +238,54 @@ public class Sample implements Runnable {
 		this();
 		setFile(filename);
 	}
-
+	
 	/**
-	 * The buffering regime affects how the sample accesses the audio data.
-	 * BufferingRegime.TOTAL: The default behaviour. The entire file is read into memory, providing fast access at the cost of more memory used.
-	 * BufferingRegime.TIMED: Only some parts of the audio file are stored in memory. Useful for very large audio files. Various parameters affect the buffering behaviour.  
-	 * 
-	 * @param br The buffering regime to use.
+	 * Create a sample from an Audio File, using the default buffering scheme. 
+	 *  
+	 * @throws UnsupportedAudioFileException 
+	 * @throws IOException 
 	 */
-	public void setBufferingRegime(Sample.BufferingRegime br)
-	{
-		//FIXME what if the sample has already been loaded? Can we switch regimes mid flow? 
-		bufferingRegime = br;
-	}
-
-	/**
-	 * Set how many milliseconds from last loaded point to look ahead.
-	 * 
-	 * @param lookahead time to look ahead in ms.
-	 */
-	public void setLookAhead(float lookahead) 
-	{
-		this.t_lookahead = (int)lookahead;
-	}
-
-	/**
-	 * Set how many milliseconds from last loaded point to look backwards.
-	 * 
-	 * @param lookback time to look backwards in ms.
-	 */
-	public void setLookBack(float lookback) 
-	{
-		this.t_lookback = (int)lookback;
-	}
-
-	/**
-	 * If a part of an audio file has not been accessed for some amount of time it is discarded.
-	 * The time that the part remains in memory is specified by setMemory().
-	 * Passing a value of -1 to this function will set the memory to the maximum value possible.
-	 * 
-	 * @param ms Duration in milliseconds that unaccessed regions remain loaded.  
-	 */
-	public void setMemory(float ms)
-	{
-		this.t_memory = (int)ms;
-	}
-
-	/**
-	 * NOT YET IMPLEMENTED. Use setMemory() if RAM conservation is necessary.
-	 * 
-	 * Specify the maximum amount of memory this sample uses.
-	 * If the sample is large this helps with conserving ram.
-	 * If this is 0 then the space is unlimited.
-	 * @param mb Size of buffer (in megabytes.) 
-	 */
-	/*
-	public void setBufferMax(int mb)
-	{
-		this.t_bufferMax = mb;
-	}*/
-
-	/**
-	 * Specify the size of each buffered region.
-	 * 
-	 * @param ms Size of the region (ms)
-	 */
-	public void setRegionSize(float ms)
-	{
-		this.t_regionSize = ms;
+	public Sample(AudioFile af) throws IOException, UnsupportedAudioFileException
+	{    	
+		this();		
+		setFile(af);
 	}
 	
 	/**
-	 * When a region is loaded, nearby regions are put on a queue to be 
-	 * loaded also. The loading regime affects the order in which the nearby 
-	 * regions (defined by lookback and lookahead) are loaded.
-	 * 
-	 * NEAREST (the default) will load regions nearest to the region first.
-	 * ORDERED will load the regions from lowest to highest.
-	 * 
-	 * NEAREST makes sense if you are accessing the near regions first, e.g., playing a sample backwards or forwards.
-	 * ORDERED makes sense if you are accessing random nearby regions. Loading regions in order is generally quicker.
-	 * 
-	 * @param lr The loading regime to use.
+	 * Create a sample from an Audio File, using the buffering scheme suggested. 
+	 *  
+	 * @throws UnsupportedAudioFileException 
+	 * @throws IOException 
 	 */
-	public void setLoadingRegime(LoadingRegime lr)
+	public Sample(AudioFile af, Regime r) throws IOException, UnsupportedAudioFileException
+	{    	
+		this();
+		setBufferingRegime(r);		
+		setFile(af);
+	}
+	
+	/**
+	 * Create a sample from a file, using the buffering scheme suggested.
+	 * 
+	 * @throws UnsupportedAudioFileException 
+	 * @throws IOException 
+	 */
+	public Sample(String filename, Regime r) throws IOException, UnsupportedAudioFileException
+	{    	
+		this();
+		setBufferingRegime(r);
+		setFile(filename);
+	}
+
+	/**
+	 * The buffering regime affects how the sample accesses the audio data.
+	 * 
+	 * 
+	 * @param r The buffering regime to use.
+	 */
+	public void setBufferingRegime(Regime r)
 	{
-		this.loadingRegime = lr;
+		bufferingRegime = r;
 	}
 
 	/**
@@ -271,7 +324,7 @@ public class Sample implements Runnable {
 	/// set everything up, ready to use
 	private void init() throws IOException
 	{
-		if (bufferingRegime==BufferingRegime.TOTAL)
+		if (isTotal())
 		{
 			// load all the sample data into a byte buffer
 			loadEntireSample();			
@@ -283,7 +336,7 @@ public class Sample implements Runnable {
 			//On the other hand, this is probably fine since it is only a hint to the system.
 			System.gc();
 		}
-		else if (bufferingRegime==BufferingRegime.TIMED)
+		else // bufferingRegime instanceof TimedRegime
 		{
 			if (nFrames==AudioSystem.NOT_SPECIFIED)
 			{
@@ -292,22 +345,15 @@ public class Sample implements Runnable {
 				System.exit(1);
 			}
 			
+			TimedRegime tr = (TimedRegime) bufferingRegime;
 			// initialise params
-			regionSize = (int)Math.ceil(((t_regionSize/1000.) * audioFile.getDecodedFormat().getSampleRate()));
-			lookahead = (int)Math.ceil(((t_lookahead/1000.) * audioFile.getDecodedFormat().getSampleRate())/regionSize);
-			lookback = (int)Math.ceil(((t_lookback/1000.) * audioFile.getDecodedFormat().getSampleRate())/regionSize);
-			if (t_memory==-1) memory = Long.MAX_VALUE;			
-			memory = t_memory;	
-			regionSizeInBytes = regionSize * 2 * nChannels;
-			numberOfRegions = 1 + (int)(nFrames / regionSize);
-			
-			/* TODO: IMPLEMENT THIS?
-			if (t_bufferMax==0) maxRegionsLoadedAtOnce = 0;
-			else
-				maxRegionsLoadedAtOnce = (int)Math.ceil(1.0*t_bufferMax/regionSizeInBytes);
-			*/
-			
-			if(verbose) System.out.printf("regionsize: %d frames,lookahead: %d regions ,lookback: %d regions, memory: %d ms\n",regionSize,lookahead,lookback,memory);
+			r_regionSize = (int)Math.ceil(((tr.regionSize/1000.) * audioFile.getDecodedFormat().getSampleRate()));
+			r_lookahead = (int)Math.ceil(((tr.lookAhead/1000.) * audioFile.getDecodedFormat().getSampleRate())/r_regionSize);
+			r_lookback = (int)Math.ceil(((tr.lookBack/1000.) * audioFile.getDecodedFormat().getSampleRate())/r_regionSize);
+			if (tr.memory==-1) r_memory = Long.MAX_VALUE;			
+			r_memory = tr.memory;	
+			regionSizeInBytes = r_regionSize * 2 * nChannels;
+			numberOfRegions = 1 + (int)(nFrames / r_regionSize);
 			
 			// the last region may contain 0 to (regionSize-1) samples
 			
@@ -363,6 +409,12 @@ public class Sample implements Runnable {
 //	public void getFrame(double timeMs, float[] frame) {
 //		getFrame((int)msToSamples(timeMs), frame);
 //	}
+	
+	/// are we using the total regime?
+	private boolean isTotal()
+	{
+		return (bufferingRegime instanceof TotalRegime);
+	}
 
 	/**
 	 * Return a single frame. 
@@ -376,14 +428,14 @@ public class Sample implements Runnable {
 	{
 		if (frame >= nFrames) return;
 		
-		if (bufferingRegime==BufferingRegime.TOTAL)
+		if (isTotal())
 		{
 			int startIndex = frame * 2 * nChannels;
 			AudioUtils.byteToFloat(frameData,sampleData,isBigEndian,startIndex,frameData.length);			
 		}
-		else if (bufferingRegime==BufferingRegime.TIMED)
+		else // bufferingRegime==BufferingRegime.TIMED
 		{
-			int whichRegion = frame / regionSize;
+			int whichRegion = frame / r_regionSize;
 			
 			// When someone requests a region, it may not be loaded yet.
 			// Alternatively it may currently be being deleted, in which case we have to wait.
@@ -402,7 +454,7 @@ public class Sample implements Runnable {
 				if (regionData!=null)
 				{
 					// convert it to the correct format,
-					int startIndex = (frame % regionSize) * 2 * nChannels;
+					int startIndex = (frame % r_regionSize) * 2 * nChannels;
 					AudioUtils.byteToFloat(frameData,regionData,isBigEndian,startIndex,frameData.length);
 				}
 				else
@@ -433,7 +485,7 @@ public class Sample implements Runnable {
 	{
 		if (frame >= nFrames) return;
 		
-		if (bufferingRegime==BufferingRegime.TOTAL)
+		if (isTotal())
 		{
 			int startIndex = frame * 2 * nChannels;			
 			int numFloats = Math.min(frameData[0].length,(int)(nFrames-frame))*nChannels;			
@@ -441,16 +493,16 @@ public class Sample implements Runnable {
 			AudioUtils.byteToFloat(floatdata, sampleData, isBigEndian, startIndex, numFloats);
 			AudioUtils.deinterleave(floatdata,nChannels,frameData[0].length,frameData);
 		}
-		else if (bufferingRegime==BufferingRegime.TIMED)
+		else // bufferingRegime==BufferingRegime.TIMED
 		{
 			int numFloats = Math.min(frameData[0].length,(int)(nFrames-frame))*nChannels;			
 			float[] floatdata = new float[numFloats];
 			
 			// fill floatdata with successive regions of byte data
 			int floatdataindex = 0;			
-			int regionindex = frame % regionSize;
-			int whichregion = frame / regionSize;
-			int numfloatstocopy = Math.min(regionSize - regionindex,numFloats - floatdataindex);
+			int regionindex = frame % r_regionSize;
+			int whichregion = frame / r_regionSize;
+			int numfloatstocopy = Math.min(r_regionSize - regionindex,numFloats - floatdataindex);
 			
 			while (numfloatstocopy>0)
 			{
@@ -472,7 +524,7 @@ public class Sample implements Runnable {
 				}
 				floatdataindex += numfloatstocopy;
 				regionindex = 0;				
-				numfloatstocopy = Math.min(regionSize,numFloats - floatdataindex);				
+				numfloatstocopy = Math.min(r_regionSize,numFloats - floatdataindex);				
 				whichregion++;
 			}
 			
@@ -494,19 +546,19 @@ public class Sample implements Runnable {
 			loadRegion(r);
 		}
 		
-		if (loadingRegime==LoadingRegime.ORDERED)
+		if (((TimedRegime)bufferingRegime).loadingOrder==TimedRegime.Order.ORDERED)
 		{
 			// queue the regions from back to front
-			for(int i=Math.max(0,r-lookback);i<Math.min(r+lookahead,numberOfRegions);i++)
+			for(int i=Math.max(0,r-r_lookback);i<Math.min(r+r_lookahead,numberOfRegions);i++)
 			{
 				if (i!=r) queueRegionForLoading(i);
 			}
 		}
-		else if (loadingRegime==LoadingRegime.NEAREST)
+		else // loadingOrder==LoadingRegime.NEAREST
 		{
 			// queue the regions from nearest to furthest, back to front...
-			int br = Math.min(r,lookback); // number of back regions
-			int fr = Math.min(lookahead,numberOfRegions-1-r); // number of ahead regions			
+			int br = Math.min(r,r_lookback); // number of back regions
+			int fr = Math.min(r_lookahead,numberOfRegions-1-r); // number of ahead regions			
 			
 			// have two pointers, one going backwards the other going forwards			
 			int bp = 1;
@@ -556,7 +608,7 @@ public class Sample implements Runnable {
 		try {			
 			regions[r] = new byte[regionSizeInBytes];
 			numberOfRegionsLoaded++;
-			audioFile.seek(regionSize*r);
+			audioFile.seek(r_regionSize*r);
 			int bytesRead = audioFile.read(regions[r]);
 			if (bytesRead<=0)
 				regions[r] = null;
@@ -629,7 +681,7 @@ public class Sample implements Runnable {
 					{
 						regionAge[i] += dt;
 					}
-					if (regionAge[i]>memory)
+					if (regionAge[i]>r_memory)
 					{
 						// if it is unlocked, then remove it...
 						if (regionLocks[i].tryLock())
@@ -867,7 +919,7 @@ public class Sample implements Runnable {
 	 */
 	public boolean isWriteable()
 	{
-		return bufferingRegime==BufferingRegime.TOTAL;
+		return isTotal();
 	}
 	
 	/**
@@ -937,13 +989,13 @@ public class Sample implements Runnable {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     public void write(String fn) throws IOException {
-    	if (bufferingRegime==BufferingRegime.TOTAL)
+    	if (isTotal())
     	{
     		ByteArrayInputStream bais = new ByteArrayInputStream(sampleData);
             AudioInputStream aos = new AudioInputStream(bais, audioFormat, nFrames);
             AudioSystem.write(aos, AudioFileFormat.Type.AIFF, new File(fn));
     	}
-    	else if (bufferingRegime==BufferingRegime.TIMED)
+    	else // bufferingRegime==BufferingRegime.TIMED
     	{
     		System.out.println("Writing buffered samples to disk is not yet supported.");
     		System.exit(1);

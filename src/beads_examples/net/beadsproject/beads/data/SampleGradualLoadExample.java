@@ -15,27 +15,20 @@ public class SampleGradualLoadExample {
 		//String pathToFile = "/Users/ollie/Music/Audio/Igor/Petrouchka.aif";
 		//String pathToFile = "/Users/ollie/Programming/Eclipse/BeadsTests/audio/gammaBrosTheme.mp3";
 		//String pathToFile = "../BeadsTests/audio/gammaBrosTheme.mp3.aif";
-		String pathToFile = "../BeadsTests/audio/gammaBrosTheme.mp3";
+		//String pathToFile = "../BeadsTests/audio/gammaBrosTheme.mp3";
+		String pathToFile = "D:/Music/Mozart Discography (5 CDs) 320kbps/Mozart - Concertos for Flute/Mozart, Wolfgang Amadeus; Mozart Festival Orchestra, Angela - Piano Concerto No 21 in C major KV 467 - Allegro Assai.mp3";
 		
 		//example settings: TIMED, regionsize 100, lookahead 2000, lookback 2000, memory 5000.
 		//BP: Fixed a few problems, added new loading regime, seems to work okay now...
 		
 		AudioContext ac = new AudioContext();
-		final Sample samp = new Sample();
-
-		//-------------------------
-		//Sample buffering settings
-		samp.setBufferingRegime(Sample.BufferingRegime.TIMED);
-		//samp.setBufferingRegime(Sample.BufferingRegime.TOTAL);
-		//only apply to the timed regime
-		samp.setRegionSize(100);
-		samp.setLookAhead(2000);
-		samp.setLookBack(2000);
-		samp.setMemory(5000);
+		
 		//-------------------------
 		AudioFile af = new AudioFile(pathToFile);
-		af.trace = true; // trace access ops
-		samp.setFile(af);				
+		af.trace = true; // trace access ops		
+		
+		// new sample
+		final Sample samp = new Sample(af, new Sample.TimedRegime(100,2000,2000,5000,Sample.TimedRegime.Order.NEAREST));
 		
 		final SamplePlayer play = new SamplePlayer(ac, samp);
 		play.setKillOnEnd(false);

@@ -8,18 +8,20 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
+
+import org.tritonus.share.sampled.file.TAudioFileFormat;
+
 import net.beadsproject.beads.core.AudioUtils;
 
 /**
  * Represents an audio file. Handles loading and format conversion. 
  * 
- * A sample can be made to wrap an AudioFile and provide intelligent buffered access to the data.  
- * TODO: Intelligently approximate the length of the audio stream..?
+ * A sample can be made to wrap an AudioFile and provide intelligent buffered access to the data.
  * 
- * NOTE: At the moment certain .wav files will be incorrectly loaded. 
- * This is due to the mp3 spi recognizing them, incorrectly, as mp3s.
- * There is no obvious way around this problem, besides reordering the 
- * way the spi's are loaded - which may not even be possible.
+ * NOTE: At the moment certain .wav files will be not be able to be loaded. 
+ * This is due to mp3spi recognizing them incorrectly as mp3s.
+ * This will hopefull be fixed in the future, but until then 
+ * you can resave your .wavs using a different audio util. 
  * 
  * @author ben
  */
@@ -68,24 +70,45 @@ public class AudioFile {
 	 * @throws UnsupportedAudioFileException If the file is of an unsupported audio type.
 	 */
 	public AudioFile(String filename) throws IOException, UnsupportedAudioFileException {
-		// store a maximum of 10 meg 
-		this(filename,1024*1024*10);
+		this(filename,-1);
 	}
 
 	/**
 	 * Advanced: Create an input stream from a file, but don't keep more than numBytes of data in memory.
 	 * 
 	 * @param filename
-	 * @param bufferSize The maximum number of bytes the audiofile can keep in memory.   
-	 *
+	 * @param bufferSize The maximum number of bytes the AudioFile can keep in memory. 
+	 *                   If it is <0 then the length of the audio file is used.
+	 *                   
 	 * @throws IOException If the file cannot be found or opened.  
 	 * @throws UnsupportedAudioFileException If the file is of an unsupported audio type.
 	 */
 	public AudioFile(String filename, int bufferSize) throws IOException, UnsupportedAudioFileException {
 		file = new File(filename);						
 		audioFileFormat = AudioSystem.getAudioFileFormat(file);
+		
+		// check if .wav ending and detected as .mp3, if so it is bad!		
+		if (!file.getName().endsWith(".mp3") && audioFileFormat instanceof TAudioFileFormat)
+		{
+			//System.out.printf("File \"%s\" \n", file.getName());
+			throw(new UnsupportedAudioFileException("Cannot read " + file.getName() + ". If it is a .wav then try re-saving it in a different audio program."));
+		}
+		
 		nFrames = audioFileFormat.getFrameLength();
-		this.bufferSize = bufferSize;
+		
+		if (audioFileFormat instanceof TAudioFileFormat && bufferSize < 0)
+		{
+			this.bufferSize = audioFileFormat.getByteLength() + 1024; // plus a little bit in case length is off... 
+			// 1024*1024*10;
+		}
+		else if (bufferSize < 0)
+		{
+			this.bufferSize = 0;
+		}
+		else
+		{		
+			this.bufferSize = bufferSize;
+		}
 		nTotalFramesRead = 0;
 		encodedStream = null;
 		decodedStream = null;	
@@ -111,10 +134,10 @@ public class AudioFile {
 					finished = false;					
 				}
 				catch(IOException e)
-				{	
-					e.printStackTrace();
-					close();
-					open();
+				{
+					reopen();
+					nTotalFramesRead = 0;
+					finished = false;
 				}		
 			}
 			else
@@ -232,9 +255,9 @@ public class AudioFile {
 			isEncoded = true;
 			decodedStream = AudioSystem.getAudioInputStream(decodedFormat, encodedStream);
 			nFrames = AudioSystem.NOT_SPECIFIED;
-			System.out.printf("frames (encoded): %d\n",(int)(encodedStream.getFrameLength()));
-			System.out.printf("frames (decoded): %d\n",(int)(decodedStream.getFrameLength()));
-			System.out.println("estimated duration " + (Long)audioFileFormat.properties().get("duration") / 60000000.);
+			//System.out.printf("frames (encoded): %d\n",(int)(encodedStream.getFrameLength()));
+			//System.out.printf("frames (decoded): %d\n",(int)(decodedStream.getFrameLength()));
+			//System.out.println("estimated duration " + (Long)audioFileFormat.properties().get("duration") / 60000000.);
 
 			lengthInBytes = audioFileFormat.getByteLength();
 			audioInfo = audioFileFormat.properties();

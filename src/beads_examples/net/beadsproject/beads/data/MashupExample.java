@@ -33,12 +33,8 @@ public class MashupExample {
 			} else {
 				try {
 					Sample s = new Sample();
-					s.setBufferingRegime(Sample.BufferingRegime.TIMED);
-					s.setRegionSize(100);
-					s.setLookAhead(0);
-					s.setLookBack(0);
-					s.setMemory(5000);
-					s.setFile(f.getAbsolutePath());
+					final Sample samp = new Sample(f.getAbsolutePath(), 
+							new Sample.TimedRegime(100,0,0,5000,Sample.TimedRegime.Order.NEAREST));
 					samples.put(f.getAbsolutePath(), s);
 					long timeMS = System.currentTimeMillis();
 					float timeTakenMS = (timeMS - previousTimeMS);
@@ -59,6 +55,7 @@ public class MashupExample {
 	
 	public static void main(String[] args) {
 		//use a folder full of audio
-		new MashupExample("/Users/ollie/Music/iTunes/iTunes Music/Unknown Artist/Unknown Album");
+		// new MashupExample("/Users/ollie/Music/iTunes/iTunes Music/Unknown Artist/Unknown Album");
+		new MashupExample("D:/Music/Mozart Discography (5 CDs) 320kbps/Mozart - Concertos for Flute");
 	}
 }

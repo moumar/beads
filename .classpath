@@ -4,9 +4,8 @@
 	<classpathentry kind="src" path="src/beads_examples"/>
 	<classpathentry kind="src" path="src/beads_player"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="dependencies/jl1.0.jar"/>
 	<classpathentry kind="lib" path="dependencies/mp3spi1.9.4.jar"/>
 	<classpathentry kind="lib" path="dependencies/tritonus_share.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JavaFX"/>
+	<classpathentry kind="lib" path="dependencies/jl1.0.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

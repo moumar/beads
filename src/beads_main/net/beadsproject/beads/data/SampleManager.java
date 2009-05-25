@@ -35,6 +35,9 @@ public class SampleManager {
 
 	private static boolean verbose = true;
 	
+	/** The regime to use when loading the next sample. */
+	private static Sample.Regime nextBufferingRegime = null;
+		
 	/**
 	 * Returns a new Sample from the given filename. If the Sample has already
 	 * been loaded, it will not be loaded again, but will simply be retrieved
@@ -48,7 +51,10 @@ public class SampleManager {
 		Sample sample = samples.get(fn);
 		if (sample == null) {
 			try {
-				sample = new Sample(fn);
+				if (nextBufferingRegime!=null)
+					sample = new Sample(fn,nextBufferingRegime);
+				else
+					sample = new Sample(fn);
 				samples.put(fn, sample);
 				if(verbose) System.out.println("Loaded " + fn);
 			} catch (UnsupportedAudioFileException e) {
@@ -84,7 +90,10 @@ public class SampleManager {
 	public static Sample sample(String ref, String fn) throws UnsupportedAudioFileException, IOException {
 		Sample sample = samples.get(ref);
 		if (sample == null) {
-			sample = new Sample(fn);
+			if (nextBufferingRegime!=null)
+				sample = new Sample(fn,nextBufferingRegime);
+			else
+				sample = new Sample(fn);
 			samples.put(ref, sample);
 			if(verbose) System.out.println("Loaded " + fn);
 		}
@@ -273,6 +282,17 @@ public class SampleManager {
 	 */
 	public static List<String> getSampleNameList() {
 		return new ArrayList<String>(samples.keySet());
+	}
+	
+	/**
+	 * Set the buffering regime to use when loading all future samples.
+	 * By default the regime is null, and reverts to the default regime used in Sample (which is TOTAL).
+	 * 
+	 * @param r The regime.
+	 */
+	public static void setBufferingRegime(Sample.Regime r)
+	{
+		nextBufferingRegime = r;		
 	}
 
 	/**
