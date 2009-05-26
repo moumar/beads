@@ -115,4 +115,5 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	public int getNumberOfFrames() {
 		return frames.size();
 	}
+
 }

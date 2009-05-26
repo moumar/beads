@@ -375,12 +375,23 @@ public class AudioContext {
 		return audioFormat;
 	}
 	
-//	public AudioFormat copyOfAudioFormatWithChannels(int numChannels) {
-//		AudioFormat newFormat = new AudioFormat(audioFormat.getSampleRate(),
-//												audioFormat.getSampleSizeInBits(),
-//												numChannels,
-//												audioFormat.);
-//	}
+	/**
+	 * Generates a new AudioFormat with the same everything as the AudioContext's AudioFormat except for the number
+	 * of channels.
+	 * 
+	 * @param numChannels the number of channels.
+	 * @return a new AudioFormat with the given number of channels, all other properties coming from the original AudioFormat.
+	 */
+	public AudioFormat getAudioFormat(int numChannels) {
+		AudioFormat newFormat = new AudioFormat(audioFormat.getEncoding(), 
+												audioFormat.getSampleRate(),
+												audioFormat.getSampleSizeInBits(),
+												numChannels,
+												audioFormat.getFrameSize(),
+												audioFormat.getFrameRate(),
+												audioFormat.isBigEndian());
+		return newFormat;
+	}
 
 	/**
 	 * Stops the AudioContext if running either in realtime or non-realtime.

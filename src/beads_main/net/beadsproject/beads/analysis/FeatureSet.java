@@ -7,12 +7,30 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Hashtable;
 
+import net.beadsproject.beads.data.Sample;
+
 
 public class FeatureSet {
 
 	private Hashtable<String, FeatureTrack> tracks;
 	private File file;
 
+	public static FeatureSet forSample(Sample s) {
+		String sampleFilePath = s.getFileName();
+		FeatureSet fs = null;
+		if(sampleFilePath != null) {
+			File featureFile = new File(sampleFilePath + ".features");
+			if(featureFile.exists()) {
+				try {
+					fs = new FeatureSet(featureFile);
+				} catch(Exception e) {
+					fs = null;
+				}
+			}
+		}
+		return fs;
+	}
+	
 	public FeatureSet(File file) {
 		this();
 		read(file);
@@ -69,6 +87,10 @@ public class FeatureSet {
 	public void write(File file) {
 		this.file = file;
 		write();
+	}
+	
+	public void write(String fn) {
+		write(new File(fn));
 	}
 	
 }

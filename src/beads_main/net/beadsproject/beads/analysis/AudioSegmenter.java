@@ -11,7 +11,7 @@ import net.beadsproject.beads.core.BeadArray;
 import net.beadsproject.beads.core.TimeStamp;
 import net.beadsproject.beads.core.UGen;
 
-public abstract class AudioSegmenter extends UGen {
+public abstract class AudioSegmenter extends UGen implements SegmentMaker {
 	
 	/** The set of FeatureExtractors that respond to this Segmenter. */
 	private ArrayList<FeatureExtractor<?, float[]>> listeners;
@@ -40,12 +40,21 @@ public abstract class AudioSegmenter extends UGen {
 	}
 	
 	/**
-	 * Adds a FeatureRecorder as a listener to this Segmenter.
+	 * Adds a SegmentListener as a listener to this Segmenter.
 	 * 
-	 * @param fe the FeatureExtractor.
+	 * @param sl the SegmentListener.
 	 */
-	public void addSegmentListener(SegmentListener fr) {
-		segmentListeners.add(fr);
+	public void addSegmentListener(SegmentListener sl) {
+		segmentListeners.add(sl);
+	}
+
+	/**
+	 * Removes a SegmentListerner as a listener to this Segmenter.
+	 * 
+	 * @param sl the SegmentListerner.
+	 */
+	public void removeSegmentListener(SegmentListener sl) {
+		segmentListeners.add(sl);
 	}
 
 	/**
