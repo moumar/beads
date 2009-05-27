@@ -870,12 +870,8 @@ public class Sample implements Runnable {
      * @return the interpolated frame.
      */
     public float[] getFrameCubic(int currentSample, float fractionOffset) {    	
-    	System.out.println("Cubic interpolation not yet supported.\n");
-    	System.exit(1);
-    	return null;
-    	/*
-    	 * OLLIES OLD CUBIC INTERPOLATION CODE
         float[] result = new float[nChannels];
+        float[] buf = new float[nChannels];
         float a0,a1,a2,a3,mu2;
         float ym1,y0,y1,y2;
         for (int i = 0; i < nChannels; i++) {
@@ -883,21 +879,28 @@ public class Sample implements Runnable {
             if(realCurrentSample >= 0 && realCurrentSample < (nFrames - 1)) {
                 realCurrentSample--;
                 if (realCurrentSample < 0) {
-                    ym1 = buf[i][0];
+                	getFrame(0, buf);
+                    ym1 = buf[i];
                     realCurrentSample = 0;
                 } else {
-                    ym1 = buf[i][realCurrentSample++];
+                	getFrame(realCurrentSample++, buf);
+                    ym1 = buf[i];
                 }
-                y0 = buf[i][realCurrentSample++];
+            	getFrame(realCurrentSample++, buf);
+                y0 = buf[i];
                 if (realCurrentSample >= nFrames) {
-                    y1 = buf[i][(int)nFrames - 1]; //??
+                	getFrame((int)nFrames - 1, buf);
+                    y1 = buf[i]; //??
                 } else {
-                    y1 = buf[i][realCurrentSample++];
+                	getFrame(realCurrentSample++, buf);
+                    y1 = buf[i];
                 }
                 if (realCurrentSample >= nFrames) {
-                    y2 = buf[i][(int)nFrames - 1]; //??
+                	getFrame((int)nFrames - 1, buf);
+                    y2 = buf[i]; //??
                 } else {
-                    y2 = buf[i][realCurrentSample];
+                	getFrame(realCurrentSample++, buf);
+                    y2 = buf[i];
                 }
                 mu2 = fractionOffset * fractionOffset;
                 a0 = y2 - y1 - ym1 + y0;
@@ -910,7 +913,6 @@ public class Sample implements Runnable {
             }
         }
         return result;
-        */
     }
     
     /** 

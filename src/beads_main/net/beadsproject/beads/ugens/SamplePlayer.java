@@ -402,7 +402,8 @@ public class SamplePlayer extends UGen {
 				}
 				//update the position, loop state, direction
 				calculateNextPosition(i);
-				if(isPaused()) {
+				//if the SamplePlayer gets paused or deleted, zero the remaining outs and quit the loop
+				if(isPaused() || isDeleted()) {
 					//make sure to zero the remaining outs
 					while(i < bufferSize) {
 						for (int j = 0; j < outs; j++) {
