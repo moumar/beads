@@ -85,6 +85,28 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	}
 	
 	/**
+	 * Gets the frame for the given offset, in milliseconds, into the FeatureLayer, or the last frame before then.
+	 * 
+	 * @param timeMS the millisecond offset.
+	 * 
+	 * @return the FeatureFrame at this time.
+	 */
+	public FeatureFrame getFrameBefore(double timeMS) {
+		FeatureFrame targetFrame = new FeatureFrame(timeMS, timeMS);
+		SortedSet<FeatureFrame> headSet = frames.headSet(targetFrame);
+		return headSet.last();
+	}
+	
+	/**
+	 * Gets the last FeatureFrame in this FeatureTrack. 
+	 * 
+	 * @return the last FeatureFrame in this FeatureTrack.
+	 */
+	public FeatureFrame getLastFrame() {
+		return frames.last();
+	}
+	
+	/**
 	 * Adds a new FeatureExtractor.
 	 * 
 	 * @param e the FeatureExtractor.
@@ -128,5 +150,6 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	public int getNumberOfFrames() {
 		return frames.size();
 	}
+
 
 }
