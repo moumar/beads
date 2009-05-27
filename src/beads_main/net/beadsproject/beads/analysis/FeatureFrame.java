@@ -12,7 +12,7 @@ import java.util.Hashtable;
  *
  * @author ollie
  */
-public class FeatureFrame implements Serializable {
+public class FeatureFrame implements Serializable, Comparable<FeatureFrame> {
 		
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
@@ -136,6 +136,12 @@ public class FeatureFrame implements Serializable {
 			}
 		}
 		return result;
+	}
+
+	public int compareTo(FeatureFrame other) {
+		if(startTimeMS < other.startTimeMS) return -1;
+		if(startTimeMS > other.startTimeMS) return 1;
+		return 0;
 	}
 	
 }

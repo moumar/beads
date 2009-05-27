@@ -7,6 +7,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import net.beadsproject.beads.core.TimeStamp;
 import net.beadsproject.beads.data.Sample;
@@ -24,7 +26,7 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	private static final long serialVersionUID = 1L;
 	
 	/** The list of FeatureFrames. */
-	private ArrayList<FeatureFrame> frames;
+	private SortedSet<FeatureFrame> frames;
 
 	/** The list of FeatureExtractors used to extract data. */
 	private transient List<FeatureExtractor<?, ?>> extractors;
@@ -33,7 +35,7 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	 * Instantiates a new FeatureTrack.
 	 */
 	public FeatureTrack() {
-		frames = new ArrayList<FeatureFrame>();
+		frames = new TreeSet<FeatureFrame>();
 		extractors = new ArrayList<FeatureExtractor<?,?>>();
 	}
 	
@@ -54,7 +56,17 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	 * @return the FeatureFrame.
 	 */
 	public FeatureFrame get(int index) {
-		return frames.get(index);
+		if(index >= frames.size()) {
+			return null;
+		}
+		int count = 0;
+		FeatureFrame result = null;
+		for(FeatureFrame ff : frames) {
+			result = ff;
+			if(count == index) break;
+			count++;
+		}
+		return result;
 	}
 
 	/**
@@ -65,9 +77,11 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	 * @return the FeatureFrame at this time.
 	 */
 	public FeatureFrame getFrameAt(double timeMS) {
-		for(FeatureFrame ff : frames) {
-			if(ff.containsTime(timeMS)) return ff;
-		}
+		// TODO testme
+		FeatureFrame targetFrame = new FeatureFrame(timeMS, timeMS);
+		SortedSet<FeatureFrame> headSet = frames.headSet(targetFrame);
+		FeatureFrame theFrame = headSet.last();
+		if(theFrame.containsTime(timeMS)) return theFrame;
 		return null;
 	}
 	
