@@ -437,7 +437,7 @@ public class SamplePlayer extends UGen {
 	/**
 	 * Called when at the end of the Sample, assuming the loop mode is non-looping, or beginning, if the SamplePlayer is playing backwards..
 	 */
-	private void atEnd () {
+	private void atEnd() {
 		if (killOnEnd) {
 			kill();
 		}

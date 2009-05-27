@@ -120,12 +120,15 @@ public abstract class Bead {
 	}
 
 	/**
-	 * Stops this Bead, and flags it as deleted. This means that the Bead will automatically be removed from any {@link BeadArray}s. 
+	 * Stops this Bead, and flags it as deleted. This means that the Bead will automatically be removed from any {@link BeadArray}s. Calling this method for the first time
+	 * also causes the killListener to be notified.
 	 */
 	public void kill() {
-		deleted = true;
-		if(killListener != null) {
-			killListener.message(this);
+		if(!deleted) {
+			deleted = true;
+			if(killListener != null) {
+				killListener.message(this);
+			}
 		}
 	}
 	

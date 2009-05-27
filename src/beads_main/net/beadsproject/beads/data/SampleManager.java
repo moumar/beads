@@ -207,7 +207,8 @@ public class SampleManager {
 	}
 
 	/**
-	 * Gets the Sample at the specified index from the specified group.
+	 * Gets the Sample at the specified index from the specified group. If index is greater than the size of the group
+	 * then the value index % sizeOfGroup is used.
 	 * 
 	 * @param groupName the group name.
 	 * @param index the index.
