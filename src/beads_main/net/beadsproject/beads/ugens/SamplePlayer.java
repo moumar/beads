@@ -90,7 +90,7 @@ public class SamplePlayer extends UGen {
 	protected float loopCrossFade;                 			//TODO loop crossfade behaviour
 
 	/** Flag to determine whether playback starts at the beginning of the sample or at the beginning of the loop. */
-	protected boolean startLoop;							//TODO behaviour such that if you're outside the loop points you immediately pop inside them.
+	protected boolean startLoop;
 
 	/** Flag to determine whether the SamplePlayer should kill itself when it gets to the end of the Sample. */
 	protected boolean killOnEnd;

@@ -29,14 +29,14 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	private SortedSet<FeatureFrame> frames;
 
 	/** The list of FeatureExtractors used to extract data. */
-	private transient List<FeatureExtractor<?, ?>> extractors;
+	private transient List<FeatureExtractor<? extends Cloneable, ?>> extractors;
 	
 	/**
 	 * Instantiates a new FeatureTrack.
 	 */
 	public FeatureTrack() {
 		frames = new TreeSet<FeatureFrame>();
-		extractors = new ArrayList<FeatureExtractor<?,?>>();
+		extractors = new ArrayList<FeatureExtractor<? extends Cloneable,?>>();
 	}
 	
 	/**
@@ -111,7 +111,7 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	 * 
 	 * @param e the FeatureExtractor.
 	 */
-	public void addFeatureExtractor(FeatureExtractor<?, ?> e) {
+	public void addFeatureExtractor(FeatureExtractor<? extends Cloneable, ?> e) {
 		extractors.add(e);
 	}
 	
@@ -129,8 +129,8 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	 */
 	public void newSegment(TimeStamp startTime, TimeStamp endTime) {
 		FeatureFrame ff = new FeatureFrame(startTime.getTimeMS(), endTime.getTimeMS());
-		for(FeatureExtractor<?, ?> e : extractors) {
-			ff.add(e.getName(), e.getFeatures());
+		for(FeatureExtractor<? extends Cloneable, ?> e : extractors) {
+			ff.add(e.getName(), e.getFeatures());		// TODO HERE the features must be cloned!
 		}
 		add(ff);
 	}
