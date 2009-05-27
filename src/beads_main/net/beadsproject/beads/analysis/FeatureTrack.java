@@ -77,12 +77,11 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	 * @return the FeatureFrame at this time.
 	 */
 	public FeatureFrame getFrameAt(double timeMS) {
-		// TODO testme
 		FeatureFrame targetFrame = new FeatureFrame(timeMS, timeMS);
 		SortedSet<FeatureFrame> headSet = frames.headSet(targetFrame);
 		FeatureFrame theFrame = headSet.last();
 		if(theFrame.containsTime(timeMS)) return theFrame;
-		return null;
+		else return null;
 	}
 	
 	/**

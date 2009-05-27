@@ -18,10 +18,16 @@ public class PolyLimit extends UGen {
 	}
 	
 	public void addInput(UGen sourceUGen) {
-		super.addInput(sourceUGen);
-		if(existingInputs.size() > maxInputs) {
-			UGen deadUGen = existingInputs.peek();
-			removeAllConnections(deadUGen);
+		if(existingInputs.contains(sourceUGen)) {
+			existingInputs.remove(sourceUGen);
+			existingInputs.add(sourceUGen);
+		} else {
+			if(existingInputs.size() > maxInputs) {
+				UGen deadUGen = existingInputs.poll();
+				removeAllConnections(deadUGen);
+				existingInputs.add(sourceUGen);
+			}
+			super.addInput(sourceUGen);
 		}
 	}
 	

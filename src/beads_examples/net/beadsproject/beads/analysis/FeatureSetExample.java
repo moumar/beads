@@ -52,7 +52,8 @@ public class FeatureSetExample {
 		
 		FeatureTrack myTrack = fs.get("features");
 		
-		double testTimeMS = 10000;
+		double testTimeMS = 5000;
+		System.out.println("Let's try to find the frame at " + testTimeMS + "ms");
 		FeatureFrame ff = myTrack.getFrameAt(testTimeMS);
 		System.out.println(ff);
 		
