@@ -123,8 +123,9 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 		extractors.remove(e);
 	}
 	
-	/* (non-Javadoc)
-	 * @see net.beadsproject.beads.core.Bead#messageReceived(net.beadsproject.beads.core.Bead)
+	/**
+	 * Tells this FeatureTrack to log a new FeatureFrame with the given startTime and endTime. The FeatureTrack
+	 * will gather features from its various feature extractors at this point.
 	 */
 	public void newSegment(TimeStamp startTime, TimeStamp endTime) {
 		FeatureFrame ff = new FeatureFrame(startTime.getTimeMS(), endTime.getTimeMS());

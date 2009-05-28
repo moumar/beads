@@ -17,6 +17,9 @@ import java.util.TreeMap;
 
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import net.beadsproject.beads.analysis.FeatureFrame;
+import net.beadsproject.beads.analysis.FeatureSet;
+
 /**
  * SampleManager provides a static repository for {@link Sample} data and provides methods to organise samples into groups.
  */
@@ -33,6 +36,8 @@ public class SampleManager {
 	/** List of Sample groups, indexed by group name. */
 	private final static Map<String, ArrayList<Sample>> groups = new TreeMap<String, ArrayList<Sample>>();
 
+	private final static Map<Sample, FeatureSet> featureSets = new Hashtable<Sample, FeatureSet>();
+	
 	private static boolean verbose = true;
 	
 	/** The regime to use when loading the next sample. */
@@ -312,6 +317,24 @@ public class SampleManager {
 	 */
 	public static void setVerbose(boolean verbose) {
 		SampleManager.verbose = verbose;
+	}
+
+	/**
+	 * Gets the FeatureSet for a given Sample. The method first checks to see if the FeatureSet
+	 * is already stored in memory. If not it looks for a file with the same file name as the 
+	 * Sample (including the file type), but with the suffix ".features". Once loaded, the FeatureSet
+	 * is stored in memory.
+	 * 
+	 * @param sample the Sample to search for features of.
+	 * @return the FeatureSet.
+	 */
+	public static FeatureSet featuresForSample(Sample sample) {
+		if(featureSets.containsKey(sample)) {
+			return featureSets.get(sample);
+		} 
+		FeatureSet set = FeatureSet.forSample(sample);
+		featureSets.put(sample, set);
+		return set;
 	}
 	
 	
