@@ -4,14 +4,13 @@
 package net.beadsproject.beads.analysis;
 
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
 import net.beadsproject.beads.core.TimeStamp;
-import net.beadsproject.beads.data.Sample;
 
 /**
  * Stores a set of features associated with a continuous period of audio data.
@@ -29,14 +28,14 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	private SortedSet<FeatureFrame> frames;
 
 	/** The list of FeatureExtractors used to extract data. */
-	private transient List<FeatureExtractor<? extends Cloneable, ?>> extractors;
+	private transient List<FeatureExtractor<?, ?>> extractors;
 	
 	/**
 	 * Instantiates a new FeatureTrack.
 	 */
 	public FeatureTrack() {
 		frames = new TreeSet<FeatureFrame>();
-		extractors = new ArrayList<FeatureExtractor<? extends Cloneable,?>>();
+		extractors = new ArrayList<FeatureExtractor<?,?>>();
 	}
 	
 	/**
@@ -111,7 +110,7 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	 * 
 	 * @param e the FeatureExtractor.
 	 */
-	public void addFeatureExtractor(FeatureExtractor<? extends Cloneable, ?> e) {
+	public void addFeatureExtractor(FeatureExtractor<?, ?> e) {
 		extractors.add(e);
 	}
 	
@@ -129,8 +128,33 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	 */
 	public void newSegment(TimeStamp startTime, TimeStamp endTime) {
 		FeatureFrame ff = new FeatureFrame(startTime.getTimeMS(), endTime.getTimeMS());
-		for(FeatureExtractor<? extends Cloneable, ?> e : extractors) {
-			ff.add(e.getName(), e.getFeatures());		// TODO HERE the features must be cloned!
+		for(FeatureExtractor<?, ?> e : extractors) {
+			Object features = e.getFeatures();
+			try {
+				Method cloneMethod = features.getClass().getMethod("clone", new Class[] {});
+				ff.add(e.getName(), cloneMethod.invoke(features, new Object[] {}));
+			} catch (Exception e1) {
+				//is this ugly or what? Any better ideas?
+				if(features instanceof float[]) {
+					ff.add(e.getName(), ((float[])features).clone());
+				} else if(features instanceof int[]) {
+					ff.add(e.getName(), ((int[])features).clone());
+				} else if(features instanceof double[]) {
+					ff.add(e.getName(), ((double[])features).clone());
+				} else if(features instanceof byte[]) {
+					ff.add(e.getName(), ((byte[])features).clone());
+				} else if(features instanceof short[]) {
+					ff.add(e.getName(), ((short[])features).clone());
+				} else if(features instanceof long[]) {
+					ff.add(e.getName(), ((long[])features).clone());
+				} else if(features instanceof Object[]) {
+					ff.add(e.getName(), ((Object[])features).clone());
+				}  else if(features instanceof boolean[]) {
+					ff.add(e.getName(), ((boolean[])features).clone());
+				} else {
+					e1.printStackTrace();
+				}
+			} 
 		}
 		add(ff);
 	}
