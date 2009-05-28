@@ -231,7 +231,10 @@ public class SampleManager {
 	 * @param sampleName the sample name.
 	 */
 	public static void removeSample(String sampleName) {
-		samples.remove(sampleName);
+		if(samples.containsKey(sampleName)) {
+			featureSets.remove(samples.get(sampleName));
+			samples.remove(sampleName);
+		}
 	}
 
 	/**
