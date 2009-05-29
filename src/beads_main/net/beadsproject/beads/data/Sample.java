@@ -151,10 +151,11 @@ public class Sample implements Runnable {
 		
 	};
 	 	
-	/** Store the sample data with native bit-depth. 
+	/** 
+	 * Store the sample data with native bit-depth. 
 	 * Storing in native bit-depth reduces memory load, but increases cpu-load. 
 	 */ 
-	//public boolean storeInNativeBitDepth = true;	
+	public boolean storeInNativeBitDepth = false;	
 	
 	private boolean verbose;
 	
@@ -186,6 +187,7 @@ public class Sample implements Runnable {
 	private int numberOfRegionsLoaded; // number of loaded regions
 	
 	private byte[][] regions; // the actual data
+	private float[][][] f_regions; // uninterleaved data
 	
 	private long[] regionAge; // the age of each region (in ms)
 	private long timeAtLastAgeUpdate; // the time at the last age updated operation
@@ -196,7 +198,8 @@ public class Sample implements Runnable {
 	private Lock[] regionLocks; // to support safe deletion/writing of regions
 		
 	// this parameter is only used if regime==TOTAL
-	private byte[] sampleData;	
+	private byte[] sampleData;
+	private float[][] f_sampleData;
 
 	/**
      * Instantiates a new empty buffer with the specified audio format and
@@ -210,6 +213,7 @@ public class Sample implements Runnable {
     	this.audioFormat = audioFormat;
         nChannels = audioFormat.getChannels();
         nFrames = totalFrames;
+        storeInNativeBitDepth = true;
         sampleData = new byte[2*nChannels*(int)totalFrames]; //16-bit
         Arrays.fill(sampleData,(byte)0);
         length = totalFrames / audioFormat.getSampleRate() * 1000f;
@@ -358,10 +362,19 @@ public class Sample implements Runnable {
 			// the last region may contain 0 to (regionSize-1) samples
 			
 			numberOfRegionsLoaded = 0;
-			regions = new byte[numberOfRegions][];
+			
+			if (storeInNativeBitDepth)
+			{
+				regions = new byte[numberOfRegions][];
+				Arrays.fill(regions,null);
+			}
+			else
+			{
+				f_regions = new float[numberOfRegions][][];
+				Arrays.fill(f_regions,null);
+			}
+			
 			regionAge = new long[numberOfRegions];
-			// a null region is a region that isn't loaded yet, or that has been discarded
-			Arrays.fill(regions,null);
 			Arrays.fill(regionAge,0);
 						
 			if(verbose) System.out.printf("Timed Sample has %d regions of %d bytes each.\n",numberOfRegions,regionSizeInBytes);
@@ -382,33 +395,9 @@ public class Sample implements Runnable {
 			regionThread.start();
 						
 			// regionThread.setPriority()
-						
-			// load first N regions ... just for testing...
-			/*
-			for(int i=0;i<Math.min(numberOfRegions,100);i++)
-			{
-				regions[i] = new byte[regionSizeInBytes];
-				//audioFile.seek(i*regionSize); // note that seek is in frames!
-				System.out.println("Loaded region " + i + "/" + numberOfRegions);
-				int numBytes = audioFile.read(regions[i]);
-				if (numBytes!=regionSizeInBytes)
-				{
-					System.out.println("Region incomplete! (" + numBytes + " bytes read)");
-				}
-			}		
-			*/
 		}
 	}
 	
-//	/**
-//	 * Returns a single frame given the time in milliseconds.
-//	 * If the data is not readily available this function blocks until it is.
-//	 * 
-//	 * @param timeMs the time in milliseconds.
-//	 */
-//	public void getFrame(double timeMs, float[] frame) {
-//		getFrame((int)msToSamples(timeMs), frame);
-//	}
 	
 	/// are we using the total regime?
 	private boolean isTotal()
@@ -430,8 +419,16 @@ public class Sample implements Runnable {
 		
 		if (isTotal())
 		{
-			int startIndex = frame * 2 * nChannels;
-			AudioUtils.byteToFloat(frameData,sampleData,isBigEndian,startIndex,frameData.length);			
+			if (storeInNativeBitDepth)
+			{
+				int startIndex = frame * 2 * nChannels;			
+				AudioUtils.byteToFloat(frameData,sampleData,isBigEndian,startIndex,frameData.length);
+			}
+			else
+			{
+				for(int i=0;i<nChannels;i++)
+					frameData[i] = f_sampleData[i][frame];
+			}
 		}
 		else // bufferingRegime==BufferingRegime.TIMED
 		{
@@ -450,17 +447,34 @@ public class Sample implements Runnable {
 			}
 			
 			try {
-				byte[] regionData = getRegion(whichRegion);
-				if (regionData!=null)
-				{
-					// convert it to the correct format,
-					int startIndex = (frame % r_regionSize) * 2 * nChannels;
-					AudioUtils.byteToFloat(frameData,regionData,isBigEndian,startIndex,frameData.length);
+				
+				if (storeInNativeBitDepth)
+				{									
+					byte[] regionData = getRegion(whichRegion);
+					if (regionData!=null)
+					{
+						// convert it to the correct format,
+						int startIndex = (frame % r_regionSize) * 2 * nChannels;
+						AudioUtils.byteToFloat(frameData,regionData,isBigEndian,startIndex,frameData.length);
+					}
+					else
+					{
+						System.err.println("Sample.java:409 no region data!");
+						//System.exit(1);
+					}
 				}
 				else
 				{
-					System.err.println("Sample.java:409 no region data!");
-					//System.exit(1);
+					float[][] regionData = getRegionF(whichRegion);
+					if (regionData!=null)
+					{
+						// convert it to the correct format,
+						int startIndex = frame % r_regionSize;
+						//System.arraycopy(regionData[startIndex], srcPos, dest, destPos, length)
+						for(int i=0;i<nChannels;i++)
+							frameData[i] = regionData[i][startIndex];
+						//AudioUtils.byteToFloat(frameData,regionData,isBigEndian,startIndex,frameData.length);
+					}
 				}
 					
 					
@@ -487,16 +501,28 @@ public class Sample implements Runnable {
 		
 		if (isTotal())
 		{
-			int startIndex = frame * 2 * nChannels;			
 			int numFloats = Math.min(frameData[0].length,(int)(nFrames-frame))*nChannels;			
-			float[] floatdata = new float[numFloats];
-			AudioUtils.byteToFloat(floatdata, sampleData, isBigEndian, startIndex, numFloats);
-			AudioUtils.deinterleave(floatdata,nChannels,frameData[0].length,frameData);
+			
+			if (storeInNativeBitDepth)
+			{
+				int startIndex = frame * 2 * nChannels;			
+				float[] floatdata = new float[numFloats];
+				AudioUtils.byteToFloat(floatdata, sampleData, isBigEndian, startIndex, numFloats);
+				AudioUtils.deinterleave(floatdata,nChannels,frameData[0].length,frameData);
+			}
+			else
+			{
+				for(int i=0;i<nChannels;i++)
+					System.arraycopy(f_sampleData[i],frame,frameData[i],0,numFloats);
+			}
 		}
 		else // bufferingRegime==BufferingRegime.TIMED
 		{
-			int numFloats = Math.min(frameData[0].length,(int)(nFrames-frame))*nChannels;			
-			float[] floatdata = new float[numFloats];
+			int numFloats = Math.min(frameData[0].length,(int)(nFrames-frame))*nChannels;
+			
+			float[] floatdata = null;
+			if (storeInNativeBitDepth)
+				floatdata = new float[numFloats];
 			
 			// fill floatdata with successive regions of byte data
 			int floatdataindex = 0;			
@@ -515,9 +541,25 @@ public class Sample implements Runnable {
 				}
 				
 				try {
-					byte[] regionData = getRegion(whichregion);
-					if (regionData!=null)
-						AudioUtils.byteToFloat(floatdata, regionData, isBigEndian, regionindex*2*nChannels, floatdataindex*nChannels, numfloatstocopy*nChannels);
+					
+					if (storeInNativeBitDepth)
+					{					
+						byte[] regionData = getRegion(whichregion);
+						if (regionData!=null)
+							AudioUtils.byteToFloat(floatdata, regionData, isBigEndian, regionindex*2*nChannels, floatdataindex*nChannels, numfloatstocopy*nChannels);
+					}
+					else
+					{
+						float[][] regionData = getRegionF(whichregion);
+						if (regionData!=null)
+						{
+							// copy all channels...
+							for(int i=0;i<nChannels;i++)
+							{
+								System.arraycopy(regionData[i], 0, frameData[i], floatdataindex, numfloatstocopy);
+							}
+						}
+					}
 				}
 				finally {
 					regionLocks[whichregion].unlock();
@@ -536,7 +578,6 @@ public class Sample implements Runnable {
 	// Region loading, handling, queuing, removing, etc...	
 	
 	/// Region handling, loading, etc...
-	// assume region r exists
 	private byte[] getRegion(int r)
 	{	
 		// first determine whether the region is valid
@@ -546,6 +587,31 @@ public class Sample implements Runnable {
 			loadRegion(r);
 		}
 		
+		touchRegion(r);
+		
+		// then return it
+		return regions[r];
+	}
+	
+	/// Region handling, loading, etc...
+	// assume region r exists
+	private float[][] getRegionF(int r)
+	{	
+		// first determine whether the region is valid
+		if (!isRegionAvailable(r))
+		{
+			//System.out.println("REGION NOT THERE!");
+			loadRegion(r);
+		}
+		
+		touchRegion(r);
+		
+		// then return it
+		return f_regions[r];
+	}
+	
+	private void touchRegion(int r)
+	{
 		if (((TimedRegime)bufferingRegime).loadingOrder==TimedRegime.Order.ORDERED)
 		{
 			// queue the regions from back to front
@@ -584,14 +650,14 @@ public class Sample implements Runnable {
 		// touch the region, make it new
 		synchronized (regionAge)
 		{	regionAge[r] = 0; }
-		// then return it
-		
-		return regions[r];
 	}
 	
 	private boolean isRegionAvailable(int r)
 	{
-		return regions[r]!=null;
+		if (storeInNativeBitDepth)
+			return regions[r]!=null;
+		else
+			return f_regions[r]!=null;
 	}
 	
 	private boolean isRegionQueued(int r)
@@ -606,12 +672,31 @@ public class Sample implements Runnable {
 	{
 		// for now, just seek to the correct position 
 		try {			
-			regions[r] = new byte[regionSizeInBytes];
-			numberOfRegionsLoaded++;
-			audioFile.seek(r_regionSize*r);
-			int bytesRead = audioFile.read(regions[r]);
-			if (bytesRead<=0)
-				regions[r] = null;
+			if (storeInNativeBitDepth)
+			{
+				regions[r] = new byte[regionSizeInBytes];
+				numberOfRegionsLoaded++;
+				audioFile.seek(r_regionSize*r);
+				int bytesRead = audioFile.read(regions[r]);
+				if (bytesRead<=0)
+					regions[r] = null;
+			}
+			else // store in float[][] format
+			{
+				// load the bytes and convert them on the spot
+				byte[] region = new byte[regionSizeInBytes];
+				numberOfRegionsLoaded++;
+				audioFile.seek(r_regionSize*r);
+				int bytesRead = audioFile.read(region);
+				if (bytesRead<=0)
+					regions[r] = null;
+				
+				// now convert
+				f_regions[r] = new float[nChannels][r_regionSize];
+				float[] interleaved = new float[nChannels*r_regionSize];
+				AudioUtils.byteToFloat(interleaved, region, isBigEndian);	
+				AudioUtils.deinterleave(interleaved, nChannels, r_regionSize, f_regions[r]);
+			}
 			synchronized(regionAge)
 			{
 				regionAge[r] = 0;
@@ -635,6 +720,14 @@ public class Sample implements Runnable {
 			
 		}
 	}
+		
+	private void unloadRegion(int r)
+	{
+		if (storeInNativeBitDepth)
+			regions[r]=null;
+		else
+			f_regions[r]=null;		
+	}
 
 	public void run() {
 		while (true)
@@ -648,7 +741,7 @@ public class Sample implements Runnable {
 				if (regionLocks[r].tryLock())
 				{		
 					try {
-						if (regions[r]==null)
+						if (!isRegionAvailable(r))
 							loadRegion(r);							
 						synchronized(regionQueued)
 						{
@@ -675,7 +768,7 @@ public class Sample implements Runnable {
 			for (int i=0;i<numberOfRegions;i++)
 			{	
 				//System.out.printf("%d ",regionAge[i]);
-				if (regions[i]!=null)
+				if (!isRegionAvailable(i))
 				{
 					synchronized(regionAge)
 					{
@@ -687,7 +780,7 @@ public class Sample implements Runnable {
 						if (regionLocks[i].tryLock())
 						{
 							try {
-								regions[i] = null;
+								unloadRegion(i);
 								numberOfRegionsLoaded--;
 							}
 							finally {
@@ -719,7 +812,8 @@ public class Sample implements Runnable {
 		byte[] audioBytes = new byte[BUFFERSIZE];
 
 		int sampleBufferSize = 4096;
-		sampleData = new byte[sampleBufferSize];
+		byte[] data = new byte[sampleBufferSize];
+				
 		int bytesRead;
 		int totalBytesRead = 0;
 		
@@ -737,11 +831,11 @@ public class Sample implements Runnable {
 				
 				// resize buffer
 				byte[] newBuf = new byte[sampleBufferSize];
-				System.arraycopy(sampleData, 0, newBuf, 0, sampleData.length);					
-				sampleData = newBuf;
+				System.arraycopy(data, 0, newBuf, 0, data.length);					
+				data = newBuf;
 			}
 			
-			System.arraycopy(audioBytes, 0, sampleData, totalBytesRead, bytesRead);			
+			System.arraycopy(audioBytes, 0, data, totalBytesRead, bytesRead);			
 			
 			numberOfFrames += numFramesJustRead;
 			totalBytesRead += bytesRead;
@@ -755,11 +849,26 @@ public class Sample implements Runnable {
 			
 			// resize buffer				
 			byte[] newBuf = new byte[sampleBufferSize];
-			System.arraycopy(sampleData, 0, newBuf, 0, sampleBufferSize);					
-			sampleData = newBuf;
+			System.arraycopy(data, 0, newBuf, 0, sampleBufferSize);					
+			data = newBuf;
 		}
 		
 		nFrames = sampleBufferSize / (2*nChannels);
+		
+		if (!storeInNativeBitDepth)
+		{
+			// copy and deinterleave entire data
+
+			f_sampleData = new float[nChannels][(int) nFrames];
+			float[] interleaved = new float[(int) (nChannels*nFrames)];
+			AudioUtils.byteToFloat(interleaved, data, isBigEndian);	
+			AudioUtils.deinterleave(interleaved, nChannels, (int) nFrames, f_sampleData);
+		}		
+		else
+		{
+			// store the data in this sample in native format
+			sampleData = data;
+		}	
 		
 		audioFile.close();		
 	}

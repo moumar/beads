@@ -19,9 +19,11 @@ public class PatternExample {
 
 	public static void main(String[] args) {
 		final AudioContext ac = new AudioContext();
-		String dir = "/Users/ollie/Music/Audio/crash test audio/469-23_SpeedY_Nylon_Guitar_Single_notes.";
+		//String dir = "/Users/ollie/Music/Audio/crash test audio/469-23_SpeedY_Nylon_Guitar_Single_notes.";
+		String dir = "D:/audio/crash test audio/469-23_SpeedY_Nylon_Guitar_Single_notes.";
 		
-		SampleManager.setBufferingRegime(new Sample.TimedRegime(100, 0, 0, 50000, Sample.TimedRegime.Order.NEAREST));
+		//SampleManager.setBufferingRegime(new Sample.TimedRegime(100, 0, 0, 0, Sample.TimedRegime.Order.ORDERED));
+		SampleManager.setBufferingRegime(Sample.Regime.TOTAL);
 		
 		SampleManager.group("sounds", dir);
 		final Clock c = new Clock(ac, 500);
