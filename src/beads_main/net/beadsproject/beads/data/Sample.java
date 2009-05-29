@@ -501,13 +501,13 @@ public class Sample implements Runnable {
 		
 		if (isTotal())
 		{
-			int numFloats = Math.min(frameData[0].length,(int)(nFrames-frame))*nChannels;			
+			int numFloats = Math.min(frameData[0].length,(int)(nFrames-frame));			
 			
 			if (storeInNativeBitDepth)
 			{
 				int startIndex = frame * 2 * nChannels;			
-				float[] floatdata = new float[numFloats];
-				AudioUtils.byteToFloat(floatdata, sampleData, isBigEndian, startIndex, numFloats);
+				float[] floatdata = new float[numFloats*nChannels];
+				AudioUtils.byteToFloat(floatdata, sampleData, isBigEndian, startIndex, numFloats*nChannels);
 				AudioUtils.deinterleave(floatdata,nChannels,frameData[0].length,frameData);
 			}
 			else
