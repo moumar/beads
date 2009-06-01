@@ -57,10 +57,7 @@ public class SamplePlayer extends UGen {
 	protected float sampleRate;                 
 
 	/** The position in milliseconds. */
-	protected double position;                    
-
-	/** The last changed position, used to determine if the position envelope is in use. */
-	protected double lastChangedPosition;
+	protected double position;                
 
 	/** The position envelope. */
 	protected UGen positionEnvelope;
@@ -113,7 +110,7 @@ public class SamplePlayer extends UGen {
 	public SamplePlayer(AudioContext context, int outs) {
 		super(context, outs);
 		rateEnvelope = new Static(context, 1.0f);
-		positionEnvelope = new Static(context, 0.0f);
+		positionEnvelope = null;
 		interpolationType = InterpolationType.LINEAR;
 		loopType = LoopType.NO_LOOP_FORWARDS;
 		forwards = true;
@@ -205,7 +202,7 @@ public class SamplePlayer extends UGen {
 	}
 
 	/**
-	 * Sets the playback position.
+	 * Sets the playback position. This will not work if the position envelope is not null.
 	 * 
 	 * @param position the new position in milliseconds.
 	 */
@@ -223,7 +220,7 @@ public class SamplePlayer extends UGen {
 	}
 
 	/**
-	 * Sets the position envelope. Setting the position envelope means that the position is then controlled by this envelope. If the envelope is null, or unchanging, the position continues to be modified by the SamplePlayer's internal playback or by calls to change the position.
+	 * Sets the position envelope. Setting the position envelope means that the position is then controlled by this envelope. If the envelope is null the position continues to be modified by the SamplePlayer's internal playback or by calls to change the position.
 	 * 
 	 * @param positionEnvelope the new position envelope.
 	 */
@@ -379,10 +376,13 @@ public class SamplePlayer extends UGen {
 	@Override
 	public void calculateBuffer() {
 		if(buffer != null) {
-			rateEnvelope.update();
-			positionEnvelope.update();
-			loopStartEnvelope.update();
-			loopEndEnvelope.update();
+			if(positionEnvelope != null) {
+				positionEnvelope.update();
+			} else {
+				rateEnvelope.update();
+				loopStartEnvelope.update();
+				loopEndEnvelope.update();
+			}
 			for (int i = 0; i < bufferSize; i++) {
 				//calculate the samples
 				double posInSamples = buffer.msToSamples((float)position);
@@ -461,50 +461,54 @@ public class SamplePlayer extends UGen {
 	 * @param i the index within the buffer loop.
 	 */
 	protected void calculateNextPosition(int i) {
-		rate = rateEnvelope.getValue(0, i);
-		loopStart = loopStartEnvelope.getValue(0, i);
-		loopEnd = loopEndEnvelope.getValue(0, i);
-		if(lastChangedPosition != positionEnvelope.getValue(0, i)) {
+		if(positionEnvelope != null) {
 			position = positionEnvelope.getValue(0, i);
-			lastChangedPosition = position;
-		}
-		switch(loopType) {
-		case NO_LOOP_FORWARDS:
-			position += positionIncrement * rate;
-			if(position > buffer.getLength() || position < 0) atEnd();
-			break;
-		case NO_LOOP_BACKWARDS:
-			position -= positionIncrement * rate;
-			if(position > buffer.getLength() || position < 0) atEnd();
-			break;
-		case LOOP_FORWARDS:
-			position += positionIncrement * rate;
-			if(rate > 0 && position > Math.max(loopStart, loopEnd)) {
-				position = Math.min(loopStart, loopEnd);
-			} else if(rate < 0 && position < Math.min(loopStart, loopEnd)) {
-				position = Math.max(loopStart, loopEnd);
-			}
-			break;
-		case LOOP_BACKWARDS:
-			position -= positionIncrement * rate;
-			if(rate > 0 && position < Math.min(loopStart, loopEnd)) {
-				position = Math.max(loopStart, loopEnd);
-			} else if(rate < 0 && position > Math.max(loopStart, loopEnd)) {
-				position = Math.min(loopStart, loopEnd);
-			}
-			break;
-		case LOOP_ALTERNATING:
-			position += forwards ? positionIncrement * rate : -positionIncrement * rate;
-			if(forwards ^ (rate < 0)) { 
-				if(position > Math.max(loopStart, loopEnd)) {
-					forwards = (rate < 0);
-					position = 2 * Math.max(loopStart, loopEnd) - position;
+		} else {
+			rate = rateEnvelope.getValue(0, i);
+			switch(loopType) {
+			case NO_LOOP_FORWARDS:
+				position += positionIncrement * rate;
+				if(position > buffer.getLength() || position < 0) atEnd();
+				break;
+			case NO_LOOP_BACKWARDS:
+				position -= positionIncrement * rate;
+				if(position > buffer.getLength() || position < 0) atEnd();
+				break;
+			case LOOP_FORWARDS:
+				loopStart = loopStartEnvelope.getValue(0, i);
+				loopEnd = loopEndEnvelope.getValue(0, i);
+				position += positionIncrement * rate;
+				if(rate > 0 && position > Math.max(loopStart, loopEnd)) {
+					position = Math.min(loopStart, loopEnd);
+				} else if(rate < 0 && position < Math.min(loopStart, loopEnd)) {
+					position = Math.max(loopStart, loopEnd);
 				}
-			} else if(position < Math.min(loopStart, loopEnd)) {
-				forwards = (rate > 0);
-				position = 2 * Math.min(loopStart, loopEnd) - position;
+				break;
+			case LOOP_BACKWARDS:
+				loopStart = loopStartEnvelope.getValue(0, i);
+				loopEnd = loopEndEnvelope.getValue(0, i);
+				position -= positionIncrement * rate;
+				if(rate > 0 && position < Math.min(loopStart, loopEnd)) {
+					position = Math.max(loopStart, loopEnd);
+				} else if(rate < 0 && position > Math.max(loopStart, loopEnd)) {
+					position = Math.min(loopStart, loopEnd);
+				}
+				break;
+			case LOOP_ALTERNATING:
+				loopStart = loopStartEnvelope.getValue(0, i);
+				loopEnd = loopEndEnvelope.getValue(0, i);
+				position += forwards ? positionIncrement * rate : -positionIncrement * rate;
+				if(forwards ^ (rate < 0)) { 
+					if(position > Math.max(loopStart, loopEnd)) {
+						forwards = (rate < 0);
+						position = 2 * Math.max(loopStart, loopEnd) - position;
+					}
+				} else if(position < Math.min(loopStart, loopEnd)) {
+					forwards = (rate > 0);
+					position = 2 * Math.min(loopStart, loopEnd) - position;
+				}
+				break;
 			}
-			break;
 		}
 	}
 

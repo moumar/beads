@@ -35,7 +35,7 @@ public class GnuplotDataWriter<T> extends BasicDataWriter<T> {
 		if(data instanceof float[]) {
 			float[] dataf = (float[])data;
 			for(int i = 0; i < dataf.length; i++) {
-				ps.println(count + " " + i + " " + dataf[i]);
+				ps.println(startTime.getTimeMS() + " " + i + " " + dataf[i]);
 			}
 			ps.println();
 			count++;

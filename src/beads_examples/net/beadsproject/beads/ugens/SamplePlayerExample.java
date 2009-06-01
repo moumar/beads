@@ -21,7 +21,8 @@ public class SamplePlayerExample {
 //    	sp.setInterpolationType(SamplePlayer.InterpolationType.LINEAR);
     	
     	Envelope rateEnv = new Envelope(ac, 0.25f);
-//    	rateEnv.addSegment(0.25f, 5000f);
+    	rateEnv.addSegment(0.25f, 5000f);
+    	rateEnv.addSegment(4f, 20000f);
     	sp.setRateEnvelope(rateEnv);
     	sp.setLoopType(SamplePlayer.LoopType.LOOP_ALTERNATING); 
     	sp.getLoopEndEnvelope().setValue(1000f);
