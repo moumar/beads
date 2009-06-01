@@ -31,7 +31,11 @@
     	        classpath="dependencies/jarjar-1.0.jar"/>   	
     	
     	<mkdir dir="build/Beads/library/bin/main"/>
-    	<javac srcdir="src/beads_main" destdir="build/Beads/library/bin/main" debug="off"/>
+			<javac srcdir="src/beads_main" destdir="build/Beads/library/bin/main" debug="off"> 
+				<classpath>
+					<pathelement location="dependencies/tritonus_share.jar"/>
+				</classpath>
+			</javac>
     	<mkdir dir="build"/>
     		<jarjar jarfile="build/Beads/library/beads.jar">
     	  	<fileset dir="build/Beads/library/bin/main"/>
@@ -62,7 +66,11 @@
           target: doc main              
          ================================= -->
     <target name="doc main" description="generate docs for main">
-    	<javadoc sourcepath="src/beads_main" destdir="build/Beads/doc"></javadoc>	
+			<javadoc sourcepath="src/beads_main" destdir="build/Beads/doc">
+				<classpath>
+					<pathelement location="dependencies/tritonus_share.jar"/>
+				</classpath>
+			</javadoc>	
     </target>
 	
     <!-- ================================= 

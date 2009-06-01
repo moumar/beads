@@ -503,11 +503,15 @@ public class AudioContext {
 	 */
 	public void record(double timeMS, String filename) throws IOException {
 		Sample s = new Sample(getAudioFormat(), (int)msToSamples(timeMS));
-		Recorder r = new Recorder(this, s);
-		r.addInput(out);
-		out.addDependent(r);
-		r.start();
-		r.setKillListener(new AudioContextStopTrigger(this));
+		Recorder r;
+		try {
+			r = new Recorder(this, s);
+			r.addInput(out);
+			out.addDependent(r);
+			r.start();
+			r.setKillListener(new AudioContextStopTrigger(this));
+		} catch (Exception e) {  /* won't happen */ }
+		
 		while(isRunning()) {}
 		s.write(filename);
 	}

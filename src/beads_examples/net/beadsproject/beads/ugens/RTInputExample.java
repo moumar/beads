@@ -12,6 +12,7 @@ public class RTInputExample {
 	public static void main(String[] args) throws LineUnavailableException, IOException {
 		  AudioContext ac = new AudioContext();
 		  RTInput input = new RTInput(ac, new AudioFormat(44100, 16, 2, true, true));
+		  //RTInput input = new RTInput(ac);
 		  ac.out.addInput(input);
 		  TapIn tin = new TapIn(ac, 10000f);
 		  tin.addInput(input);

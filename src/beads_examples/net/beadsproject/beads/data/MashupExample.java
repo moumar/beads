@@ -32,10 +32,9 @@ public class MashupExample {
 				loadSamples(f);
 			} else {
 				try {
-					Sample s = new Sample();
-					final Sample samp = new Sample(f.getAbsolutePath(), 
+					Sample samp = new Sample(f.getAbsolutePath(), 
 							new Sample.TimedRegime(100,0,0,5000,Sample.TimedRegime.Order.NEAREST));
-					samples.put(f.getAbsolutePath(), s);
+					samples.put(f.getAbsolutePath(), samp);
 					long timeMS = System.currentTimeMillis();
 					float timeTakenMS = (timeMS - previousTimeMS);
 					previousTimeMS = timeMS;

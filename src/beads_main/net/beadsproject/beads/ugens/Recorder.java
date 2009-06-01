@@ -8,7 +8,24 @@ import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Sample;
 
 /**
- * Recorder records audio into a {@link Sample}. If a Recorder is not in loop mode it kills itself when it reaches the end of the {@link Sample}.
+ * Recorder records audio into a writeable {@link Sample}.
+ * 
+ * A Recorder has three different modes, which dictate 
+ * how it behaves when the end of the sample is reached:
+ * <ul>
+ * <li>FINITE (the default): The recorder kills itself.</li>
+ * <li>LOOPING: The recorder loop back to the beginning of the sample.</li>
+ * <li>INFINITE: The recorder increases the size of the sample.</li>
+ * </ul>
+ *
+ * A recorder may not completely fill a sample. If you just want the recorded data
+ * then be sure to {@link #clip()) the sample once done. Alternatively you can see
+ * {@link #getNumFramesRecorded() how many frames were written}. 
+ * 
+ * <p>
+ * <b>Tip: </b> Be sure to {@link #pause(boolean)} the recorder when using INFINITE mode, 
+ * otherwise it will keep recording and you may quickly run out of memory.
+ * </p>
  */
 public class Recorder extends UGen {
 
@@ -18,8 +35,39 @@ public class Recorder extends UGen {
     /** The position in samples. */
     private long position;
     
-    /** Flag to determine if looping is on. */
-    private boolean loopRecord;
+    /** The number of frames of recorded data in the sample. 
+     * 
+     * A recorder may never write the entire length of the sample. Hence
+     * this variable keeps track of the recorded section.
+     * 
+     * In particular, in INFINITE mode, framesWritten will always be less 
+     * than sample.getNumFrames(). In this case, it is often necessary to resize
+     * the sample once you have finished writing into it. This is where clip()
+     * comes in.
+     **/
+    private long framesWritten;
+    
+    public enum Mode {
+    	FINITE,
+    	LOOPING,
+    	INFINITE
+    };
+    
+    /** Recording mode. */
+    private Mode mode;
+        
+    /**
+	 * Instantiates a new Recorder.
+	 * 
+	 * @param context
+	 *            the AudioContext.
+	 * @param sample
+	 *            the Sample.
+     * @throws Exception if sample is not writeable.
+	 */
+    public Recorder(AudioContext context, Sample sample) throws Exception {
+        this(context, sample, Mode.FINITE);
+    }
     
     /**
 	 * Instantiates a new Recorder.
@@ -28,15 +76,19 @@ public class Recorder extends UGen {
 	 *            the AudioContext.
 	 * @param sample
 	 *            the Sample.
+	 * @param mode
+	 *            the Recording Mode to use.
+     * @throws Exception if sample is not writeable.
 	 */
-    public Recorder(AudioContext context, Sample sample) {
+    public Recorder(AudioContext context, Sample sample, Mode mode) throws Exception {
         this(context, sample.getNumChannels());
+        this.mode = mode;
         setSample(sample);
     }
     
     public Recorder(AudioContext context, int numChannels) {
     	super(context, numChannels, 0);
-        setLoopRecord(false);
+    	mode = Mode.FINITE;
         sample = null;
     }
 
@@ -54,12 +106,14 @@ public class Recorder extends UGen {
 	 * 
 	 * @param sample
 	 *            the new Sample.
+     * @throws Exception if sample isn't writeable
 	 */
-    public void setSample(Sample sample) {
+    public void setSample(Sample sample) throws Exception {
         this.sample = sample;
         if (this.sample!=null && !this.sample.isWriteable()) {
-        	System.err.println("Recorder can only write to a writeable sample.");
+        	throw (new Exception("Recorder can only write to a writeable sample."));
         }
+        framesWritten = 0;
     }
     
     /**
@@ -67,6 +121,16 @@ public class Recorder extends UGen {
 	 */
     public void reset() {
         position = 0;
+    }
+    
+    /**
+     * Once you have finished writing into a sample this method clips the sample
+     * length to the recorded data. 
+     */
+    public void clip() {
+    	try {
+			sample.resize(framesWritten);
+		} catch (Exception e) { /* won't happen */ }
     }
     
     /**
@@ -84,28 +148,68 @@ public class Recorder extends UGen {
      */
     @Override
     public void calculateBuffer() {   
-    	if(sample != null && this.sample.isWriteable()) {
+    	if(sample != null) {
 	    	long nFrames = sample.getNumFrames();
-	    	if (position + bufferSize > sample.getNumFrames())
+	    	if ((position + bufferSize) >= nFrames)
 	    	{
-	    		// handle loop around
-	    		sample.putFrames((int)position, bufIn, 0, (int)(nFrames-position));
-	    		if(loopRecord) 
+	    		switch (mode)
 	    		{
-	    			position = 0;
-	    			int numframesleft = bufferSize - (int)(nFrames-position);
-	        		sample.putFrames((int)position, bufIn, (int)(nFrames-position), numframesleft);
-	        		position += numframesleft;
-	    		}
-	        	else 
-	        	{
-	        		kill();
-	        	}
+	    			case FINITE: 
+	    			{
+	    				sample.putFrames((int)position, bufIn, 0, (int)(nFrames-position));
+	    				framesWritten = Math.max(framesWritten,nFrames);
+	    				kill();
+	    				break;
+	    			}
+	    			
+	    			case LOOPING:
+	    			{
+	    				int framesToEnd = (int)(nFrames - position);
+	    				int numframesleft = bufferSize - framesToEnd;
+	    				
+	    				/*                  nFrames 
+	    				 *                     V
+	    				 * [      sample       ]
+	    				 *                 [ bufIn ]
+	    				 *                 A<--bs->
+	    				 *                 |
+	    				 *                pos
+	    				 * 
+	    				 * first chunk
+	    				 *                 [f2e]
+	    				 * second chunk
+	    				 * [    ]
+	    				 */
+	    				
+	    				sample.putFrames((int)position, bufIn, 0, framesToEnd);
+	    				sample.putFrames(0, bufIn, framesToEnd, numframesleft);
+		        		
+	    				position += bufferSize;
+		        		position %= nFrames;
+		    			framesWritten = Math.max(framesWritten,nFrames);
+		        		break;
+	    			}
+	    			
+	    			case INFINITE:
+	    			{
+	    				// adjust the size of the sample
+	    				// for now, we double the size of the sample.
+	    				try {
+							sample.resize(nFrames*2);
+						} catch (Exception e) { /* won't happen */ }
+						
+						sample.putFrames((int)position, bufIn);    		
+			    		position += bufferSize;
+			    		framesWritten = Math.max(framesWritten,position);
+			    		break;
+	    			}
+	    		}	    		
 	    	}
 	    	else // general case
 	    	{
 	    		sample.putFrames((int)position, bufIn);    		
 	    		position += bufferSize;
+	    		framesWritten = Math.max(framesWritten,position);
 	    	}   
     	}
     }
@@ -118,23 +222,49 @@ public class Recorder extends UGen {
     public double getPosition() {
     	return context.samplesToMs(position);
     }
+    
+    /**
+     * @return The number of frames recorded into the sample.
+     */
+    public long getNumFramesRecorded()
+    {
+    	return framesWritten;
+    }
 
+    /**
+     * @return The mode this recorder is operating in.
+     */
+    public Mode getMode()
+    {
+    	return mode;
+    }
+    
+    /**
+     * @param mode Change the mode of this recorder. Can be changed while running.
+     */
+    public void setMode(Mode mode)
+    {
+    	this.mode = mode;
+    }
+    
 	/**
 	 * Checks if loop record mode is enabled.
 	 * 
 	 * @return true if loop record mode is enabled.
+	 * @deprecated Use {@link #getMode())}
 	 */
 	public boolean isLoopRecord() {
-		return loopRecord;
+		return mode==Mode.LOOPING;
 	}
 
 	/**
 	 * Starts/stops loop record mode.
 	 * 
 	 * @param loopRecord true to enable loop record mode.
+	 * @deprecated Use {@link #setMode(Mode)}
 	 */
 	public void setLoopRecord(boolean loopRecord) {
-		this.loopRecord = loopRecord;
+		mode = Mode.LOOPING;
 	}
 	
 }

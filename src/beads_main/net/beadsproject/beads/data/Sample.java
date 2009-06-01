@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -18,33 +19,94 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import net.beadsproject.beads.core.AudioUtils;
 
 /**
- * A Buffered Sample provides random access to an audio file. 
+ * A Sample encapsulates audio data, either loaded from an audio file (such as an MP3) or
+ * written by a Recorder.
+ * <br />
+ * The typical use of a Sample is through {@link net.beadsproject.beads.data.SampleManager}. 
+ * For example, to load an mp3, you would do the following.
+ * <br /><br />
+ * <code>
+ * Sample wicked = SampleManager.sample("wickedTrack.mp3");	
+ * </code>
+ * <br /><br />
  * 
- * Only supports 16-bit samples at the moment.
- * TODO: Fix MP3 region boundary issues..
+ * <p>
+ * Samples are usually played with a {@link net.beadsproject.beads.ugens.SamplePlayer}. Sample data 
+ * can also be accessed through the methods: 
+ * {@link #getFrame(int, float[]) getFrame},
+ * {@link #getFrameLinear(int, float) getFrameLinear}, and  
+ * {@link #getFrames(int, float[][]) getFrames}.
+ * Sample data can be written with: 
+ * {@link #putFrame(int, float[]) putFrame} or
+ * {@link #putFrames(int, float[][]) putFrames}. <i>However</i> you can only
+ * write into a sample if the sample {@link #isWriteable()}, which occurs if the buffering regime
+ * is a {@link TotalRegime Total Regime} or has been created with the {@link #Sample(AudioFormat, long) empty sample constructor}.
+ * </p>
  * 
- * Notes:
- * - BufferedSample is not particularly thread-safe. 
- *   This shouldn't matter because SamplePlayers are not executed in parallel 
- *   when used in a UGen chain.    
- *    
- * @author ben
+ * <p>
+ * The {@link Regime buffering regime} of the Sample determines how the data is stored and how it is buffered. 
+ * The {@link Sample.TotalRegime TOTAL} regime is the default. Under this regime, the sample loads all the data from the audio file and
+ * stores it in Beads' native format. This is appropriate for most small samples.
+ * </p>
+ * <p>
+ * For longer samples or compressed audio consider using a {@link Sample.TimedRegime TimedRegime}. 
+ * </p>
+ * 
+ * Current Issues:
+ * <ul>
+ * <li>Only 16-bit support at the moment.</li>
+ * <li>Some issues with the boundary of regions with TimedRegime for MP3 files.</li>
+ * </ul>
+ * 
+ * @see SampleManager
+ * @see net.beadsproject.beads.ugens.Recorder
+ * @author Beads Team
  */
 public class Sample implements Runnable {
-
-	private Regime bufferingRegime;
-	
 	static public class Regime
 	{
+		/** 
+		 * Store the sample data in the native bit format.
+		 * 
+		 * If true then memory is conserved, but a conversion has to be done every
+		 * time sample data is requested.
+		 * 
+		 * If false (the default) then the sample is stored in the internal
+		 * format used by Beads. It uses more memory but is faster.
+		 */
+		public boolean storeInNativeBitDepth;
+
+		private Regime()
+		{
+			this(false);
+		}
+
+		private Regime(boolean nbp)
+		{
+			storeInNativeBitDepth = nbp;
+		}
+
 		// defaults 
 		static final public TotalRegime TOTAL = new TotalRegime(); 
 		static final public TimedRegime TIMED = new TimedRegime(); 
 	};
-	
+
 	/**
-	 * Only some parts of the audio file are stored in memory. 
-	 * Useful for very large audio files. 
-	 * Various parameters affect the buffering behaviour.
+	 * <p>
+	 * A TimedRegime stores only some parts of the audio file in memory at a time.
+	 * It is useful for very large audio files, for audio streaming (e.g., playing an mp3),
+	 * or for samples of which only a small part is used.
+	 * </p>
+	 * <p>
+	 * A sample with a TimedRegime loads "regions" of sample data and buffers them according
+	 * to various parameters. See the method documentation for more details, but briefly, the parameters are:
+	 * <ul>
+	 * <li>{@link #regionSize}: The size of the region in ms.</li>
+	 * <li>{@link #lookAhead}, {@link #lookBack}: When a region is accessed the lookAhead and lookBack determine which surrounding regions should be queued and loaded.</li>
+	 * <li>{@link #memory}: The amount of time an unaccessed region should be kept in memory.</li>
+	 * <li>{@link #loadingOrder}: Affects the order that surrounding regions are queued. NEAREST is suitable if you are playing backwards and forwards around a sample position, while ORDERED is suitable for playing forwards.</li>
+	 * </ul>
+	 * </p>
 	 */  
 	static public class TimedRegime extends Regime
 	{
@@ -52,36 +114,48 @@ public class Sample implements Runnable {
 		public int lookBack; // time lookback, ms 
 		public long memory;   // age (ms) at which regions get removed		
 		public float regionSize; // size of each region (by default 10s)
-		
+
 		static public enum Order {
 			NEAREST,
 			ORDERED
 		};
-		
+
 		public Order loadingOrder;
-	
+
 		public TimedRegime()
 		{
+			super();
 			lookAhead = 100;
 			lookBack = 0;
 			memory = 1000;
 			regionSize = 100;
 			loadingOrder = Order.ORDERED;
 		}
-		
+
 		public TimedRegime(int regionSize, 
-						   int lookAhead, 
-						   int lookBack, 
-						   int memory, 
-						   Order loadingOrder)
+				int lookAhead, 
+				int lookBack, 
+				int memory, 
+				Order loadingOrder)
 		{
+			this(regionSize,lookAhead,lookBack,memory,loadingOrder,false);
+		}
+
+		public TimedRegime(int regionSize, 
+				int lookAhead, 
+				int lookBack, 
+				int memory, 
+				Order loadingOrder,
+				boolean storeInNativeBitDepth)
+		{
+			super(storeInNativeBitDepth);
 			this.regionSize = regionSize;
 			this.lookAhead = lookAhead;
 			this.lookBack = lookBack;
 			this.memory = memory;
 			this.loadingOrder = loadingOrder;
 		}
-		
+
 		/**
 		 * Set how many milliseconds from last loaded point to look ahead.
 		 * 
@@ -123,7 +197,7 @@ public class Sample implements Runnable {
 		{
 			this.regionSize = ms;
 		}
-		
+
 		/**
 		 * When a region is loaded, nearby regions are put on a queue to be 
 		 * loaded also. The loading regime affects the order in which the nearby 
@@ -142,95 +216,88 @@ public class Sample implements Runnable {
 			this.loadingOrder = lr;
 		}
 	};
-	
+
 	/**
-	 * The entire file is read into memory, providing fast access at the cost of more memory used.
+	 * A sample with a TotalRegime reads and stores all the audio data upon initialisation.
+	 * This provides faster access (than TimedRegime) at the cost of much more memory used.
 	 */
 	static public class TotalRegime extends Regime
 	{
-		
+		public TotalRegime()
+		{
+			super();
+		}
 	};
-	 	
-	/** 
-	 * Store the sample data with native bit-depth. 
-	 * Storing in native bit-depth reduces memory load, but increases cpu-load. 
-	 */ 
-	public boolean storeInNativeBitDepth = false;	
-	
-	private boolean verbose;
-	
+
+	private Regime bufferingRegime;
 	private AudioFile audioFile;
-
-	/** The audio format. */
 	private AudioFormat audioFormat;
-
-	/** The number of channels. */
 	private int nChannels;
-
-	/** The number of sample frames. */
 	private long nFrames;
-
-	/** The length in milliseconds. */
-	private float length;	
-	
+	private float length; // length in ms
 	private boolean isBigEndian;
 
-	// regionSize is the number of frames per region
-	// these parameters are only used in the TIMED regime
-	private int r_regionSize;
-	private int r_lookahead; // num region lookahead
-	private int r_lookback; // num regions lookback
-	private long r_memory;
+	// TimedRegime
+		private int r_regionSize; // region size in frames
+		private int r_lookahead; // num region lookahead
+		private int r_lookback; // num regions lookback
+		private long r_memory;
 	
-	private int regionSizeInBytes; // the number of bytes per region (regionSize * nChannels * bitconversionfactor)
-	private int numberOfRegions; // total number of regions
-	private int numberOfRegionsLoaded; // number of loaded regions
+		private int regionSizeInBytes; // the number of bytes per region (regionSize * nChannels * bitconversionfactor)
+		private int numberOfRegions; // total number of regions
+		private int numberOfRegionsLoaded; // number of loaded regions
 	
-	private byte[][] regions; // the actual data
-	private float[][][] f_regions; // uninterleaved data
+		private byte[][] regions; // the actual data
+		private float[][][] f_regions; // uninterleaved data
 	
-	private long[] regionAge; // the age of each region (in ms)
-	private long timeAtLastAgeUpdate; // the time at the last age updated operation
+		private long[] regionAge; // the age of each region (in ms)
+		private long timeAtLastAgeUpdate; // the time at the last age updated operation
 	
-	private boolean[] regionQueued; // true if a region is currently queued
-	private ConcurrentLinkedQueue<Integer> regionQueue; // a queue of regions to be loaded
-	private Thread regionThread; // the thread that loads regions in the background
-	private Lock[] regionLocks; // to support safe deletion/writing of regions
-		
-	// this parameter is only used if regime==TOTAL
-	private byte[] sampleData;
-	private float[][] f_sampleData;
+		private boolean[] regionQueued; // true if a region is currently queued
+		private ConcurrentLinkedQueue<Integer> regionQueue; // a queue of regions to be loaded
+		private Thread regionThread; // the thread that loads regions in the background
+		private Lock[] regionLocks; // to support safe deletion/writing of regions
+
+	// TotalRegime
+		private byte[] sampleData;
+		private float[][] f_sampleData; // f_sampleData[0] first channel, f_sampleData[1] second channel, etc..
 
 	/**
-     * Instantiates a new empty buffer with the specified audio format and
-     * number of frames.
-     * 
-     * @param audioFormat the audio format.
-     * @param totalFrames the number of sample frames.
-     */
-    public Sample(AudioFormat audioFormat, long totalFrames) {
-        this();
-    	this.audioFormat = audioFormat;
-        nChannels = audioFormat.getChannels();
-        nFrames = totalFrames;
-        storeInNativeBitDepth = true;
-        sampleData = new byte[2*nChannels*(int)totalFrames]; //16-bit
-        Arrays.fill(sampleData,(byte)0);
-        length = totalFrames / audioFormat.getSampleRate() * 1000f;
-    }
-	
-    /**
+	 * Instantiates a new writeable Sample with the specified audio format and
+	 * number of frames. 
+	 * 
+	 * The sample isn't initialised, so may contain junk. Use {@link #clear()} to clear it.
+	 * 
+	 * @param audioFormat the audio format.
+	 * @param totalFrames the number of sample frames.
+	 */
+	public Sample(AudioFormat audioFormat, long totalFrames) {
+		this();
+		this.audioFormat = audioFormat;
+		nChannels = audioFormat.getChannels();
+		nFrames = totalFrames;
+		if (bufferingRegime.storeInNativeBitDepth)
+		{
+			sampleData = new byte[2*nChannels*(int)totalFrames]; //16-bit			
+		}
+		else
+		{
+			f_sampleData = new float[nChannels][(int)totalFrames];			
+		}
+		length = totalFrames / audioFormat.getSampleRate() * 1000f;
+	}
+
+	/**
 	 * Create a sample.
 	 * Call setFile to initialise the sample.
- 	 *
+	 *
 	 */
-	public Sample()
+	private Sample()
 	{
-        bufferingRegime = Regime.TOTAL;
-        isBigEndian = true;
-        verbose = false;
+		bufferingRegime = Regime.TOTAL;
+		isBigEndian = true;
 	}
-	
+
 	/**
 	 * Create a sample from a file. This constructor immediately loads the entire audio file into memory.
 	 * 
@@ -242,7 +309,7 @@ public class Sample implements Runnable {
 		this();
 		setFile(filename);
 	}
-	
+
 	/**
 	 * Create a sample from an Audio File, using the default buffering scheme. 
 	 *  
@@ -254,7 +321,7 @@ public class Sample implements Runnable {
 		this();		
 		setFile(af);
 	}
-	
+
 	/**
 	 * Create a sample from an Audio File, using the buffering scheme suggested. 
 	 *  
@@ -267,7 +334,7 @@ public class Sample implements Runnable {
 		setBufferingRegime(r);		
 		setFile(af);
 	}
-	
+
 	/**
 	 * Create a sample from a file, using the buffering scheme suggested.
 	 * 
@@ -282,130 +349,6 @@ public class Sample implements Runnable {
 	}
 
 	/**
-	 * The buffering regime affects how the sample accesses the audio data.
-	 * 
-	 * 
-	 * @param r The buffering regime to use.
-	 */
-	public void setBufferingRegime(Regime r)
-	{
-		bufferingRegime = r;
-	}
-
-	/**
-	 * Specify an audio file that the Sample reads from.
-	 * 
-	 * If BufferedRegime is TOTAL, this will block until the sample is loaded.
-	 * 
-	 */
-	private void setFile(String file) throws IOException, UnsupportedAudioFileException
-	{
-		audioFile = new AudioFile(file);
-		setFile(audioFile);
-	}
-	
-	/**
-	 * Specify an explicit AudioFile that the Sample reads from.
-	 * NOTE: Only one sample should reference a particular AudioFile.
-	 * 
-	 * If BufferedRegime is TOTAL, this will block until the sample is loaded.
-	 * 
-	 */
-	private void setFile(AudioFile af) throws IOException, UnsupportedAudioFileException
-	{
-		audioFile = af;
-		audioFile.open();
-
-		audioFormat = audioFile.getDecodedFormat();
-		nFrames = audioFile.nFrames;
-		nChannels = audioFile.nChannels;
-		length = audioFile.length;
-		isBigEndian = audioFile.getDecodedFormat().isBigEndian();
-		
-		init();
-	}
-
-	/// set everything up, ready to use
-	private void init() throws IOException
-	{
-		if (isTotal())
-		{
-			// load all the sample data into a byte buffer
-			loadEntireSample();			
-			// lot of crap left over, so call the gc
-			// TODO: should probably call gc() only once after ALL samples are loaded
-			// Can do this in sample manager, for instance
-			// Ollie: or two alternatives: advise user to do this, or AudioContext calls gc() before starting
-			//which assumes that most samples are loaded before system is turned on.
-			//On the other hand, this is probably fine since it is only a hint to the system.
-			System.gc();
-		}
-		else // bufferingRegime instanceof TimedRegime
-		{
-			if (nFrames==AudioSystem.NOT_SPECIFIED)
-			{
-				// TODO: Do a quick run through and guess the length?
-				System.out.println("BufferedSample needs to know the length of the audio file it uses, but cannot determine the length.");
-				System.exit(1);
-			}
-			
-			TimedRegime tr = (TimedRegime) bufferingRegime;
-			// initialise params
-			r_regionSize = (int)Math.ceil(((tr.regionSize/1000.) * audioFile.getDecodedFormat().getSampleRate()));
-			r_lookahead = (int)Math.ceil(((tr.lookAhead/1000.) * audioFile.getDecodedFormat().getSampleRate())/r_regionSize);
-			r_lookback = (int)Math.ceil(((tr.lookBack/1000.) * audioFile.getDecodedFormat().getSampleRate())/r_regionSize);
-			if (tr.memory==-1) r_memory = Long.MAX_VALUE;			
-			r_memory = tr.memory;	
-			regionSizeInBytes = r_regionSize * 2 * nChannels;
-			numberOfRegions = 1 + (int)(nFrames / r_regionSize);
-			
-			// the last region may contain 0 to (regionSize-1) samples
-			
-			numberOfRegionsLoaded = 0;
-			
-			if (storeInNativeBitDepth)
-			{
-				regions = new byte[numberOfRegions][];
-				Arrays.fill(regions,null);
-			}
-			else
-			{
-				f_regions = new float[numberOfRegions][][];
-				Arrays.fill(f_regions,null);
-			}
-			
-			regionAge = new long[numberOfRegions];
-			Arrays.fill(regionAge,0);
-						
-			if(verbose) System.out.printf("Timed Sample has %d regions of %d bytes each.\n",numberOfRegions,regionSizeInBytes);
-						
-			// initialise region thread stuff
-			regionQueue = new ConcurrentLinkedQueue<Integer>();
-			regionQueued = new boolean[numberOfRegions];
-			regionLocks = new Lock[numberOfRegions];
-			for (int j=0;j<regionLocks.length;j++)
-			{
-				regionLocks[j] = new ReentrantLock();
-			}
-			//TODO might want to actually switch thread on and off
-			regionThread = new Thread(this);
-			regionThread.setDaemon(true);
-			
-			timeAtLastAgeUpdate = 0; //System.nanoTime()/1000;			
-			regionThread.start();
-						
-			// regionThread.setPriority()
-		}
-	}
-	
-	
-	/// are we using the total regime?
-	private boolean isTotal()
-	{
-		return (bufferingRegime instanceof TotalRegime);
-	}
-
-	/**
 	 * Return a single frame. 
 	 * If the data is not readily available this function blocks until it is.
 	 *  
@@ -416,10 +359,10 @@ public class Sample implements Runnable {
 	public void getFrame(int frame, float[] frameData)
 	{
 		if (frame >= nFrames) return;
-		
+
 		if (isTotal())
 		{
-			if (storeInNativeBitDepth)
+			if (bufferingRegime.storeInNativeBitDepth)
 			{
 				int startIndex = frame * 2 * nChannels;			
 				AudioUtils.byteToFloat(frameData,sampleData,isBigEndian,startIndex,frameData.length);
@@ -433,22 +376,23 @@ public class Sample implements Runnable {
 		else // bufferingRegime==BufferingRegime.TIMED
 		{
 			int whichRegion = frame / r_regionSize;
-			
+
 			// When someone requests a region, it may not be loaded yet.
 			// Alternatively it may currently be being deleted, in which case we have to wait.
-			
+
 			// lock access to region r, load it, and return it...
 			// wait until it is free...		
 			try {
-				while (!regionLocks[whichRegion].tryLock(10, TimeUnit.MILLISECONDS)){}
+				while (!regionLocks[whichRegion].tryLock(0, TimeUnit.MILLISECONDS))
+				{/* do nothing */}
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+
 			try {
-				
-				if (storeInNativeBitDepth)
+
+				if (bufferingRegime.storeInNativeBitDepth)
 				{									
 					byte[] regionData = getRegion(whichRegion);
 					if (regionData!=null)
@@ -457,32 +401,113 @@ public class Sample implements Runnable {
 						int startIndex = (frame % r_regionSize) * 2 * nChannels;
 						AudioUtils.byteToFloat(frameData,regionData,isBigEndian,startIndex,frameData.length);
 					}
-					else
-					{
-						System.err.println("Sample.java:409 no region data!");
-						//System.exit(1);
-					}
 				}
 				else
 				{
 					float[][] regionData = getRegionF(whichRegion);
 					if (regionData!=null)
 					{
-						// convert it to the correct format,
 						int startIndex = frame % r_regionSize;
-						//System.arraycopy(regionData[startIndex], srcPos, dest, destPos, length)
 						for(int i=0;i<nChannels;i++)
 							frameData[i] = regionData[i][startIndex];
-						//AudioUtils.byteToFloat(frameData,regionData,isBigEndian,startIndex,frameData.length);
 					}
 				}
-					
-					
 			}
 			finally {
 				regionLocks[whichRegion].unlock();
 			}
 		}
+	}
+
+	/**
+	 * Retrieves a frame of audio using linear interpolation.
+	 * 
+	 * @param currentSample the current sample.
+	 * @param fractionOffset the offset from the current sample as a fraction of the time
+	 * to the next sample.
+	 * 
+	 * @return the interpolated frame.
+	 */
+	public float[] getFrameLinear(int currentSample, float fractionOffset) {
+		float[] result = new float[nChannels];
+		if(currentSample >= 0 && currentSample < nFrames) {
+			if (currentSample == nFrames-1)
+			{
+				getFrame(currentSample,result);    			
+			}
+			else
+			{
+				float[] current = new float[nChannels];    		
+				getFrame(currentSample,current);
+				float[] next = new float[nChannels];
+				getFrame(currentSample+1,next);
+	
+				for (int i = 0; i < nChannels; i++) {
+					result[i] = (1 - fractionOffset) * current[i] +
+					fractionOffset * next[i];
+				}   
+			}
+		} else {
+			for(int i = 0; i < nChannels; i++) {
+				result[i] = 0.0f;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Retrieves a frame of audio using cubic interpolation.
+	 * 
+	 * @param currentSample the current sample.
+	 * @param fractionOffset the offset from the current sample as a fraction of the time
+	 * to the next sample.
+	 * 
+	 * @return the interpolated frame.
+	 */
+	public float[] getFrameCubic(int currentSample, float fractionOffset) {    	
+		float[] result = new float[nChannels];
+		float[] buf = new float[nChannels];
+		float a0,a1,a2,a3,mu2;
+		float ym1,y0,y1,y2;
+		for (int i = 0; i < nChannels; i++) {
+			int realCurrentSample = currentSample;
+			if(realCurrentSample >= 0 && realCurrentSample < (nFrames - 1)) {
+				realCurrentSample--;
+				if (realCurrentSample < 0) {
+					getFrame(0, buf);
+					ym1 = buf[i];
+					realCurrentSample = 0;
+				} else {
+					getFrame(realCurrentSample++, buf);
+					ym1 = buf[i];
+				}
+				getFrame(realCurrentSample++, buf);
+				y0 = buf[i];
+				if (realCurrentSample >= nFrames) {
+					getFrame((int)nFrames - 1, buf);
+					y1 = buf[i]; //??
+				} else {
+					getFrame(realCurrentSample++, buf);
+					y1 = buf[i];
+				}
+				if (realCurrentSample >= nFrames) {
+					getFrame((int)nFrames - 1, buf);
+					y2 = buf[i]; //??
+				} else {
+					getFrame(realCurrentSample++, buf);
+					y2 = buf[i];
+				}
+				mu2 = fractionOffset * fractionOffset;
+				a0 = y2 - y1 - ym1 + y0;
+				a1 = ym1 - y0 - a0;
+				a2 = y1 - ym1;
+				a3 = y0;
+				result[i] = a0 * fractionOffset * mu2 + a1 * mu2 + a2 * fractionOffset + a3;
+			} else {
+				result[i] = 0.0f;
+			}
+		}
+		return result;
 	}
 
 	/**
@@ -498,12 +523,12 @@ public class Sample implements Runnable {
 	public void getFrames(int frame, float[][] frameData)
 	{
 		if (frame >= nFrames) return;
-		
+
 		if (isTotal())
 		{
 			int numFloats = Math.min(frameData[0].length,(int)(nFrames-frame));			
-			
-			if (storeInNativeBitDepth)
+
+			if (bufferingRegime.storeInNativeBitDepth)
 			{
 				int startIndex = frame * 2 * nChannels;			
 				float[] floatdata = new float[numFloats*nChannels];
@@ -519,30 +544,30 @@ public class Sample implements Runnable {
 		else // bufferingRegime==BufferingRegime.TIMED
 		{
 			int numFloats = Math.min(frameData[0].length,(int)(nFrames-frame))*nChannels;
-			
+
 			float[] floatdata = null;
-			if (storeInNativeBitDepth)
+			if (bufferingRegime.storeInNativeBitDepth)
 				floatdata = new float[numFloats];
-			
+
 			// fill floatdata with successive regions of byte data
 			int floatdataindex = 0;			
 			int regionindex = frame % r_regionSize;
 			int whichregion = frame / r_regionSize;
 			int numfloatstocopy = Math.min(r_regionSize - regionindex,numFloats - floatdataindex);
-			
+
 			while (numfloatstocopy>0)
 			{
 				// see getFrame() for explanation
 				try {
-					while (!regionLocks[whichregion].tryLock(10, TimeUnit.MILLISECONDS)){}
+					while (!regionLocks[whichregion].tryLock(0, TimeUnit.MILLISECONDS)){}
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
+
 				try {
-					
-					if (storeInNativeBitDepth)
+
+					if (bufferingRegime.storeInNativeBitDepth)
 					{					
 						byte[] regionData = getRegion(whichregion);
 						if (regionData!=null)
@@ -569,30 +594,528 @@ public class Sample implements Runnable {
 				numfloatstocopy = Math.min(r_regionSize,numFloats - floatdataindex);				
 				whichregion++;
 			}
-			
+
 			// deinterleave the whole thing			
 			AudioUtils.deinterleave(floatdata,nChannels,frameData[0].length,frameData);
 		}
 	}	
 	
+	/**
+	 * Clears the (writeable) sample.
+	 */
+	public void clear()
+	{
+		if (bufferingRegime.storeInNativeBitDepth)
+		{
+			Arrays.fill(sampleData,(byte)0);
+		}
+		else
+		{
+			for(int i=0;i<nChannels;i++)
+				Arrays.fill(f_sampleData[i], 0f);
+		}
+		
+	}
+
+	/**
+	 * Write a single frame into this sample. Takes care of format conversion.
+	 * 
+	 * This only makes sense if this.isWriteable() returns true.
+	 * If isWriteable() is false, the behaviour is undefined/unstable.
+	 * 
+	 * @param frame The frame to write into. Must be >=0 and <numFrames.
+	 * @param frameData The frame data to write.
+	 */
+	public void putFrame(int frame, float[] frameData)
+	{
+		if (bufferingRegime.storeInNativeBitDepth)
+		{
+			int startIndex = frame * 2 * nChannels;
+			AudioUtils.floatToByte(sampleData, startIndex, frameData, 0, frameData.length, isBigEndian);
+		}
+		else
+		{
+			for(int i=0;i<nChannels;i++)
+				f_sampleData[i][frame] = frameData[i];
+		}
+	}
+
+	/**
+	 * Write multiple frames into the sample.
+	 * 
+	 * This only makes sense if this.isWriteable() returns true.
+	 * If isWriteable() is false, the behaviour is undefined/unstable.
+	 * 
+	 * @param frame The frame to write into.
+	 * @param frameData The frames to write.
+	 */
+	public void putFrames(int frame, float[][] frameData)
+	{	
+		int numFrames = Math.min(frameData[0].length,(int)(nFrames-frame));
+		
+		if (bufferingRegime.storeInNativeBitDepth)
+		{
+			int startIndex = frame * 2 * nChannels;			
+			int numFloats = numFrames*nChannels;			
+	
+			float[] floatdata = new float[numFloats];
+			AudioUtils.interleave(frameData,nChannels,frameData[0].length,floatdata);
+			AudioUtils.floatToByte(sampleData, startIndex, floatdata, 0, floatdata.length, isBigEndian);
+		}
+		else
+		{
+			for(int i=0;i<nChannels;i++)
+			{
+				System.arraycopy(frameData[i], 0, f_sampleData[i], frame, numFrames);
+			}
+		}
+	}
+
+	/**
+	 * Write multiple frames into the sample.
+	 * 
+	 * This only makes sense if this.isWriteable() returns true.
+	 * If isWriteable() is false, the behaviour is undefined/unstable.
+	 * 
+	 * @param frame The frame to write into.
+	 * @param frameData The frames to write.
+	 * @param offset The offset into frameData
+	 * @param numFrames The number of frames from frameData to write
+	 */
+	public void putFrames(int frame, float[][] frameData, int offset, int numFrames)
+	{
+		if (numFrames<=0) return;
+	
+		// clip numFrames
+		numFrames = Math.min(numFrames,(int)(nFrames-frame)); 
+			
+		if (bufferingRegime.storeInNativeBitDepth)
+		{
+			int startIndex = frame * 2 * nChannels;			
+			int numFloats = numFrames*nChannels;			
+	
+			float[] floatdata = new float[numFloats];
+			AudioUtils.interleave(frameData,nChannels,offset,frameData[0].length,floatdata);
+			AudioUtils.floatToByte(sampleData, startIndex, floatdata, 0, floatdata.length, isBigEndian);
+		}
+		else
+		{
+			for(int i=0;i<nChannels;i++)
+			{
+				System.arraycopy(frameData[i], offset, f_sampleData[i], frame, numFrames);
+			}
+		}
+	}
+
+	/**
+	 * This records the sample to an AIFF format audio file.
+	 * It is BLOCKING.
+	 * 
+	 * @param fn The filename (should have the .aif extension).
+	 * 
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
+	public void write(String fn) throws IOException {
+		if (isTotal())
+		{
+			if (bufferingRegime.storeInNativeBitDepth)
+			{			
+				ByteArrayInputStream bais = new ByteArrayInputStream(sampleData);
+				AudioInputStream aos = new AudioInputStream(bais, audioFormat, nFrames);
+				AudioSystem.write(aos, AudioFileFormat.Type.AIFF, new File(fn));
+			}
+			else
+			{
+				// convert the sample data into bytes then write it out as above
+				// slow, but working...
+				
+				// convert de-interleaved data to interleaved bytes...
+				float interleaved[] = new float[(int) (nFrames*nChannels)];
+				AudioUtils.interleave(f_sampleData, nChannels, (int) nFrames, 0, interleaved);
+				
+				byte bytes[] = new byte[(int) (getNumChannels()*getNumFrames()*2)];
+				AudioUtils.floatToByte(bytes, interleaved, isBigEndian);
+				
+				AudioSystem.write(new AudioInputStream(new ByteArrayInputStream(bytes),audioFormat,nFrames), AudioFileFormat.Type.AIFF, new File(fn));
+			}
+		}
+		else // bufferingRegime==BufferingRegime.TIMED
+		{
+			throw(new IOException("TimedRegime sample writing not yet supported."));
+			/*
+			// for each region, load it if necessary and write out the data
+			File file = new File(fn);
+			for(int i=0;i<numberOfRegions;i++)
+			{
+				try {
+					while (!regionLocks[i].tryLock(10, TimeUnit.MILLISECONDS)){}
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	
+				try {
+					byte[] regionData = getRegion(i);
+					if (regionData!=null)
+					{
+						ByteArrayInputStream bais = new ByteArrayInputStream(regionData);
+						AudioInputStream aos = new AudioInputStream(bais, audioFormat, regionSize);
+			            AudioSystem.write(aos, AudioFileFormat.Type.AIFF, file);
+					}
+				}
+				finally {
+					regionLocks[i].unlock();
+				}
+			}
+			 */
+		}
+	}
+
+	/**
+	 * <b>Advanced</b>
+	 * 
+	 * Change the number of frames in the (writeable) sample. 
+	 * This is slow and so should be used sparingly.
+	 * 
+	 * The new frames may contain garbage, but see {@link #resizeWithZeros(int)}.
+	 * 
+	 * @param frames The total number of frames the sample should have.
+	 * @throws Exception Thrown if the sample isn't writeable.
+	 */
+	public void resize(long frames) throws Exception
+	{
+		if (!isWriteable())
+		{
+			throw(new Exception("Sample.resize only works on writeable samples."));
+		}
+		else if (isTotal())
+		{
+			int framesToCopy = (int) Math.min(frames,nFrames);
+			
+			if (bufferingRegime.storeInNativeBitDepth)
+			{
+				byte[] olddata = sampleData;
+				sampleData = new byte[(int)frames];
+				System.arraycopy(olddata,0, sampleData, 0, framesToCopy);					
+			}
+			else
+			{
+				float[][] olddata = f_sampleData;
+				f_sampleData = new float[nChannels][(int)frames];
+				for(int i=0;i<nChannels;i++)
+					System.arraycopy(olddata[i],0,f_sampleData[i],0,framesToCopy);					
+			}
+			
+			nFrames = frames;			
+		}
+	}
+	
+	/**
+	 * Just like {@link #resize(int)} but initialises the new frames with zeros.
+	 * 
+	 * @param frames The total number of frames the sample should have.
+	 * @throws Exception Thrown if the sample isn't writeable.
+	 */
+	public void resizeWithZeros(long frames) throws Exception
+	{
+		if (!isWriteable())
+		{
+			throw(new Exception("Sample.resize only works on writeable samples."));
+		}
+		else if (isTotal())
+		{
+			int framesToCopy = (int) Math.min(frames,nFrames);
+
+			if (bufferingRegime.storeInNativeBitDepth)
+			{
+				byte[] olddata = sampleData;
+				sampleData = new byte[(int)frames];
+				System.arraycopy(olddata,0, sampleData, 0, framesToCopy);	
+				Arrays.fill(sampleData, framesToCopy, (int)frames, (byte)0);
+			}
+			else
+			{
+				float[][] olddata = f_sampleData;
+				f_sampleData = new float[nChannels][(int)frames];
+				for(int i=0;i<nChannels;i++)
+				{
+					System.arraycopy(olddata[i],0,f_sampleData[i],0,framesToCopy);
+					Arrays.fill(f_sampleData[i], framesToCopy, (int)frames, 0f);
+				}
+			}
+			
+			nFrames = frames;
+		}		
+	}
+	
+	/**
+	 * Prints audio format info to System.out.
+	 */
+	public void printAudioFormatInfo() {
+		System.out.println("Sample Rate: " + audioFormat.getSampleRate());
+		System.out.println("Channels: " + nChannels);
+		System.out.println("Frame size in Bytes: " + audioFormat.getFrameSize());
+		System.out.println("Encoding: " + audioFormat.getEncoding());
+		System.out.println("Big Endian: " + audioFormat.isBigEndian());
+	}
+
+	/**
+	 * Converts from milliseconds to samples based on the sample rate specified by {@link #audioFormat}.
+	 * 
+	 * @param msTime the time in milliseconds.
+	 * 
+	 * @return the time in samples.
+	 */
+	public double msToSamples(double msTime) {
+		return msTime * audioFormat.getSampleRate() / 1000.0f;
+	}
+
+	/**
+	 * Converts from samples to milliseconds based on the sample rate specified by {@link #audioFormat}.
+	 * 
+	 * @param sampleTime the time in samples.
+	 * 
+	 * @return the time in milliseconds.
+	 */
+	public double samplesToMs(double sampleTime) {
+		return sampleTime / audioFormat.getSampleRate() * 1000.0f;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	public String toString() {
+		return getFileName();
+	}
+
+
+	/** 
+	 * A Sample needs to be writeable in order to be recorded into.
+	 * Currently buffered samples are not writeable, but TOTAL (file or empty) samples are.
+	 */
+	public boolean isWriteable()
+	{
+		return isTotal();
+	}
+
+	/**
+	 * Gets the full file path.
+	 * 
+	 * @return the file path.
+	 */
+	public String getFileName() {
+		return audioFile.file.getAbsolutePath();
+	}
+
+
+	/**
+	 * Gets the simple file name.
+	 * 
+	 * @return the file name.
+	 */
+	public String getSimpleFileName() {
+		return audioFile.file.getName();
+	}
+
+	public AudioFile getAudioFile() {
+		return audioFile;
+	}
+
+
+	public AudioFormat getAudioFormat() {
+		return audioFormat;
+	}
+
+
+	public int getNumChannels() {
+		return nChannels;
+	}
+
+
+	public long getNumFrames() {
+		return nFrames;
+	}
+	
+	/**
+	 * @return The number of bytes this sample uses to store each sample. May be different than audioFile.audioFormat.
+	 */
+	public int getBytesPerSample() {
+		if (bufferingRegime.storeInNativeBitDepth)
+		{
+			return 2;
+		}
+		else
+		{
+			return Float.SIZE/8;
+		}
+	}
+
+
+	public float getLength() {
+		return length;
+	}
+
+	public float getSampleRate() {
+		return audioFormat.getSampleRate();
+	}
+
+	/**
+	 * @return The number of regions currently loaded. Only valid if bufferingRegime is region-based.
+	 */
+	public int getNumberOfRegionsLoaded() {
+		return numberOfRegionsLoaded;
+	}
+
 	// Region loading, handling, queuing, removing, etc...	
 	
+	/// are we using the total regime?
+	private boolean isTotal()
+	{
+		return (bufferingRegime instanceof TotalRegime);
+	}
+
+	/**
+	 * The buffering regime affects how the sample accesses the audio data.
+	 * 
+	 * 
+	 * @param r The buffering regime to use.
+	 */
+	private void setBufferingRegime(Regime r)
+	{
+		bufferingRegime = r;
+	}
+
+	/**
+	 * Specify an audio file that the Sample reads from.
+	 * 
+	 * If BufferedRegime is TOTAL, this will block until the sample is loaded.
+	 * 
+	 */
+	private void setFile(String file) throws IOException, UnsupportedAudioFileException
+	{
+		audioFile = new AudioFile(file);
+		setFile(audioFile);
+	}
+
+	/**
+	 * Specify an explicit AudioFile that the Sample reads from.
+	 * NOTE: Only one sample should reference a particular AudioFile.
+	 * 
+	 * If BufferedRegime is TOTAL, this will block until the sample is loaded.
+	 * 
+	 */
+	private void setFile(AudioFile af) throws IOException, UnsupportedAudioFileException
+	{
+		audioFile = af;
+		audioFile.open();
+	
+		audioFormat = audioFile.getDecodedFormat();
+		nFrames = audioFile.nFrames;
+		nChannels = audioFile.nChannels;
+		length = audioFile.length;
+		isBigEndian = audioFile.getDecodedFormat().isBigEndian();
+	
+		init();
+	}
+
+	/// set everything up, ready to use
+	private void init() throws IOException
+	{
+		if (isTotal())
+		{
+			// load all the sample data into a byte buffer
+			loadEntireSample();			
+			// lot of crap left over, so call the gc
+			// TODO: should probably call gc() only once after ALL samples are loaded
+			// Can do this in sample manager, for instance
+			// Ollie: or two alternatives: advise user to do this, or AudioContext calls gc() before starting
+			//which assumes that most samples are loaded before system is turned on.
+			//On the other hand, this is probably fine since it is only a hint to the system.
+			System.gc();
+		}
+		else // bufferingRegime instanceof TimedRegime
+		{
+			if (nFrames==AudioSystem.NOT_SPECIFIED)
+			{
+				// TODO: Do a quick run through and guess the length?
+				System.out.println("BufferedSample needs to know the length of the audio file it uses, but cannot determine the length.");
+				System.exit(1);
+			}
+	
+			TimedRegime tr = (TimedRegime) bufferingRegime;
+			
+			// initialise params
+			
+			// if region size is greated than audio length then we clip the region size...
+			// but we still keep it as a timed regime, with 0 lookback and 0 lookahead
+			r_regionSize = (int)Math.ceil(((tr.regionSize/1000.) * audioFile.getDecodedFormat().getSampleRate()));
+			if (r_regionSize>nFrames)
+			{
+				r_regionSize = (int) nFrames;
+				r_lookahead = 0;
+				r_lookback = 0;
+			}
+			else
+			{			
+				r_lookahead = (int)Math.ceil(((tr.lookAhead/1000.) * audioFile.getDecodedFormat().getSampleRate())/r_regionSize);
+				r_lookback = (int)Math.ceil(((tr.lookBack/1000.) * audioFile.getDecodedFormat().getSampleRate())/r_regionSize);
+			}
+			
+			if (tr.memory==-1) r_memory = Long.MAX_VALUE;			
+			r_memory = tr.memory;	
+			regionSizeInBytes = r_regionSize * 2 * nChannels;
+			numberOfRegions = (int)(Math.ceil(nFrames / r_regionSize));
+	
+			// the last region may contain 0 to (regionSize-1) samples	
+			numberOfRegionsLoaded = 0;
+	
+			if (bufferingRegime.storeInNativeBitDepth)
+			{
+				regions = new byte[numberOfRegions][];
+				Arrays.fill(regions,null);
+			}
+			else
+			{
+				f_regions = new float[numberOfRegions][][];
+				Arrays.fill(f_regions,null);
+			}
+	
+			regionAge = new long[numberOfRegions];
+			Arrays.fill(regionAge,0);
+	
+			// initialise region thread stuff
+			regionQueue = new ConcurrentLinkedQueue<Integer>();
+			regionQueued = new boolean[numberOfRegions];
+			regionLocks = new Lock[numberOfRegions];
+			for (int j=0;j<regionLocks.length;j++)
+			{
+				regionLocks[j] = new ReentrantLock();
+			}
+			//TODO might want to actually switch thread on and off
+			regionThread = new Thread(this);
+			regionThread.setDaemon(true);
+			regionThread.setPriority(Thread.MIN_PRIORITY);	
+			timeAtLastAgeUpdate = 0;			
+			regionThread.start();
+		}
+	}
+
 	/// Region handling, loading, etc...
 	private byte[] getRegion(int r)
 	{	
 		// first determine whether the region is valid
 		if (!isRegionAvailable(r))
 		{
-			//System.out.println("REGION NOT THERE!");
 			loadRegion(r);
+			queueRegions(r);
 		}
-		
+	
 		touchRegion(r);
-		
+	
 		// then return it
 		return regions[r];
 	}
-	
+
 	/// Region handling, loading, etc...
 	// assume region r exists
 	private float[][] getRegionF(int r)
@@ -600,17 +1123,16 @@ public class Sample implements Runnable {
 		// first determine whether the region is valid
 		if (!isRegionAvailable(r))
 		{
-			//System.out.println("REGION NOT THERE!");
 			loadRegion(r);
+			queueRegions(r);
 		}
-		
-		touchRegion(r);
-		
+
+		touchRegion(r);		
 		// then return it
 		return f_regions[r];
 	}
-	
-	private void touchRegion(int r)
+
+	private void queueRegions(int r)
 	{
 		if (((TimedRegime)bufferingRegime).loadingOrder==TimedRegime.Order.ORDERED)
 		{
@@ -625,7 +1147,7 @@ public class Sample implements Runnable {
 			// queue the regions from nearest to furthest, back to front...
 			int br = Math.min(r,r_lookback); // number of back regions
 			int fr = Math.min(r_lookahead,numberOfRegions-1-r); // number of ahead regions			
-			
+	
 			// have two pointers, one going backwards the other going forwards			
 			int bp = 1;
 			int fp = 1;
@@ -646,25 +1168,28 @@ public class Sample implements Runnable {
 				}				
 			}
 		}
-		
+	}
+	
+	private void touchRegion(int r)
+	{
 		// touch the region, make it new
 		synchronized (regionAge)
 		{	regionAge[r] = 0; }
 	}
-	
+
 	private boolean isRegionAvailable(int r)
 	{
-		if (storeInNativeBitDepth)
+		if (bufferingRegime.storeInNativeBitDepth)
 			return regions[r]!=null;
 		else
 			return f_regions[r]!=null;
 	}
-	
+
 	private boolean isRegionQueued(int r)
 	{
 		return regionQueued[r];
 	}
-	
+
 	/// loads the region IMMEDIATELY, blocks until it is loaded
 	// this is called by the regionloader as it loads,
 	// but also by the main thread when it needs a region RIGHT AWAY
@@ -672,7 +1197,7 @@ public class Sample implements Runnable {
 	{
 		// for now, just seek to the correct position 
 		try {			
-			if (storeInNativeBitDepth)
+			if (bufferingRegime.storeInNativeBitDepth)
 			{
 				regions[r] = new byte[regionSizeInBytes];
 				numberOfRegionsLoaded++;
@@ -690,7 +1215,7 @@ public class Sample implements Runnable {
 				int bytesRead = audioFile.read(region);
 				if (bytesRead<=0)
 					regions[r] = null;
-				
+	
 				// now convert
 				f_regions[r] = new float[nChannels][r_regionSize];
 				float[] interleaved = new float[nChannels*r_regionSize];
@@ -705,7 +1230,7 @@ public class Sample implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/// load the region r when you can, non-blocking
 	private void queueRegionForLoading(int r)
 	{
@@ -713,17 +1238,17 @@ public class Sample implements Runnable {
 		{
 			regionQueued[r] = true;
 			regionQueue.add(r);
-			
+	
 			// wake up the region thread master
 			if (regionThread.getState()==State.TIMED_WAITING)
 				regionThread.interrupt();
-			
+	
 		}
 	}
-		
+
 	private void unloadRegion(int r)
 	{
-		if (storeInNativeBitDepth)
+		if (bufferingRegime.storeInNativeBitDepth)
 			regions[r]=null;
 		else
 			f_regions[r]=null;		
@@ -731,10 +1256,10 @@ public class Sample implements Runnable {
 
 	public void run() {
 		while (true)
-		{		
+		{
 			// if there's a region on the queue then load it
 			boolean queuedregion = !regionQueue.isEmpty();
-			
+	
 			if (queuedregion)
 			{
 				int r = regionQueue.poll();
@@ -753,7 +1278,7 @@ public class Sample implements Runnable {
 					}
 				}
 			}
-			
+	
 			// age all the loaded regions
 			// remove the oldest ones if we exceed the memory limit		
 			// TODO: don't need to age things all the time, this should be based on some tunable param
@@ -761,13 +1286,12 @@ public class Sample implements Runnable {
 			long dt = System.currentTimeMillis() - timeAtLastAgeUpdate;	
 			//System.out.println(dt);
 			//System.out.println();
-			
+	
 			//int numRegionsToRemove = numberOfRegionsLoaded - maxRegionsLoadedAtOnce;
 			//SortedSet sortedByAge = new TreeSet<Integer>(new Comparator(){});
 			//if (numRegionsToRemove>0)
 			for (int i=0;i<numberOfRegions;i++)
-			{	
-				//System.out.printf("%d ",regionAge[i]);
+			{
 				if (!isRegionAvailable(i))
 				{
 					synchronized(regionAge)
@@ -792,11 +1316,12 @@ public class Sample implements Runnable {
 				}
 			}
 			timeAtLastAgeUpdate += dt;
-			
+	
 			if (!queuedregion)
 			{
 				try {
-					Thread.sleep(10000);
+					// Thread.currentThread()
+					Thread.sleep(1000000);
 				} catch (InterruptedException ignore) 
 				{
 					//System.out.println("Wake up!");
@@ -804,61 +1329,61 @@ public class Sample implements Runnable {
 			}
 		}
 	}
-	
+
 	// a helper function, loads the entire sample into sampleData
 	private void loadEntireSample() throws IOException
 	{
 		final int BUFFERSIZE = 4096;
 		byte[] audioBytes = new byte[BUFFERSIZE];
-
+	
 		int sampleBufferSize = 4096;
 		byte[] data = new byte[sampleBufferSize];
-				
+	
 		int bytesRead;
 		int totalBytesRead = 0;
-		
+	
 		int numberOfFrames = 0;
-		
+	
 		while ((bytesRead = audioFile.read(audioBytes))!=-1) {
-			
+	
 			int numFramesJustRead = bytesRead / (2 * nChannels);
-			
+	
 			// resize buf if necessary
 			if (bytesRead > (sampleBufferSize-totalBytesRead))
 			{
 				sampleBufferSize = Math.max(sampleBufferSize*2, sampleBufferSize + bytesRead);
 				//System.out.printf("Adjusted samplebuffersize to %d\n",sampleBufferSize);
-				
+	
 				// resize buffer
 				byte[] newBuf = new byte[sampleBufferSize];
 				System.arraycopy(data, 0, newBuf, 0, data.length);					
 				data = newBuf;
 			}
-			
+	
 			System.arraycopy(audioBytes, 0, data, totalBytesRead, bytesRead);			
-			
+	
 			numberOfFrames += numFramesJustRead;
 			totalBytesRead += bytesRead;
 		}
-		
+	
 		// resize buf to proper length
 		// resize buf if necessary
 		if (sampleBufferSize > totalBytesRead)
 		{
 			sampleBufferSize = totalBytesRead;
-			
+	
 			// resize buffer				
 			byte[] newBuf = new byte[sampleBufferSize];
 			System.arraycopy(data, 0, newBuf, 0, sampleBufferSize);					
 			data = newBuf;
 		}
-		
+	
 		nFrames = sampleBufferSize / (2*nChannels);
-		
-		if (!storeInNativeBitDepth)
+	
+		if (!bufferingRegime.storeInNativeBitDepth)
 		{
 			// copy and deinterleave entire data
-
+	
 			f_sampleData = new float[nChannels][(int) nFrames];
 			float[] interleaved = new float[(int) (nChannels*nFrames)];
 			AudioUtils.byteToFloat(interleaved, data, isBigEndian);	
@@ -869,310 +1394,8 @@ public class Sample implements Runnable {
 			// store the data in this sample in native format
 			sampleData = data;
 		}	
-		
+	
 		audioFile.close();		
 	}
-	
-	/**
-     * Prints audio format info to System.out.
-     */
-    public void printAudioFormatInfo() {
-        System.out.println("Sample Rate: " + audioFormat.getSampleRate());
-        System.out.println("Channels: " + nChannels);
-        System.out.println("Frame size in Bytes: " + audioFormat.getFrameSize());
-        System.out.println("Encoding: " + audioFormat.getEncoding());
-        System.out.println("Big Endian: " + audioFormat.isBigEndian());
-    }
-    
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
-    public String toString() {
-    	return getFileName();
-    }
-    
-    
-    /**
-     * Gets the full file path.
-     * 
-     * @return the file path.
-     */
-    public String getFileName() {
-    	return audioFile.file.getAbsolutePath();
-    }
-    
-    
-    /**
-     * Gets the simple file name.
-     * 
-     * @return the file name.
-     */
-    public String getSimpleFileName() {
-    	return audioFile.file.getName();
-    }
-    
-    /**
-     * Converts from milliseconds to samples based on the sample rate specified by {@link #audioFormat}.
-     * 
-     * @param msTime the time in milliseconds.
-     * 
-     * @return the time in samples.
-     */
-    public double msToSamples(double msTime) {
-        return msTime * audioFormat.getSampleRate() / 1000.0f;
-    }
 
-    /**
-     * Converts from samples to milliseconds based on the sample rate specified by {@link #audioFormat}.
-     * 
-     * @param sampleTime the time in samples.
-     * 
-     * @return the time in milliseconds.
-     */
-    public double samplesToMs(double sampleTime) {
-        return sampleTime / audioFormat.getSampleRate() * 1000.0f;
-    }
-    
-    /**
-     * Retrieves a frame of audio using linear interpolation.
-     * 
-     * @param currentSample the current sample.
-     * @param fractionOffset the offset from the current sample as a fraction of the time
-     * to the next sample.
-     * 
-     * @return the interpolated frame.
-     */
-    public float[] getFrameLinear(int currentSample, float fractionOffset) {
-        float[] result = new float[nChannels];
-    	if(currentSample >= 0 && currentSample < nFrames) {
-    		if (currentSample == nFrames-1)
-    		{
-    			getFrame(currentSample,result);    			
-    		}
-    		else
-    		{
-	    		float[] current = new float[nChannels];    		
-	    		getFrame(currentSample,current);
-	    		float[] next = new float[nChannels];
-	    		getFrame(currentSample+1,next);
-	    		
-	    		for (int i = 0; i < nChannels; i++) {
-	    			result[i] = (1 - fractionOffset) * current[i] +
-                        fractionOffset * next[i];
-	    		}   
-            }
-        } else {
-             for(int i = 0; i < nChannels; i++) {
-                 result[i] = 0.0f;
-             }
-        }
-        return result;
-    }
-    
-    /**
-     * Retrieves a frame of audio using cubic interpolation.
-     * 
-     * @param currentSample the current sample.
-     * @param fractionOffset the offset from the current sample as a fraction of the time
-     * to the next sample.
-     * 
-     * @return the interpolated frame.
-     */
-    public float[] getFrameCubic(int currentSample, float fractionOffset) {    	
-        float[] result = new float[nChannels];
-        float[] buf = new float[nChannels];
-        float a0,a1,a2,a3,mu2;
-        float ym1,y0,y1,y2;
-        for (int i = 0; i < nChannels; i++) {
-            int realCurrentSample = currentSample;
-            if(realCurrentSample >= 0 && realCurrentSample < (nFrames - 1)) {
-                realCurrentSample--;
-                if (realCurrentSample < 0) {
-                	getFrame(0, buf);
-                    ym1 = buf[i];
-                    realCurrentSample = 0;
-                } else {
-                	getFrame(realCurrentSample++, buf);
-                    ym1 = buf[i];
-                }
-            	getFrame(realCurrentSample++, buf);
-                y0 = buf[i];
-                if (realCurrentSample >= nFrames) {
-                	getFrame((int)nFrames - 1, buf);
-                    y1 = buf[i]; //??
-                } else {
-                	getFrame(realCurrentSample++, buf);
-                    y1 = buf[i];
-                }
-                if (realCurrentSample >= nFrames) {
-                	getFrame((int)nFrames - 1, buf);
-                    y2 = buf[i]; //??
-                } else {
-                	getFrame(realCurrentSample++, buf);
-                    y2 = buf[i];
-                }
-                mu2 = fractionOffset * fractionOffset;
-                a0 = y2 - y1 - ym1 + y0;
-                a1 = ym1 - y0 - a0;
-                a2 = y1 - ym1;
-                a3 = y0;
-                result[i] = a0 * fractionOffset * mu2 + a1 * mu2 + a2 * fractionOffset + a3;
-            } else {
-                result[i] = 0.0f;
-            }
-        }
-        return result;
-    }
-    
-    /** 
-	 * A Sample needs to be writeable in order to be recorded into.
-	 * Currently buffered samples are not writeable, but TOTAL (file or empty) samples are.
-	 */
-	public boolean isWriteable()
-	{
-		return isTotal();
-	}
-	
-	/**
-	 * Write a single frame into this sample. Takes care of format conversion.
-	 * 
-	 * This only makes sense if this.isWriteable() returns true.
-	 * If isWriteable() is false, the behaviour is undefined/unstable.
-	 * 
-	 * @param frame The frame to write into.
-	 * @param frameData The frame data to write.
-	 */
-	public void putFrame(int frame, float[] frameData)
-	{
-		int startIndex = frame * 2 * nChannels;
-		AudioUtils.floatToByte(sampleData, startIndex, frameData, 0, frameData.length, isBigEndian);					
-	}
-	
-	/**
-	 * Write multiple frames data into the sample.
-	 * 
-	 * This only makes sense if this.isWriteable() returns true.
-	 * If isWriteable() is false, the behaviour is undefined/unstable.
-	 * 
-	 * @param frame The frame to write into.
-	 * @param frameData The frames to write.
-	 */
-	public void putFrames(int frame, float[][] frameData)
-	{
-		int startIndex = frame * 2 * nChannels;			
-		int numFloats = Math.min(frameData[0].length,(int)(nFrames-frame))*nChannels;			
-		
-		float[] floatdata = new float[numFloats];
-		AudioUtils.interleave(frameData,nChannels,frameData[0].length,floatdata);
-		AudioUtils.floatToByte(sampleData, startIndex, floatdata, 0, floatdata.length, isBigEndian);
-	}
-	
-	/**
-	 * Write multiple frames data into the sample.
-	 * 
-	 * This only makes sense if this.isWriteable() returns true.
-	 * If isWriteable() is false, the behaviour is undefined/unstable.
-	 * 
-	 * @param frame The frame to write into.
-	 * @param frameData The frames to write.
-	 * @param offset The offset into frameData
-	 * @param numFrames The number of frames from frameData to write
-	 */
-	public void putFrames(int frame, float[][] frameData, int offset, int numFrames)
-	{
-		if (numFrames<=0) return;
-		
-		int startIndex = frame * 2 * nChannels;			
-		int numFloats = Math.min(numFrames,(int)(nFrames-frame))*nChannels;			
-		
-		float[] floatdata = new float[numFloats];
-		AudioUtils.interleave(frameData,nChannels,offset,frameData[0].length,floatdata);
-		AudioUtils.floatToByte(sampleData, startIndex, floatdata, 0, floatdata.length, isBigEndian);
-	}
-    
-    /**
-     * Write Sample to a file.
-     * This will record the entire sample to a file.
-     * BLOCKING.
-     * 
-     * @param fn the file name.
-     * 
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    public void write(String fn) throws IOException {
-    	if (isTotal())
-    	{
-    		ByteArrayInputStream bais = new ByteArrayInputStream(sampleData);
-            AudioInputStream aos = new AudioInputStream(bais, audioFormat, nFrames);
-            AudioSystem.write(aos, AudioFileFormat.Type.AIFF, new File(fn));
-    	}
-    	else // bufferingRegime==BufferingRegime.TIMED
-    	{
-    		System.out.println("Writing buffered samples to disk is not yet supported.");
-    		System.exit(1);
-    		
-    		/*
-    		// for each region, load it if necessary and write out the data
-    		File file = new File(fn);
-    		for(int i=0;i<numberOfRegions;i++)
-    		{
-    			try {
-					while (!regionLocks[i].tryLock(10, TimeUnit.MILLISECONDS)){}
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-				try {
-					byte[] regionData = getRegion(i);
-					if (regionData!=null)
-					{
-						ByteArrayInputStream bais = new ByteArrayInputStream(regionData);
-						AudioInputStream aos = new AudioInputStream(bais, audioFormat, regionSize);
-			            AudioSystem.write(aos, AudioFileFormat.Type.AIFF, file);
-					}
-				}
-				finally {
-					regionLocks[i].unlock();
-				}
-    		}
-    		*/
-    	}
-    	
-        
-    }
-
-	
-	public AudioFile getAudioFile() {
-		return audioFile;
-	}
-
-	
-	public AudioFormat getAudioFormat() {
-		return audioFormat;
-	}
-
-	
-	public int getNumChannels() {
-		return nChannels;
-	}
-
-	
-	public long getNumFrames() {
-		return nFrames;
-	}
-
-	
-	public float getLength() {
-		return length;
-	}
-
-	public float getSampleRate() {
-		return audioFormat.getSampleRate();
-	}
-    
-    public int getNumberOfRegionsLoaded() {
-    	return numberOfRegionsLoaded;
-    }
-    
 }

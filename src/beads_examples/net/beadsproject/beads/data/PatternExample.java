@@ -3,8 +3,6 @@ package net.beadsproject.beads.data;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.ugens.Clock;
-import net.beadsproject.beads.ugens.Envelope;
-import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.SamplePlayer;
 
 
@@ -21,16 +19,22 @@ public class PatternExample {
 		final AudioContext ac = new AudioContext();
 		//String dir = "/Users/ollie/Music/Audio/crash test audio/469-23_SpeedY_Nylon_Guitar_Single_notes.";
 		String dir = "D:/audio/crash test audio/469-23_SpeedY_Nylon_Guitar_Single_notes.";
+		// String dir = "D:/audio/crash test audio/chopped live sounds/Bongos";
 		
-		//SampleManager.setBufferingRegime(new Sample.TimedRegime(100, 0, 0, 0, Sample.TimedRegime.Order.ORDERED));
-		SampleManager.setBufferingRegime(Sample.Regime.TOTAL);
+		// SampleManager.setBufferingRegime(new Sample.TimedRegime(100, 0, 0, 0, Sample.TimedRegime.Order.ORDERED));
+		
+		Sample.Regime r = new Sample.TimedRegime(10000000, 0, 0, -1, Sample.TimedRegime.Order.ORDERED);
+		r.storeInNativeBitDepth = true;
+		SampleManager.setBufferingRegime(r);
+		//SampleManager.setBufferingRegime(Sample.Regime.TOTAL);
 		
 		SampleManager.group("sounds", dir);
-		final Clock c = new Clock(ac, 500);
+		final Clock c = new Clock(ac, 100);
 		ac.out.addDependent(c);
 		c.addMessageListener(new Bead() {
 			public void messageReceived(Bead message) {
 				if(c.isBeat()) {
+					// SimpleSamplePlayer sp = new SimpleSamplePlayer(ac, SampleManager.randomFromGroup("sounds"));
 					SamplePlayer sp = new SamplePlayer(ac, SampleManager.randomFromGroup("sounds"));
 					ac.out.addInput(sp);
 				}
