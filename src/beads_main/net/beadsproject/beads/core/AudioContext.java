@@ -8,6 +8,7 @@ package net.beadsproject.beads.core;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.FloatBuffer;
 import java.util.Arrays;
 
 import javax.sound.sampled.AudioFormat;
@@ -17,6 +18,11 @@ import javax.sound.sampled.Line;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
+
+import de.gulden.framework.jjack.JJackAudioEvent;
+import de.gulden.framework.jjack.JJackAudioProcessor;
+import de.gulden.framework.jjack.JJackClient;
+import de.gulden.framework.jjack.JJackSystem;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
 import net.beadsproject.beads.ugens.DelayTrigger;
@@ -261,6 +267,44 @@ public class AudioContext {
 		sourceDataLine.close();
 		sourceDataLine = null;
 		mixer = null;
+	}
+	
+	public void runJJack() {
+		if(stop) {
+			byte b = 0;
+			Arrays.fill(bbuf, b);
+			timeStep = 0;
+			stop = false;
+			System.out.println(JJackSystem.getInfo());
+			JJackSystem.setProcessor(new JJackAudioProcessor() {
+				public void process(JJackAudioEvent e) {
+					/* TODO questions: 
+					 * 
+					 * how do we tell JJackSystem what buffer size and 
+					 * number of channels to use? Or alternatively, find out what settings
+					 * it is using?
+					 * 
+					 * Why is the number of input channels the same as the number of output channels.
+					 * 
+					 */
+			        for (int i=0; i<e.countChannels(); i++) {
+			            FloatBuffer inBufs = e.getInput(i);
+			        }
+					out.update(); // this will propagate all of the updates
+			        for (int i=0; i<e.countChannels(); i++) {
+			            FloatBuffer outBufs = e.getOutput(i);
+			            int cap = outBufs.capacity();
+			            for (int j=0; j<cap; j++) {
+			                outBufs.put(j, out.getValue(i, j));
+			            }
+			        }
+					timeStep++;
+					if(stop) {
+						JJackSystem.setProcessor(null);
+					}
+				}
+			});
+		}
 	}
 	
 	/**

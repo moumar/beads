@@ -7,5 +7,10 @@
 	<classpathentry kind="lib" path="dependencies/mp3spi1.9.4.jar"/>
 	<classpathentry kind="lib" path="dependencies/tritonus_share.jar"/>
 	<classpathentry kind="lib" path="dependencies/jl1.0.1.jar"/>
+	<classpathentry kind="lib" path="dependencies/jjack.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="Beads/dependencies/macos"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
