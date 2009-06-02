@@ -12,11 +12,11 @@ public class SampleGradualLoadExample {
 	public static void main(String[] args) throws IOException, UnsupportedAudioFileException {
 		
 		//find a long file to play back
-		//String pathToFile = "/Users/ollie/Music/Audio/Igor/Petrouchka.aif";
-		//String pathToFile = "/Users/ollie/Programming/Eclipse/BeadsTests/audio/gammaBrosTheme.mp3";
-		//String pathToFile = "../BeadsTests/audio/gammaBrosTheme.mp3.aif";
-		//String pathToFile = "../BeadsTests/audio/gammaBrosTheme.mp3";
-		String pathToFile = "D:/Music/Mozart Discography (5 CDs) 320kbps/Mozart - Concertos for Flute/Mozart, Wolfgang Amadeus; Mozart Festival Orchestra, Angela - Piano Concerto No 21 in C major KV 467 - Allegro Assai.mp3";
+//		String pathToFile = "/Users/ollie/Music/Audio/Igor/Petrouchka.aif";
+		String pathToFile = "/Users/ollie/Programming/Eclipse/BeadsTests/audio/gammaBrosTheme.mp3";
+//		String pathToFile = "../BeadsTests/audio/gammaBrosTheme.mp3.aif";
+//		String pathToFile = "../BeadsTests/audio/gammaBrosTheme.mp3";
+//		String pathToFile = "D:/Music/Mozart Discography (5 CDs) 320kbps/Mozart - Concertos for Flute/Mozart, Wolfgang Amadeus; Mozart Festival Orchestra, Angela - Piano Concerto No 21 in C major KV 467 - Allegro Assai.mp3";
 		
 		//example settings: TIMED, regionsize 100, lookahead 2000, lookback 2000, memory 5000.
 		//BP: Fixed a few problems, added new loading regime, seems to work okay now...

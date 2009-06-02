@@ -1,8 +1,12 @@
 package net.beadsproject.beads.ugens;
 
+import java.io.IOException;
+
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.buffers.SawBuffer;
+import net.beadsproject.beads.events.AudioContextStopTrigger;
 
 /**
  * Demonstration of recording into a sample, and playing it back.
@@ -14,11 +18,11 @@ import net.beadsproject.beads.data.buffers.SawBuffer;
  */
 public class RecorderExample {
 	public static void main(String[] args) throws Exception {
-		AudioContext ac = new AudioContext();
+		final AudioContext ac = new AudioContext();
 		
 		// Create an empty sample and recorder.
 		float seconds = 0.1f;
-		Sample s = new Sample(ac.getAudioFormat(),(long) (ac.getAudioFormat().getSampleRate()*seconds));
+		final Sample s = new Sample(ac.getAudioFormat(),(long) (ac.getAudioFormat().getSampleRate()*seconds));
 		s.clear();
 		Recorder r = new Recorder(ac,s, Recorder.Mode.INFINITE);
 		
@@ -30,7 +34,14 @@ public class RecorderExample {
 		WavePlayer wp = new WavePlayer(ac,e,new SawBuffer().getDefault());
 		r.addInput(wp);
 		
-		// play the sample		
+		
+		
+		// attach the recorder
+		ac.out.addDependent(r);
+		
+		
+		// option 1: play the sample whilst it's being filled
+		/*
 		SamplePlayer sp = new SamplePlayer(ac,s);
 		sp.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
 		sp.setKillOnEnd(false);
@@ -38,11 +49,32 @@ public class RecorderExample {
 		rate.addSegment(5f, 5000f);
 		rate.addSegment(0.1f, 5000f);
 		sp.setRateEnvelope(rate);
-		
-		// attach the recorder and sample player
-		ac.out.addDependent(r);
 		ac.out.addInput(sp);		
 		ac.start();
+		*/
+		
+		// option 2: set a time limit and then save the sample
+		
+		DelayTrigger dt = new DelayTrigger(ac, 10000, new Bead() {
+			public void messageReceived(Bead message) {
+				ac.stop();
+				System.out.println("stopped");
+				try {
+					s.write("/Users/ollie/Desktop/test.aif");
+					System.out.println("saved");
+					System.exit(1);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		ac.out.addDependent(dt);
+		ac.out.addInput(wp);
+		ac.start();
+		
+		
+		// option 3: save the sample continuously until a given time
 	}
 
 }
