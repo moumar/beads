@@ -6,8 +6,10 @@ package net.beadsproject.beads.analysis;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import net.beadsproject.beads.core.TimeStamp;
@@ -27,6 +29,11 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	/** The list of FeatureFrames. */
 	private SortedSet<FeatureFrame> frames;
 
+	/** An alternative list which blocks together the feature frames. */
+	private Map<Integer, SortedSet<FeatureFrame>> framesInBlocks;
+	/** Interval in ms between regions of framesInBlocks. */
+	private int skipMS;
+	
 	/** The list of FeatureExtractors used to extract data. */
 	private transient List<FeatureExtractor<?, ?>> extractors;
 	
@@ -35,6 +42,8 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	 */
 	public FeatureTrack() {
 		frames = new TreeSet<FeatureFrame>();
+		framesInBlocks = new Hashtable<Integer, SortedSet<FeatureFrame>>();
+		skipMS = 1000;
 		extractors = new ArrayList<FeatureExtractor<?,?>>();
 	}
 	
@@ -44,7 +53,22 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	 * @param ff the FeatureFrame.
 	 */
 	public void add(FeatureFrame ff) {
+		//add to frames
 		frames.add(ff);
+		//and to framesInBlocks
+		int startIndex = (int)(ff.getStartTimeMS() / skipMS);
+		int endIndex = (int)(ff.getEndTimeMS() / skipMS);
+		for(int i = startIndex; i <= endIndex; i++) {
+			SortedSet<FeatureFrame> frameSet;
+			if(framesInBlocks.containsKey(i)) {
+				frameSet = framesInBlocks.get(i);
+			} else {
+				frameSet = new TreeSet<FeatureFrame>();
+				framesInBlocks.put(i, frameSet);
+			}
+			frameSet.add(ff);
+		}
+		
 	}
 	
 	/**
@@ -76,11 +100,16 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	 * @return the FeatureFrame at this time.
 	 */
 	public FeatureFrame getFrameAt(double timeMS) {
-		FeatureFrame targetFrame = new FeatureFrame(timeMS, timeMS);
-		SortedSet<FeatureFrame> headSet = frames.headSet(targetFrame);
-		FeatureFrame theFrame = headSet.last();
-		if(theFrame.containsTime(timeMS)) return theFrame;
-		else return null;
+		int startTimeIndex = (int)(timeMS / skipMS);
+		SortedSet<FeatureFrame> localSet = framesInBlocks.get(startTimeIndex);
+		if(localSet != null) {
+			for(FeatureFrame ff : localSet) {	//TODO replace with binary search.
+				if(ff.containsTime(timeMS)) {
+					return ff;
+				}
+			}
+		}
+		return null;
 	}
 	
 	/**
@@ -91,16 +120,9 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	 * @return the FeatureFrame at this time.
 	 */
 	public FeatureFrame getFrameBefore(double timeMS) {
-		if(getNumberOfFrames() == 0) {
-			return null;
-		}
-		FeatureFrame targetFrame = new FeatureFrame(timeMS, timeMS);
-		SortedSet<FeatureFrame> headSet = frames.headSet(targetFrame);
-		if(headSet.size() > 0) {
-			return headSet.last();
-		} else {
-			return frames.first();
-		}
+		FeatureFrame ff = getFrameAt(timeMS);
+		if(ff == null) ff = frames.last();
+		return ff;	//TODO testme
 	}
 	
 	/**
