@@ -243,7 +243,9 @@ public class GranularSamplePlayer extends SamplePlayer {
 		//update the various envelopes
 		if(buffer != null) {
 			rateEnvelope.update();
-			positionEnvelope.update();
+			if(positionEnvelope != null) {
+				positionEnvelope.update();
+			}
 			loopStartEnvelope.update();
 			loopEndEnvelope.update();
 			pitchEnvelope.update();
