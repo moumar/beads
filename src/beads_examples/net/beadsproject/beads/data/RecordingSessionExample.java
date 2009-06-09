@@ -25,9 +25,13 @@ public class RecordingSessionExample {
 		RTInput input = new RTInput(ac);
 		  
 		// set up a recorder
-		final Sample s = new Sample(ac.getAudioFormat(),44100);
+		final Sample s = new Sample(ac.getAudioFormat(),1000);
 		final Recorder r = new Recorder(ac,s,Recorder.Mode.INFINITE);
 		r.addInput(input);
+		
+		// ADVANCED (and demonstratively ONLY) usage of recorder resizing parameters.
+		// Don't double the sample size, simply resize by 1 minute chunks at a time
+		r.setResizingParameters(0, 1*60*1000);
 		
 		// set up a user-input trigger
 		final WindowListener trigger = new WindowListener()
@@ -35,8 +39,9 @@ public class RecordingSessionExample {
 			public void windowClosing(WindowEvent e) {
 				// TODO Auto-generated method stub
 				// stop the recorder, and clip the final sample
+				ac.stop();
 				r.pause(true);
-				r.clip();
+				// r.clip(); (don't clip, let's here the silence too....)
 				
 				// output the sample to a file
 				try {

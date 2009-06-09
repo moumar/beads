@@ -10,23 +10,13 @@ import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.SampleManager;
 
 /**
- * SamplePlayer plays back a {@link Sample}. Playback rate and loop points can be controlled by {@link UGen}s. The playback point in the {@link Sample} can also be directly controlled from {@link UGen} to perform scrubbing. The player can be set to a number of different loop modes. If constructed with a {@link Sample} argument, the number of outputs of SamplePlayer is determined by the number of channels of the {@link Sample}. {@link Sample} playback can use either linear or cubic interpolation.
- *
- * @author ollie
+ * SimpleSamplePlayer plays back a {@link Sample}.
+ * It has limited functionality but is faster than SamplePlayer.
+ * 
+ * The playback point in the {@link Sample} can also be directly controlled from {@link UGen} to perform scrubbing.
+ * @author Ben
  */
-public class SamplePlayer extends UGen {
-
-	/**
-	 * The Enum InterpolationType.
-	 */
-	public static enum InterpolationType {
-
-		/** Use linear interpolation. */
-		LINEAR, 
-
-		/** Use cubic interpolation. */
-		CUBIC
-	};
+public class SimpleSamplePlayer extends UGen {
 
 	/**
 	 * The Enum LoopType.
@@ -36,18 +26,8 @@ public class SamplePlayer extends UGen {
 		/** Play forwards without looping. */
 		NO_LOOP_FORWARDS, 
 
-		/** Play backwards without looping. */
-		NO_LOOP_BACKWARDS, 
-
 		/** Play forwards with loop. */
-		LOOP_FORWARDS, 
-
-		/** Play backwards with loop. */
-		LOOP_BACKWARDS, 
-
-		/** Loop alternately forwards and backwards. */
-		LOOP_ALTERNATING
-
+		LOOP_FORWARDS
 	};
 
 	/** The Sample. */
@@ -57,22 +37,19 @@ public class SamplePlayer extends UGen {
 	protected float sampleRate;                 
 
 	/** The position in milliseconds. */
-	protected double position;                
+	protected double position;                    
+
+	/** The last changed position, used to determine if the position envelope is in use. */
+	protected double lastChangedPosition;
 
 	/** The position envelope. */
 	protected UGen positionEnvelope;
-
-	/** The rate envelope. */
-	protected UGen rateEnvelope;               
-
+ 
 	/** The millisecond position increment per sample. Calculated from the ratio of the {@link AudioContext}'s sample rate and the {@link Sample}'s sample rate. */
 	protected double positionIncrement;           
 
 	/** Flag for alternating loop mode to determine if playback is in forward or reverse phase. */
 	protected boolean forwards;
-
-	/** The interpolation type. */
-	protected InterpolationType interpolationType;
 
 	/** The loop start envelope. */
 	protected UGen loopStartEnvelope;              
@@ -107,11 +84,9 @@ public class SamplePlayer extends UGen {
 	 * @param context the AudioContext.
 	 * @param outs the number of outputs.
 	 */
-	public SamplePlayer(AudioContext context, int outs) {
+	public SimpleSamplePlayer(AudioContext context, int outs) {
 		super(context, outs);
-		rateEnvelope = new Static(context, 1.0f);
-		positionEnvelope = null;
-		interpolationType = InterpolationType.LINEAR;
+		positionEnvelope = new Static(context, 0.0f);
 		loopType = LoopType.NO_LOOP_FORWARDS;
 		forwards = true;
 		killOnEnd = true;
@@ -125,7 +100,7 @@ public class SamplePlayer extends UGen {
 	 * @param context the AudioContext.
 	 * @param buffer the Sample.
 	 */
-	public SamplePlayer(AudioContext context, Sample buffer) {
+	public SimpleSamplePlayer(AudioContext context, Sample buffer) {
 		this(context, buffer.getNumChannels());
 		setBuffer(buffer);
 		loopEndEnvelope.setValue(buffer.getLength());
@@ -202,7 +177,7 @@ public class SamplePlayer extends UGen {
 	}
 
 	/**
-	 * Sets the playback position. This will not work if the position envelope is not null.
+	 * Sets the playback position.
 	 * 
 	 * @param position the new position in milliseconds.
 	 */
@@ -220,7 +195,7 @@ public class SamplePlayer extends UGen {
 	}
 
 	/**
-	 * Sets the position envelope. Setting the position envelope means that the position is then controlled by this envelope. If the envelope is null the position continues to be modified by the SamplePlayer's internal playback or by calls to change the position.
+	 * Sets the position envelope. Setting the position envelope means that the position is then controlled by this envelope. If the envelope is null, or unchanging, the position continues to be modified by the SamplePlayer's internal playback or by calls to change the position.
 	 * 
 	 * @param positionEnvelope the new position envelope.
 	 */
@@ -229,46 +204,10 @@ public class SamplePlayer extends UGen {
 	}
 
 	/**
-	 * Gets the rate envelope.
-	 * 
-	 * @return the rate envelope.
-	 */
-	public UGen getRateEnvelope() {
-		return rateEnvelope;
-	}
-
-	/**
-	 * Sets the rate envelope.
-	 * 
-	 * @param rateEnvelope the new rate envelope.
-	 */
-	public void setRateEnvelope(UGen rateEnvelope) {
-		this.rateEnvelope = rateEnvelope;
-	}
-
-	/**
 	 * Updates the position increment. Called whenever the {@link Sample}'s sample rate or the {@link AudioContext}'s sample rate is modified.
 	 */
 	private void updatePositionIncrement() {
 		positionIncrement = context.samplesToMs(sampleRate / context.getSampleRate());
-	}
-
-	/**
-	 * Gets the interpolation type.
-	 * 
-	 * @return the interpolation type.
-	 */
-	public InterpolationType getInterpolationType() {
-		return interpolationType;
-	}
-
-	/**
-	 * Sets the interpolation type.
-	 * 
-	 * @param interpolationType the new interpolation type.
-	 */
-	public void setInterpolationType(InterpolationType interpolationType) {
-		this.interpolationType = interpolationType;
 	}
 
 	/**
@@ -352,13 +291,7 @@ public class SamplePlayer extends UGen {
 	 */
 	public void setLoopType(LoopType loopType) {
 		this.loopType = loopType;
-		if(loopType != LoopType.LOOP_ALTERNATING) {
-			if(loopType == LoopType.LOOP_FORWARDS || loopType == LoopType.NO_LOOP_FORWARDS) {
-				forwards = true;
-			} else {
-				forwards = false;
-			}
-		}
+		this.forwards = true; // always true in simple sample player
 	}
 
 	/**
@@ -376,42 +309,42 @@ public class SamplePlayer extends UGen {
 	@Override
 	public void calculateBuffer() {
 		if(buffer != null) {
-			if(positionEnvelope != null) {
-				positionEnvelope.update();
-			} else {
-				rateEnvelope.update();
-				loopStartEnvelope.update();
-				loopEndEnvelope.update();
+			positionEnvelope.update();
+			loopStartEnvelope.update();
+			loopEndEnvelope.update();
+			
+			position += positionEnvelope.getValue();
+			
+			long posInSamples = (long)(buffer.msToSamples((float)position));		
+			long samplesToEnd = buffer.getNumFrames()-posInSamples;
+			if (samplesToEnd < bufferSize)
+			{
+				// then on the boundary to split up...
+				// atm just quit...
+				atEnd();
 			}
-			for (int i = 0; i < bufferSize; i++) {
-				//calculate the samples
-				double posInSamples = buffer.msToSamples((float)position);				
-				float[] frame = null;
-				switch (interpolationType) {
-				case LINEAR:
-					frame = buffer.getFrameLinear(posInSamples);
-					break;
-				case CUBIC:
-					frame = buffer.getFrameCubic(posInSamples);
-					break;
-				}
-				for (int j = 0; j < outs; j++) {
-					bufOut[j][i] = frame[j % buffer.getNumChannels()];
-				}
-				//update the position, loop state, direction
-				calculateNextPosition(i);
-				//if the SamplePlayer gets paused or deleted, zero the remaining outs and quit the loop
-				if(isPaused() || isDeleted()) {
-					//make sure to zero the remaining outs
-					while(i < bufferSize) {
-						for (int j = 0; j < outs; j++) {
-							bufOut[j][i] = 0.0f;
-						}
-						i++;
-					}
-					break;
-				}
+			else
+			{
+				buffer.getFrames((int) posInSamples, bufOut);
+				position += buffer.samplesToMs(bufferSize);
 			}
+			
+			
+			/*
+			switch(loopType) {
+			case NO_LOOP_FORWARDS:
+				position += positionIncrement * rate;
+				if(position > buffer.getLength() || position < 0) atEnd();
+				break;
+			case LOOP_FORWARDS:
+				position += positionIncrement * rate;
+				if(rate > 0 && position > Math.max(loopStart, loopEnd)) {
+					position = Math.min(loopStart, loopEnd);
+				} else if(rate < 0 && position < Math.min(loopStart, loopEnd)) {
+					position = Math.max(loopStart, loopEnd);
+				}
+			
+			*/
 		}
 	}
 
@@ -452,63 +385,4 @@ public class SamplePlayer extends UGen {
 		reset();
 		this.pause(false);
 	}
-
-	/**
-	 * Used at each sample in the perform routine to determine the next playback position.
-	 * 
-	 * @param i the index within the buffer loop.
-	 */
-	protected void calculateNextPosition(int i) {
-		if(positionEnvelope != null) {
-			position = positionEnvelope.getValue(0, i);
-		} else {
-			rate = rateEnvelope.getValue(0, i);
-			switch(loopType) {
-			case NO_LOOP_FORWARDS:
-				position += positionIncrement * rate;
-				if(position > buffer.getLength() || position < 0) atEnd();
-				break;
-			case NO_LOOP_BACKWARDS:
-				position -= positionIncrement * rate;
-				if(position > buffer.getLength() || position < 0) atEnd();
-				break;
-			case LOOP_FORWARDS:
-				loopStart = loopStartEnvelope.getValue(0, i);
-				loopEnd = loopEndEnvelope.getValue(0, i);
-				position += positionIncrement * rate;
-				if(rate > 0 && position > Math.max(loopStart, loopEnd)) {
-					position = Math.min(loopStart, loopEnd);
-				} else if(rate < 0 && position < Math.min(loopStart, loopEnd)) {
-					position = Math.max(loopStart, loopEnd);
-				}
-				break;
-			case LOOP_BACKWARDS:
-				loopStart = loopStartEnvelope.getValue(0, i);
-				loopEnd = loopEndEnvelope.getValue(0, i);
-				position -= positionIncrement * rate;
-				if(rate > 0 && position < Math.min(loopStart, loopEnd)) {
-					position = Math.max(loopStart, loopEnd);
-				} else if(rate < 0 && position > Math.max(loopStart, loopEnd)) {
-					position = Math.min(loopStart, loopEnd);
-				}
-				break;
-			case LOOP_ALTERNATING:
-				loopStart = loopStartEnvelope.getValue(0, i);
-				loopEnd = loopEndEnvelope.getValue(0, i);
-				position += forwards ? positionIncrement * rate : -positionIncrement * rate;
-				if(forwards ^ (rate < 0)) { 
-					if(position > Math.max(loopStart, loopEnd)) {
-						forwards = (rate < 0);
-						position = 2 * Math.max(loopStart, loopEnd) - position;
-					}
-				} else if(position < Math.min(loopStart, loopEnd)) {
-					forwards = (rate > 0);
-					position = 2 * Math.min(loopStart, loopEnd) - position;
-				}
-				break;
-			}
-		}
-	}
-
-
 }

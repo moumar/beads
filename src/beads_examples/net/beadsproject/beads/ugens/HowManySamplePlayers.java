@@ -16,9 +16,9 @@ public class HowManySamplePlayers {
 		final AudioContext ac = new AudioContext();
 //		final AudioContext ac = new AudioContext(BUFFER_SIZE, IO_BUFFER_SIZE * 4);
 //		ac.chooseMixerCommandLine();
-		Sample.Regime tr = new TotalRegime();
-		tr.storeInNativeBitDepth = true;
+		Sample.Regime tr = Sample.Regime.newTotalRegimeNative();
 		SampleManager.setBufferingRegime(tr);
+		
 		Sample s = SampleManager.sample("audio/1234.aif");
 		final Gain g = new Gain(ac, 2, 1f / NUM_OSCS);
 		for(int i = 0; i < NUM_OSCS; i++) {

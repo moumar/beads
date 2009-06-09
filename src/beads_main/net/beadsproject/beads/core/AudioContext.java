@@ -8,7 +8,6 @@ package net.beadsproject.beads.core;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.FloatBuffer;
 import java.util.Arrays;
 
 import javax.sound.sampled.AudioFormat;
@@ -19,10 +18,6 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
 
-import de.gulden.framework.jjack.JJackAudioEvent;
-import de.gulden.framework.jjack.JJackAudioProcessor;
-import de.gulden.framework.jjack.JJackClient;
-import de.gulden.framework.jjack.JJackSystem;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
 import net.beadsproject.beads.ugens.DelayTrigger;
@@ -269,7 +264,7 @@ public class AudioContext {
 		mixer = null;
 	}
 	
-	public void runJJack() {
+	/*public void runJJack() {
 		if(stop) {
 			byte b = 0;
 			Arrays.fill(bbuf, b);
@@ -278,7 +273,7 @@ public class AudioContext {
 			System.out.println(JJackSystem.getInfo());
 			JJackSystem.setProcessor(new JJackAudioProcessor() {
 				public void process(JJackAudioEvent e) {
-					/* TODO questions: 
+					 TODO questions: 
 					 * 
 					 * how do we tell JJackSystem what buffer size and 
 					 * number of channels to use? Or alternatively, find out what settings
@@ -286,7 +281,7 @@ public class AudioContext {
 					 * 
 					 * Why is the number of input channels the same as the number of output channels.
 					 * 
-					 */
+					 
 			        for (int i=0; i<e.countChannels(); i++) {
 			            FloatBuffer inBufs = e.getInput(i);
 			        }
@@ -306,7 +301,7 @@ public class AudioContext {
 			});
 		}
 	}
-	
+	*/
 	/**
 	 * Checks if this AudioContext is running.
 	 * 

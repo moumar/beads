@@ -13,10 +13,10 @@ public class SampleGradualLoadExample {
 		
 		//find a long file to play back
 //		String pathToFile = "/Users/ollie/Music/Audio/Igor/Petrouchka.aif";
-		String pathToFile = "/Users/ollie/Programming/Eclipse/BeadsTests/audio/gammaBrosTheme.mp3";
+//		String pathToFile = "/Users/ollie/Programming/Eclipse/BeadsTests/audio/gammaBrosTheme.mp3";
 //		String pathToFile = "../BeadsTests/audio/gammaBrosTheme.mp3.aif";
 //		String pathToFile = "../BeadsTests/audio/gammaBrosTheme.mp3";
-//		String pathToFile = "D:/Music/Mozart Discography (5 CDs) 320kbps/Mozart - Concertos for Flute/Mozart, Wolfgang Amadeus; Mozart Festival Orchestra, Angela - Piano Concerto No 21 in C major KV 467 - Allegro Assai.mp3";
+		String pathToFile = "D:/Music/Mozart Discography (5 CDs) 320kbps/Mozart - Concertos for Flute/Mozart, Wolfgang Amadeus; Mozart Festival Orchestra, Angela - Piano Concerto No 21 in C major KV 467 - Allegro Assai.mp3";
 		
 		//example settings: TIMED, regionsize 100, lookahead 2000, lookback 2000, memory 5000.
 		//BP: Fixed a few problems, added new loading regime, seems to work okay now...
@@ -35,7 +35,7 @@ public class SampleGradualLoadExample {
 		ac.out.addInput(play);
 		
 		//make a little skipping tool
-		final Clock clock = new Clock(ac, 500f);
+		final Clock clock = new Clock(ac, 100f);
 		ac.out.addDependent(clock);
 		clock.addMessageListener(new Bead() {
 			public void messageReceived(Bead message) {

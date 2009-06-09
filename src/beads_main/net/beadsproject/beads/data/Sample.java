@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.lang.Thread.State;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -46,10 +49,16 @@ import net.beadsproject.beads.core.AudioUtils;
  * <p>
  * The {@link Regime buffering regime} of the Sample determines how the data is stored and how it is buffered. 
  * The {@link Sample.TotalRegime TOTAL} regime is the default. Under this regime, the sample loads all the data from the audio file and
- * stores it in Beads' native format. This is appropriate for most small samples.
+ * stores it in Beads' native format. This is appropriate for most small samples.For longer samples or compressed audio consider using a {@link Sample.TimedRegime TimedRegime}.
  * </p>
  * <p>
- * For longer samples or compressed audio consider using a {@link Sample.TimedRegime TimedRegime}. 
+ * A set of handy factory methods for handling common situations is also provided. These are:
+ * <ul>
+ * <li>{@link #Regime.newTotalRegime()}</li>
+ * <li>{@link #Regime.newTotalRegimeNative(long)}</li>
+ * <li>{@link #Regime.newStreamingRegime(long)}</li>
+ * <li>{@link #Regime.newStreamingRegimeWithAging(long)}</li>
+ * </ul>
  * </p>
  * 
  * Current Issues:
@@ -86,9 +95,48 @@ public class Sample implements Runnable {
 			storeInNativeBitDepth = nbp;
 		}
 
-		// defaults 
-		static final public TotalRegime TOTAL = new TotalRegime(); 
-		static final public TimedRegime TIMED = new TimedRegime(); 
+		// Factory methods.
+		/**
+		 * Loads the entire file at initialisation. This is the default regime.
+		 */
+		static public TotalRegime newTotalRegime()
+		{
+			return new TotalRegime();
+		}
+		
+		/**
+		 * Loads the entire file and keeps it in its native bit depth.
+		 */
+		static public TotalRegime newTotalRegimeNative()
+		{
+			TotalRegime tr = new TotalRegime();
+			tr.storeInNativeBitDepth = true;
+			return tr;
+		}
+		
+		/**
+		 * Stream the file from disk -- storing the data in the sample. Useful for a forward sample player
+		 * that possibly skips to different parts of the file. Once data is buffered it remains around forever.
+		 * 
+		 * @param regionSize Buffer size in ms. Generally should be a small fraction of the entire file. 
+		 */
+		static public TimedRegime newStreamingRegime(long regionSize)
+		{
+			return new TimedRegime(regionSize,regionSize*2,0,-1,TimedRegime.Order.ORDERED);
+		} 
+		
+		/**
+		 * Like {@link #Regime.newStreamingRegime(long)} but each buffered segment is discarded after a specified
+		 * amount of time. This is useful if the sample is very large to conserve memory.
+		 * 
+		 * @param regionSize Buffer size in ms. Generally should be a small fraction of the entire file. 
+		 * @param memory Amount of time (ms) that an untouched region is allowed to live for.
+		 * @return
+		 */
+		static public TimedRegime newStreamRegimeWithAging(long regionSize, long memory)
+		{
+			return new TimedRegime(regionSize,regionSize*2,0,memory,TimedRegime.Order.ORDERED);
+		}
 	};
 
 	/**
@@ -110,10 +158,10 @@ public class Sample implements Runnable {
 	 */  
 	static public class TimedRegime extends Regime
 	{
-		public int lookAhead; // time lookahead, ms
-		public int lookBack; // time lookback, ms 
+		public long lookAhead; // time lookahead, ms
+		public long lookBack; // time lookback, ms 
 		public long memory;   // age (ms) at which regions get removed		
-		public float regionSize; // size of each region (by default 10s)
+		public long regionSize; // size of each region (by default 10s)
 
 		static public enum Order {
 			NEAREST,
@@ -132,19 +180,19 @@ public class Sample implements Runnable {
 			loadingOrder = Order.ORDERED;
 		}
 
-		public TimedRegime(int regionSize, 
-				int lookAhead, 
-				int lookBack, 
-				int memory, 
+		public TimedRegime(long regionSize,
+				long lookAhead,
+				long lookBack,
+				long memory,
 				Order loadingOrder)
 		{
 			this(regionSize,lookAhead,lookBack,memory,loadingOrder,false);
 		}
 
-		public TimedRegime(int regionSize, 
-				int lookAhead, 
-				int lookBack, 
-				int memory, 
+		public TimedRegime(long regionSize, 
+				long lookAhead, 
+				long lookBack, 
+				long memory, 
 				Order loadingOrder,
 				boolean storeInNativeBitDepth)
 		{
@@ -161,9 +209,9 @@ public class Sample implements Runnable {
 		 * 
 		 * @param lookahead time to look ahead in ms.
 		 */
-		public void setLookAhead(float lookahead) 
+		public void setLookAhead(long lookahead) 
 		{
-			this.lookAhead = (int)lookahead;
+			this.lookAhead = lookahead;
 		}
 
 		/**
@@ -171,9 +219,9 @@ public class Sample implements Runnable {
 		 * 
 		 * @param lookback time to look backwards in ms.
 		 */
-		public void setLookBack(float lookback) 
+		public void setLookBack(long lookback) 
 		{
-			this.lookBack = (int)lookback;
+			this.lookBack = lookback;
 		}
 
 		/**
@@ -183,9 +231,9 @@ public class Sample implements Runnable {
 		 * 
 		 * @param ms Duration in milliseconds that unaccessed regions remain loaded.  
 		 */
-		public void setMemory(float ms)
+		public void setMemory(long ms)
 		{
-			this.memory = (int)ms;
+			this.memory = ms;
 		}
 
 		/**
@@ -193,7 +241,7 @@ public class Sample implements Runnable {
 		 * 
 		 * @param ms Size of the region (ms)
 		 */
-		public void setRegionSize(float ms)
+		public void setRegionSize(long ms)
 		{
 			this.regionSize = ms;
 		}
@@ -229,6 +277,7 @@ public class Sample implements Runnable {
 		}
 	};
 
+	// Sample stuff
 	private Regime bufferingRegime;
 	private AudioFile audioFile;
 	private AudioFormat audioFormat;
@@ -237,7 +286,10 @@ public class Sample implements Runnable {
 	private float length; // length in ms
 	private boolean isBigEndian;
 
-	// TimedRegime
+	// TimedRegime Only
+		/// The region master controls the loading of queued regions.
+		static public Executor regionMaster = null;
+	
 		private int r_regionSize; // region size in frames
 		private int r_lookahead; // num region lookahead
 		private int r_lookback; // num regions lookback
@@ -257,8 +309,10 @@ public class Sample implements Runnable {
 		private ConcurrentLinkedQueue<Integer> regionQueue; // a queue of regions to be loaded
 		private Thread regionThread; // the thread that loads regions in the background
 		private Lock[] regionLocks; // to support safe deletion/writing of regions
+		
+		private boolean isScheduled;
 
-	// TotalRegime
+	// TotalRegime Only
 		private byte[] sampleData;
 		private float[][] f_sampleData; // f_sampleData[0] first channel, f_sampleData[1] second channel, etc..
 
@@ -269,22 +323,22 @@ public class Sample implements Runnable {
 	 * The sample isn't initialised, so may contain junk. Use {@link #clear()} to clear it.
 	 * 
 	 * @param audioFormat the audio format.
-	 * @param totalFrames the number of sample frames.
+	 * @param length The length of the sample in ms.
 	 */
-	public Sample(AudioFormat audioFormat, long totalFrames) {
+	public Sample(AudioFormat audioFormat, double length) {
 		this();
 		this.audioFormat = audioFormat;
 		nChannels = audioFormat.getChannels();
-		nFrames = totalFrames;
+		nFrames = (long) msToSamples(length);
 		if (bufferingRegime.storeInNativeBitDepth)
 		{
-			sampleData = new byte[2*nChannels*(int)totalFrames]; //16-bit			
+			sampleData = new byte[2*nChannels*(int)nFrames]; //16-bit			
 		}
 		else
 		{
-			f_sampleData = new float[nChannels][(int)totalFrames];			
+			f_sampleData = new float[nChannels][(int)nFrames];			
 		}
-		length = totalFrames / audioFormat.getSampleRate() * 1000f;
+		length = nFrames / audioFormat.getSampleRate() * 1000f;
 	}
 
 	/**
@@ -294,8 +348,9 @@ public class Sample implements Runnable {
 	 */
 	private Sample()
 	{
-		bufferingRegime = Regime.TOTAL;
+		bufferingRegime = Regime.newTotalRegime();
 		isBigEndian = true;
+		isScheduled = false;
 	}
 
 	/**
@@ -358,7 +413,7 @@ public class Sample implements Runnable {
 	 */
 	public void getFrame(int frame, float[] frameData)
 	{
-		if (frame >= nFrames) return;
+		if (frame<0 || frame >= nFrames) return;
 
 		if (isTotal())
 		{
@@ -376,6 +431,11 @@ public class Sample implements Runnable {
 		else // bufferingRegime==BufferingRegime.TIMED
 		{
 			int whichRegion = frame / r_regionSize;
+			if (whichRegion > numberOfRegions)
+			{
+				Arrays.fill(frameData,0.f);		
+				return;
+			}	
 
 			// When someone requests a region, it may not be loaded yet.
 			// Alternatively it may currently be being deleted, in which case we have to wait.
@@ -384,7 +444,7 @@ public class Sample implements Runnable {
 			// wait until it is free...		
 			try {
 				while (!regionLocks[whichRegion].tryLock(0, TimeUnit.MILLISECONDS))
-				{/* do nothing */}
+				{}
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -420,33 +480,36 @@ public class Sample implements Runnable {
 	}
 
 	/**
-	 * Retrieves a frame of audio using linear interpolation.
+	 * Retrieves a frame of audio using linear interpolation. 
+	 * If the frame is not in the sample range then zeros are returned.
 	 * 
-	 * @param currentSample the current sample.
-	 * @param fractionOffset the offset from the current sample as a fraction of the time
-	 * to the next sample.
-	 * 
+	 * @param frame The frame to read -- can be fractional (e.g., 4.4).
 	 * @return the interpolated frame.
 	 */
-	public float[] getFrameLinear(int currentSample, float fractionOffset) {
+	public float[] getFrameLinear(double frame) {
 		float[] result = new float[nChannels];
-		if(currentSample >= 0 && currentSample < nFrames) {
-			if (currentSample == nFrames-1)
+		int frame_floor = (int)Math.floor(frame);
+		
+		if(frame_floor > 0 && frame_floor < nFrames) {			
+			double frame_frac = frame - frame_floor;
+
+			if (frame_floor==nFrames-1)
 			{
-				getFrame(currentSample,result);    			
+				getFrame(frame_floor,result);
 			}
-			else
+			else // lerp
 			{
-				float[] current = new float[nChannels];    		
-				getFrame(currentSample,current);
+				float[] current = new float[nChannels];
 				float[] next = new float[nChannels];
-				getFrame(currentSample+1,next);
-	
+
+				getFrame(frame_floor,current);
+				getFrame(frame_floor+1,next);
+
 				for (int i = 0; i < nChannels; i++) {
-					result[i] = (1 - fractionOffset) * current[i] +
-					fractionOffset * next[i];
-				}   
+					result[i] = (float)((1 - frame_frac) * current[i] + frame_frac * next[i]);
+				} 
 			}
+
 		} else {
 			for(int i = 0; i < nChannels; i++) {
 				result[i] = 0.0f;
@@ -457,20 +520,20 @@ public class Sample implements Runnable {
 
 	/**
 	 * Retrieves a frame of audio using cubic interpolation.
+	 * If the frame is not in the sample range then zeros are returned.
 	 * 
-	 * @param currentSample the current sample.
-	 * @param fractionOffset the offset from the current sample as a fraction of the time
-	 * to the next sample.
-	 * 
+	 * @param frame The frame to read -- can be fractional (e.g., 4.4).
 	 * @return the interpolated frame.
 	 */
-	public float[] getFrameCubic(int currentSample, float fractionOffset) {    	
+	public float[] getFrameCubic(double frame) {    	
 		float[] result = new float[nChannels];
 		float[] buf = new float[nChannels];
 		float a0,a1,a2,a3,mu2;
 		float ym1,y0,y1,y2;
 		for (int i = 0; i < nChannels; i++) {
-			int realCurrentSample = currentSample;
+			int realCurrentSample = (int)Math.floor(frame);
+			float fractionOffset = (float)(frame - realCurrentSample);
+			
 			if(realCurrentSample >= 0 && realCurrentSample < (nFrames - 1)) {
 				realCurrentSample--;
 				if (realCurrentSample < 0) {
@@ -513,7 +576,7 @@ public class Sample implements Runnable {
 	/**
 	 * Get a series of frames. FrameData will only be filled with the available frames. 
 	 * It is the caller's responsibility to count how many frames are valid.
-	 * e.g., min(nFrames - frame, frameData[0].length) frames in frameData are valid.  
+	 * <code>min(nFrames - frame, frameData[0].length)</code> frames in frameData are valid.  
 	 * 
 	 * If the data is not readily available this function blocks until it is.
 	 * 
@@ -543,6 +606,16 @@ public class Sample implements Runnable {
 		}
 		else // bufferingRegime==BufferingRegime.TIMED
 		{
+			int whichregion = frame / r_regionSize;
+			if (whichregion > numberOfRegions)
+			{
+				for(int i=0;i<nChannels;i++)
+				{
+					Arrays.fill(frameData[i],0.f);
+				}
+				return;
+			}	
+			
 			int numFloats = Math.min(frameData[0].length,(int)(nFrames-frame))*nChannels;
 
 			float[] floatdata = null;
@@ -552,7 +625,6 @@ public class Sample implements Runnable {
 			// fill floatdata with successive regions of byte data
 			int floatdataindex = 0;			
 			int regionindex = frame % r_regionSize;
-			int whichregion = frame / r_regionSize;
 			int numfloatstocopy = Math.min(r_regionSize - regionindex,numFloats - floatdataindex);
 
 			while (numfloatstocopy>0)
@@ -1054,17 +1126,33 @@ public class Sample implements Runnable {
 				r_regionSize = (int) nFrames;
 				r_lookahead = 0;
 				r_lookback = 0;
+				numberOfRegions = 1;
 			}
 			else
 			{			
-				r_lookahead = (int)Math.ceil(((tr.lookAhead/1000.) * audioFile.getDecodedFormat().getSampleRate())/r_regionSize);
-				r_lookback = (int)Math.ceil(((tr.lookBack/1000.) * audioFile.getDecodedFormat().getSampleRate())/r_regionSize);
+				// lookahead, lookback is always a multiple of regionSize
+				if (tr.lookAhead<=0)
+					r_lookahead = 0;
+				else
+					r_lookahead = 1 + (int) ((tr.lookAhead-1)/tr.regionSize);
+				
+				if (tr.lookBack<=0)
+					r_lookback = 0;
+				else
+					r_lookback = 1 + (int) ((tr.lookBack-1)/tr.regionSize);
+				
+				numberOfRegions = 1 + (int) (nFrames / r_regionSize);
+				
+				// numberOfRegions = (int)(Math.ceil((double) nFrames / r_regionSize));
+				//r_lookahead = (int)Math.ceil(((tr.lookAhead/1000.) * audioFile.getDecodedFormat().getSampleRate())/r_regionSize);
+				//r_lookback = (int)Math.ceil(((tr.lookBack/1000.) * audioFile.getDecodedFormat().getSampleRate())/r_regionSize);
 			}
 			
-			if (tr.memory==-1) r_memory = Long.MAX_VALUE;			
-			r_memory = tr.memory;	
-			regionSizeInBytes = r_regionSize * 2 * nChannels;
-			numberOfRegions = (int)(Math.ceil(nFrames / r_regionSize));
+			if (tr.memory==-1) 
+				r_memory = Long.MAX_VALUE;			
+			else 
+				r_memory = tr.memory;	
+			regionSizeInBytes = r_regionSize * 2 * nChannels;			
 	
 			// the last region may contain 0 to (regionSize-1) samples	
 			numberOfRegionsLoaded = 0;
@@ -1090,13 +1178,14 @@ public class Sample implements Runnable {
 			for (int j=0;j<regionLocks.length;j++)
 			{
 				regionLocks[j] = new ReentrantLock();
+				regionQueued[j] = false;
 			}
-			//TODO might want to actually switch thread on and off
-			regionThread = new Thread(this);
-			regionThread.setDaemon(true);
-			regionThread.setPriority(Thread.MIN_PRIORITY);	
-			timeAtLastAgeUpdate = 0;			
-			regionThread.start();
+			
+			timeAtLastAgeUpdate = 0;
+			isScheduled = false;
+			
+			if (regionMaster==null)
+				regionMaster = Executors.newFixedThreadPool(1);
 		}
 	}
 
@@ -1137,7 +1226,7 @@ public class Sample implements Runnable {
 		if (((TimedRegime)bufferingRegime).loadingOrder==TimedRegime.Order.ORDERED)
 		{
 			// queue the regions from back to front
-			for(int i=Math.max(0,r-r_lookback);i<Math.min(r+r_lookahead,numberOfRegions);i++)
+			for(int i=Math.max(0,r-r_lookback);i<=Math.min(r+r_lookahead,numberOfRegions-1);i++)
 			{
 				if (i!=r) queueRegionForLoading(i);
 			}
@@ -1193,8 +1282,10 @@ public class Sample implements Runnable {
 	/// loads the region IMMEDIATELY, blocks until it is loaded
 	// this is called by the regionloader as it loads,
 	// but also by the main thread when it needs a region RIGHT AWAY
+	// 
+	// TODO: Need a way to kill the regionMaster
 	synchronized private void loadRegion(int r)
-	{
+	{	
 		// for now, just seek to the correct position 
 		try {			
 			if (bufferingRegime.storeInNativeBitDepth)
@@ -1214,13 +1305,19 @@ public class Sample implements Runnable {
 				audioFile.seek(r_regionSize*r);
 				int bytesRead = audioFile.read(region);
 				if (bytesRead<=0)
-					regions[r] = null;
-	
-				// now convert
-				f_regions[r] = new float[nChannels][r_regionSize];
-				float[] interleaved = new float[nChannels*r_regionSize];
-				AudioUtils.byteToFloat(interleaved, region, isBigEndian);	
-				AudioUtils.deinterleave(interleaved, nChannels, r_regionSize, f_regions[r]);
+				{
+					f_regions[r] = new float[nChannels][r_regionSize];
+					for(int i=0;i<nChannels;i++)
+						Arrays.fill(f_regions[r][i],0.f);
+				}
+				else
+				{	
+					// now convert
+					f_regions[r] = new float[nChannels][r_regionSize];
+					float[] interleaved = new float[nChannels*r_regionSize];
+					AudioUtils.byteToFloat(interleaved, region, isBigEndian);	
+					AudioUtils.deinterleave(interleaved, nChannels, r_regionSize, f_regions[r]);
+				}
 			}
 			synchronized(regionAge)
 			{
@@ -1238,11 +1335,9 @@ public class Sample implements Runnable {
 		{
 			regionQueued[r] = true;
 			regionQueue.add(r);
-	
-			// wake up the region thread master
-			if (regionThread.getState()==State.TIMED_WAITING)
-				regionThread.interrupt();
-	
+
+			// if not scheduled then schedule
+			rescheduleSelf();
 		}
 	}
 
@@ -1254,30 +1349,25 @@ public class Sample implements Runnable {
 			f_regions[r]=null;		
 	}
 
+	/**
+	 * <i>Internal:</i> This method is called internally by the region master. It loads the next queued region. 
+	 */
+	public synchronized void run() {
+		boolean hasMoreQueuedRegions = loadQueuedRegion();
+		
+		ageAllRegions();
+		
+		if (hasMoreQueuedRegions)
+			rescheduleSelf();
+		else
+			isScheduled = false;
+	}
+	
+	/* old run operation
 	public void run() {
 		while (true)
 		{
-			// if there's a region on the queue then load it
-			boolean queuedregion = !regionQueue.isEmpty();
-	
-			if (queuedregion)
-			{
-				int r = regionQueue.poll();
-				if (regionLocks[r].tryLock())
-				{		
-					try {
-						if (!isRegionAvailable(r))
-							loadRegion(r);							
-						synchronized(regionQueued)
-						{
-							regionQueued[r] = false;
-						}
-					}
-					finally {
-						regionLocks[r].unlock();
-					}
-				}
-			}
+			boolean hasMoreQueuedRegions = loadQueuedRegion();
 	
 			// age all the loaded regions
 			// remove the oldest ones if we exceed the memory limit		
@@ -1317,7 +1407,7 @@ public class Sample implements Runnable {
 			}
 			timeAtLastAgeUpdate += dt;
 	
-			if (!queuedregion)
+			if (!hasMoreQueuedRegions)
 			{
 				try {
 					// Thread.currentThread()
@@ -1329,6 +1419,100 @@ public class Sample implements Runnable {
 			}
 		}
 	}
+	*/
+	
+	/*
+	 * Loads the next queued region. Returns true if there are more regions queued.
+	 */
+	private boolean loadQueuedRegion()
+	{
+		// First check if the queue has anything to load.
+		if (!regionQueue.isEmpty())
+		{
+			// Load the next region
+			int r = regionQueue.poll();
+			if (regionLocks[r].tryLock())
+			{		
+				try {
+					if (!isRegionAvailable(r))
+						loadRegion(r);							
+					synchronized(regionQueued)
+					{
+						regionQueued[r] = false;
+					}
+				}
+				finally {
+					regionLocks[r].unlock();
+				}
+			}
+		}
+		
+		return !regionQueue.isEmpty();		
+	}
+	
+	/*
+	 * ages all the regions
+	 * remove the oldest ones if we exceed the memory limit
+	 * TODO: don't need to age things all the time, this should be based on some tunable param
+	 */
+	private void ageAllRegions()
+	{
+		if (timeAtLastAgeUpdate==0) 
+			timeAtLastAgeUpdate = System.currentTimeMillis();
+		long dt = System.currentTimeMillis() - timeAtLastAgeUpdate;	
+		
+		// we only update ages every multiple of m_memory
+		if (dt > r_memory)
+		{		
+			//int numRegionsToRemove = numberOfRegionsLoaded - maxRegionsLoadedAtOnce;
+			//SortedSet sortedByAge = new TreeSet<Integer>(new Comparator(){});
+			//if (numRegionsToRemove>0)
+			for (int i=0;i<numberOfRegions;i++)
+			{
+				if (isRegionAvailable(i))
+				{
+					synchronized(regionAge)
+					{
+						regionAge[i] += dt;
+					}
+					
+					if (regionAge[i]>r_memory)
+					{
+						System.out.printf("deleting a region %dms old (r_memory=%d)\n",regionAge[i],r_memory);
+						
+						// if it is unlocked, then remove it...
+						if (regionLocks[i].tryLock())
+						{
+							try {
+								unloadRegion(i);
+								numberOfRegionsLoaded--;
+							}
+							finally {
+								regionLocks[i].unlock();
+							}
+						}
+						// else, ignore and try again next time...
+						else
+							System.out.println("oops, I can't...");
+					}
+				}
+			}		
+		
+			timeAtLastAgeUpdate += dt;		
+		}
+	}
+	
+	/// notifies the region master that this sample has more stuff to do 
+	private synchronized void rescheduleSelf()
+	{
+		// make sure that only one instance of self is scheduled at once
+		// otherwise we will get asynchronous access of the same audiofile, which we can't have
+		if (!isScheduled)
+		{
+			isScheduled = true;
+			regionMaster.execute(this);
+		}
+	}	
 
 	// a helper function, loads the entire sample into sampleData
 	private void loadEntireSample() throws IOException

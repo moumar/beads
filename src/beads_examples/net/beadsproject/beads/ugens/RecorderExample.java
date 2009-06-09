@@ -21,10 +21,10 @@ public class RecorderExample {
 		final AudioContext ac = new AudioContext();
 		
 		// Create an empty sample and recorder.
-		float seconds = 0.1f;
-		final Sample s = new Sample(ac.getAudioFormat(),(long) (ac.getAudioFormat().getSampleRate()*seconds));
+		float ms = 100f; 
+		final Sample s = new Sample(ac.getAudioFormat(), ms);
 		s.clear();
-		Recorder r = new Recorder(ac,s, Recorder.Mode.INFINITE);
+		final Recorder r = new Recorder(ac,s, Recorder.Mode.INFINITE);
 		
 		// set up something to record
 		Envelope e = new Envelope(ac,440f);
@@ -55,12 +55,13 @@ public class RecorderExample {
 		
 		// option 2: set a time limit and then save the sample
 		
-		DelayTrigger dt = new DelayTrigger(ac, 10000, new Bead() {
+		DelayTrigger dt = new DelayTrigger(ac, 1000, new Bead() {
 			public void messageReceived(Bead message) {
 				ac.stop();
 				System.out.println("stopped");
-				try {
-					s.write("/Users/ollie/Desktop/test.aif");
+				try {					
+					r.clip();
+					s.write("audio/test.aif");
 					System.out.println("saved");
 					System.exit(1);
 				} catch (IOException e) {

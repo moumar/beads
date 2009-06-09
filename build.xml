@@ -36,6 +36,8 @@
 					<pathelement location="dependencies/tritonus_share.jar"/>
 				</classpath>
 			</javac>
+    	
+      <!-- JAVA -->        	
     	<mkdir dir="build"/>
     		<jarjar jarfile="build/Beads/library/beads.jar">
     	  	<fileset dir="build/Beads/library/bin/main"/>
@@ -43,12 +45,23 @@
     			<zipfileset src="dependencies/mp3spi1.9.4.jar"/>
     	    <zipfileset src="dependencies/tritonus_share.jar"/> 	    	
     	  </jarjar>
-    	    	
-    		<!--
-    			<jar destfile="build/Beads/library/beads.jar" basedir="build/Beads/library/bin/main"></jar>
-    		-->
-    	<delete dir="build/Beads/library/bin"/>
     	<copy file="build/Beads/library/beads.jar" toFile="tutorials/Beads Eclipse Tutorial/Beads Tutorial/beads.jar"/>
+    	
+    	<!-- PROCESSING -->
+  	  <!-- Note that we can't package the .jars together for
+  	       processing - following the guidelines here: 
+  	         http://dev.processing.org/libraries/basics.html -->
+    	<mkdir dir="build/processing/Beads/library" />
+    		<jarjar jarfile="build/processing/Beads/library/beads.jar">
+    	  	<fileset dir="build/Beads/library/bin/main"/>
+    	    <rule pattern="net.beadsproject.beads.*.**" result="beads.@2"/>
+    		</jarjar>
+	  		<copy file="dependencies/jl1.0.1.jar" toFile="build/processing/Beads/library/jl1.0.1.jar" />
+    		<copy file="dependencies/mp3spi1.9.4.jar" toFile="build/processing/Beads/library/mp3spi1.9.4.jar" />
+    		<copy file="dependencies/tritonus_share.jar" toFile="build/processing/Beads/library/tritonus_share.jar" />
+    	
+			<!-- CLEAN UP -->
+			<delete dir="build/Beads/library/bin"/>	    	
     </target>
 
     <!-- ================================= 

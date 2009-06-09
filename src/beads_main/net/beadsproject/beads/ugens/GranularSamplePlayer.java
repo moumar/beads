@@ -279,16 +279,14 @@ public class GranularSamplePlayer extends SamplePlayer {
 					//calculate value of grain window
 					float windowScale = window.getValueFraction((float)(g.age / g.grainSize));
 					//get position in sample for this grain
-					double samplePosition = buffer.msToSamples((float)g.position);		//TODO doubles/floats sort out the mess
-					int currentSample = (int)samplePosition;
-					float fractionOffset = (float)(samplePosition - currentSample);
+					double samplePosition = buffer.msToSamples((float)g.position);
 					//get the frame for this grain
 					switch (interpolationType) {
 					case LINEAR:
-						frame = buffer.getFrameLinear(currentSample, fractionOffset);
+						frame = buffer.getFrameLinear(samplePosition);
 						break;
 					case CUBIC:
-						frame = buffer.getFrameCubic(currentSample, fractionOffset);
+						frame = buffer.getFrameCubic(samplePosition);
 						break;
 					}
 					//add it to the current output frame

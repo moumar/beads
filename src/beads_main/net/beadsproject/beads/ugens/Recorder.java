@@ -19,13 +19,18 @@ import net.beadsproject.beads.data.Sample;
  * </ul>
  *
  * A recorder may not completely fill a sample. If you just want the recorded data
- * then be sure to {@link #clip()) the sample once done. Alternatively you can see
+ * then be sure to {@link #clip()} the sample once done. Alternatively you can see
  * {@link #getNumFramesRecorded() how many frames were written}. 
  * 
  * <p>
  * <b>Tip: </b> Be sure to {@link #pause(boolean)} the recorder when using INFINITE mode, 
  * otherwise it will keep recording and you may quickly run out of memory.
  * </p>
+ * 
+ * <i>ADVANCED:</i> When resizing a sample in INFINITE mode, the recorder uses a set of parameters
+ * that specify how it behaves. If necessary you can modify the parameters on a per-recorder basis. See
+ * {@link #setResizingParameters(double, double)}.
+ *  
  */
 public class Recorder extends UGen {
 
@@ -55,6 +60,15 @@ public class Recorder extends UGen {
     
     /** Recording mode. */
     private Mode mode;
+    
+    /** Resizing parameters - in ms.*/
+    private double doubleUpTime = 30000;
+	private double constantResizeLength = 30000;
+	
+	// computed from the above..
+	private long doubleUpFrame; 
+	private long constantResizeLengthInFrames; 
+	
         
     /**
 	 * Instantiates a new Recorder.
@@ -114,6 +128,8 @@ public class Recorder extends UGen {
         	throw (new Exception("Recorder can only write to a writeable sample."));
         }
         framesWritten = 0;
+        doubleUpFrame = (long) sample.msToSamples(doubleUpTime);
+        constantResizeLengthInFrames = (long) sample.msToSamples(constantResizeLength); 
     }
     
     /**
@@ -195,7 +211,14 @@ public class Recorder extends UGen {
 	    				// adjust the size of the sample
 	    				// for now, we double the size of the sample.
 	    				try {
-							sample.resize(nFrames*2);
+	    					if (position < doubleUpFrame)
+	    					{
+	    						sample.resize(nFrames*2);
+	    					}
+	    					else
+	    					{
+	    						sample.resize(nFrames + constantResizeLengthInFrames);
+	    					}							
 						} catch (Exception e) { /* won't happen */ }
 						
 						sample.putFrames((int)position, bufIn);    		
@@ -245,6 +268,26 @@ public class Recorder extends UGen {
     public void setMode(Mode mode)
     {
     	this.mode = mode;
+    }
+    
+    /**
+     * <i>Advanced:</i> Change the parameters used when resizing samples in INFINITE recorder mode.
+     * 
+     * In INFINITE mode the recorder resizes the sample when it needs to write more data into it. Initially
+     * the recorder doubles the length of the sample, up to a particular length. Once the sample size 
+     * is past this length the recorder stops doubling the length, and simply resizes the sample by a 
+     * constant amount.  
+     * 
+     * @param doubleUpTime The time (in ms) up to which the sample size should be doubled.
+     * @param constantResizeLength The length (in ms) of the extra space appended to Sample. 
+     */
+    public void setResizingParameters(double doubleUpTime, double constantResizeLength)
+    {
+    	this.doubleUpTime = doubleUpTime;
+    	this.constantResizeLength = constantResizeLength;
+    	
+    	this.doubleUpFrame = (long) sample.msToSamples(this.doubleUpTime);
+    	this.constantResizeLengthInFrames = (long) sample.msToSamples(this.constantResizeLength);
     }
     
 	/**
