@@ -23,8 +23,20 @@ public class TapOut extends UGen
     this.sampleDelayEnvelope = sampleDelayEnvelope;    
     this.addDependent(ti);
   }
+  
+  
 
-  public void calculateBuffer()
+  
+public UGen getSampleDelayEnvelope() {
+	return sampleDelayEnvelope;
+}
+
+
+public void setSampleDelayEnvelope(UGen sampleDelayEnvelope) {
+	this.sampleDelayEnvelope = sampleDelayEnvelope;
+}
+
+public void calculateBuffer()
   {
     sampleDelayEnvelope.update();
     ti.fillBufferFrom(bufOut[0],sampleDelayEnvelope);
