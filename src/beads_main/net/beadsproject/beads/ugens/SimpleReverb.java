@@ -33,7 +33,7 @@ public class SimpleReverb extends UGen {
 	private void recalculateEverything() {
 		for(int i = 0; i < tin.length; i++) {
 			tin[i] = new TapIn(context, 10000f);
-			feedback[i] = new Gain(context, 1, 1f);
+			feedback[i] = new Gain(context, 1, 0.9f);
 			tin[i].addInput(feedback[i]);
 			tapOuts[i] = new TapOut[numTaps];
 			for(int j = 0; j < numTaps; j++) {
