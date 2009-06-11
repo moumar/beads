@@ -8,6 +8,7 @@ package net.beadsproject.beads.core;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.sound.sampled.AudioFormat;
@@ -72,6 +73,12 @@ public class AudioContext {
 	
 	/** The system buffer size in frames. */
 	private int systemBufferSizeInFrames;
+	
+	/** Used for allocating buffers to UGens. */
+	private int maxReserveBufs;
+	private ArrayList<float[]> bufferStore;
+	private int bufStoreIndex;
+	private float[] zeroBuf;
 
 	/**
 	 * Creates a new AudioContext with default settings. The default buffer size
@@ -122,6 +129,7 @@ public class AudioContext {
 		stop = true;
 		checkForDroppedFrames = true;
 		logTime = false;
+		maxReserveBufs = 50;
 		// set audio format
 		this.audioFormat = audioFormat;
 		// set buffer size
@@ -232,12 +240,11 @@ public class AudioContext {
 		float[] interleavedOutput = new float[audioFormat.getChannels() * bufferSizeInFrames];
 		while (!stop) {
 			if (!skipFrame) {
-				synchronized(this) {	//This was causing permanent freezing
-					out.update(); // this will propagate all of the updates
-					interleave(out.bufOut, interleavedOutput);
-					AudioUtils.floatToByte(bbuf, interleavedOutput,
-							audioFormat.isBigEndian());
-				}
+				bufStoreIndex = 0;
+				out.update(); // this will propagate all of the updates
+				interleave(out.bufOut, interleavedOutput);
+				AudioUtils.floatToByte(bbuf, interleavedOutput,
+						audioFormat.isBigEndian());
 				sourceDataLine.write(bbuf, 0, bbuf.length);
 			}
 			if (checkForDroppedFrames) {
@@ -285,6 +292,7 @@ public class AudioContext {
 			        for (int i=0; i<e.countChannels(); i++) {
 			            FloatBuffer inBufs = e.getInput(i);
 			        }
+			        bufStoreIndex = 0;
 					out.update(); // this will propagate all of the updates
 			        for (int i=0; i<e.countChannels(); i++) {
 			            FloatBuffer outBufs = e.getOutput(i);
@@ -302,6 +310,32 @@ public class AudioContext {
 		}
 	}
 	*/
+	
+	private void setupBufs() {
+		bufferStore = new ArrayList<float[]>();
+		while(bufferStore.size() < maxReserveBufs) {
+			bufferStore.add(new float[bufferSizeInFrames]);
+		}
+		zeroBuf = new float[bufferSizeInFrames];
+	}
+	
+	public float[] getBuf() {
+		float[] buf = bufferStore.get(bufStoreIndex++);
+		if(buf == null) buf = new float[bufferSizeInFrames];
+		bufferStore.add(buf);
+		return buf;
+	}
+	
+	public float[] getCleanBuf() {
+		float[] buf = getBuf();
+		Arrays.fill(buf, 0f);
+		return buf;
+	}
+	
+	public float[] getZeroBuf() {
+		return zeroBuf;
+	}
+	
 	/**
 	 * Checks if this AudioContext is running.
 	 * 
@@ -334,7 +368,8 @@ public class AudioContext {
 		if(stop) {
 			stop = false;
 			while (out != null && !stop) {
-				if (!out.isPaused())
+				bufStoreIndex = 0;
+				if (!out.isPaused()) 
 					out.update();
 				timeStep++;
 				if(logTime && timeStep % 100 == 0) {
@@ -375,6 +410,7 @@ public class AudioContext {
 		bufferSizeInFrames = bufferSize;
 		bufferSizeInBytes = bufferSizeInFrames * audioFormat.getFrameSize();
 		bbuf = new byte[bufferSizeInBytes];
+		setupBufs();
 	}
 
 	/**
