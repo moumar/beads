@@ -3,6 +3,7 @@
  */
 package net.beadsproject.beads.ugens;
 
+import java.util.Arrays;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
@@ -86,7 +87,7 @@ public class Gain extends UGen {
     	gainEnvelope.update();
         for(int i = 0; i < bufferSize; ++i) {
             float gain = gainEnvelope.getValue(0, i);
-            for(int j = 0; j < ins; ++j) {
+            for(int j = 0; j < ins; j++) {
                 bufOut[j][i] = gain * bufIn[j][i];
             }
         }

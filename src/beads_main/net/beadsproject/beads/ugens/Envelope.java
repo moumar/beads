@@ -251,7 +251,14 @@ public class Envelope extends UGen {
 				bufOut[0][i] = currentValue;
 			}
 			if(!iChanged) unchanged = true;
-		}
+		} 
+	}
+	
+	public float getValue(int i, int j) {
+		if(unchanged) {
+			return currentValue;
+		} 
+		return bufOut[i][j];
 	}
     
 }

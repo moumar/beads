@@ -320,10 +320,14 @@ public class AudioContext {
 	}
 	
 	public float[] getBuf() {
-		float[] buf = bufferStore.get(bufStoreIndex++);
-		if(buf == null) buf = new float[bufferSizeInFrames];
-		bufferStore.add(buf);
-		return buf;
+		if(bufStoreIndex < bufferStore.size()) {
+			return bufferStore.get(bufStoreIndex++);
+		} else {
+			float[] buf = new float[bufferSizeInFrames];
+			bufferStore.add(buf);
+			bufStoreIndex++;
+			return buf;
+		}
 	}
 	
 	public float[] getCleanBuf() {

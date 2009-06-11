@@ -100,6 +100,9 @@ public class SamplePlayer extends UGen {
 
 	/** The loop end. Calculated and used internally from the loop end envelope. */
 	protected float loopEnd;
+	
+	/** Array for temp storage. */
+	protected float[] frame;
 
 	/**
 	 * Instantiates a new SamplePlayer with given number of outputs.
@@ -140,6 +143,7 @@ public class SamplePlayer extends UGen {
 		this.buffer = buffer;
 		sampleRate = buffer.getSampleRate();
 		updatePositionIncrement();
+		frame = new float[buffer.getNumChannels()];
 	}
 
 	/**
@@ -384,15 +388,13 @@ public class SamplePlayer extends UGen {
 				loopEndEnvelope.update();
 			}
 			for (int i = 0; i < bufferSize; i++) {
-				//calculate the samples
-				double posInSamples = buffer.msToSamples((float)position);				
-				float[] frame = null;
+				//calculate the samples		
 				switch (interpolationType) {
 				case LINEAR:
-					frame = buffer.getFrameLinear(posInSamples);
+					buffer.getFrameLinear(position, frame);
 					break;
 				case CUBIC:
-					frame = buffer.getFrameCubic(posInSamples);
+					buffer.getFrameCubic(position, frame);
 					break;
 				}
 				for (int j = 0; j < outs; j++) {

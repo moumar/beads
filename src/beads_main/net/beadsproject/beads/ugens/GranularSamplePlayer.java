@@ -54,9 +54,6 @@ public class GranularSamplePlayer extends SamplePlayer {
 	/** The window used by grains. */
 	private Buffer window;
 
-	/** The current frame. */
-	private float[] frame;
-
 	/** Flag to determine whether, looping occurs within individual grains. */
 	private boolean loopInsideGrains;
 
@@ -245,7 +242,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 			rateEnvelope.update();
 			if(positionEnvelope != null) {
 				positionEnvelope.update();
-			}
+			} 
 			loopStartEnvelope.update();
 			loopEndEnvelope.update();
 			pitchEnvelope.update();
@@ -279,14 +276,13 @@ public class GranularSamplePlayer extends SamplePlayer {
 					//calculate value of grain window
 					float windowScale = window.getValueFraction((float)(g.age / g.grainSize));
 					//get position in sample for this grain
-					double samplePosition = buffer.msToSamples((float)g.position);
 					//get the frame for this grain
 					switch (interpolationType) {
 					case LINEAR:
-						frame = buffer.getFrameLinear(samplePosition);
+						buffer.getFrameLinear(g.position, frame);
 						break;
 					case CUBIC:
-						frame = buffer.getFrameCubic(samplePosition);
+						buffer.getFrameCubic(g.position, frame);
 						break;
 					}
 					//add it to the current output frame

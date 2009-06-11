@@ -315,6 +315,8 @@ public class Sample implements Runnable {
 	// TotalRegime Only
 		private byte[] sampleData;
 		private float[][] f_sampleData; // f_sampleData[0] first channel, f_sampleData[1] second channel, etc..
+		
+		private float[] current, next; //used as temp buffers whilst calculating interpolation
 
 	/**
 	 * Instantiates a new writeable Sample with the specified audio format and
@@ -329,6 +331,8 @@ public class Sample implements Runnable {
 		this();
 		this.audioFormat = audioFormat;
 		nChannels = audioFormat.getChannels();
+		current = new float[nChannels];
+		next = new float[nChannels];
 		nFrames = (long) msToSamples(length);
 		if (bufferingRegime.storeInNativeBitDepth)
 		{
@@ -486,36 +490,28 @@ public class Sample implements Runnable {
 	 * @param frame The frame to read -- can be fractional (e.g., 4.4).
 	 * @return the interpolated frame.
 	 */
-	public float[] getFrameLinear(double frame) {
-		float[] result = new float[nChannels];
+	public void getFrameLinear(double posInMS, float[] result) {
+		double frame = msToSamples(posInMS);
 		int frame_floor = (int)Math.floor(frame);
-		
 		if(frame_floor > 0 && frame_floor < nFrames) {			
 			double frame_frac = frame - frame_floor;
-
 			if (frame_floor==nFrames-1)
 			{
 				getFrame(frame_floor,result);
 			}
 			else // lerp
 			{
-				float[] current = new float[nChannels];
-				float[] next = new float[nChannels];
-
 				getFrame(frame_floor,current);
 				getFrame(frame_floor+1,next);
-
 				for (int i = 0; i < nChannels; i++) {
 					result[i] = (float)((1 - frame_frac) * current[i] + frame_frac * next[i]);
 				} 
 			}
-
 		} else {
 			for(int i = 0; i < nChannels; i++) {
 				result[i] = 0.0f;
 			}
 		}
-		return result;
 	}
 
 	/**
@@ -525,9 +521,8 @@ public class Sample implements Runnable {
 	 * @param frame The frame to read -- can be fractional (e.g., 4.4).
 	 * @return the interpolated frame.
 	 */
-	public float[] getFrameCubic(double frame) {    	
-		float[] result = new float[nChannels];
-		float[] buf = new float[nChannels];
+	public void getFrameCubic(double posInMS, float[] result) {
+		double frame = msToSamples(posInMS);
 		float a0,a1,a2,a3,mu2;
 		float ym1,y0,y1,y2;
 		for (int i = 0; i < nChannels; i++) {
@@ -537,28 +532,28 @@ public class Sample implements Runnable {
 			if(realCurrentSample >= 0 && realCurrentSample < (nFrames - 1)) {
 				realCurrentSample--;
 				if (realCurrentSample < 0) {
-					getFrame(0, buf);
-					ym1 = buf[i];
+					getFrame(0, current);
+					ym1 = current[i];
 					realCurrentSample = 0;
 				} else {
-					getFrame(realCurrentSample++, buf);
-					ym1 = buf[i];
+					getFrame(realCurrentSample++, current);
+					ym1 = current[i];
 				}
-				getFrame(realCurrentSample++, buf);
-				y0 = buf[i];
+				getFrame(realCurrentSample++, current);
+				y0 = current[i];
 				if (realCurrentSample >= nFrames) {
-					getFrame((int)nFrames - 1, buf);
-					y1 = buf[i]; //??
+					getFrame((int)nFrames - 1, current);
+					y1 = current[i]; //??
 				} else {
-					getFrame(realCurrentSample++, buf);
-					y1 = buf[i];
+					getFrame(realCurrentSample++, current);
+					y1 = current[i];
 				}
 				if (realCurrentSample >= nFrames) {
-					getFrame((int)nFrames - 1, buf);
-					y2 = buf[i]; //??
+					getFrame((int)nFrames - 1, current);
+					y2 = current[i]; //??
 				} else {
-					getFrame(realCurrentSample++, buf);
-					y2 = buf[i];
+					getFrame(realCurrentSample++, current);
+					y2 = current[i];
 				}
 				mu2 = fractionOffset * fractionOffset;
 				a0 = y2 - y1 - ym1 + y0;
@@ -570,7 +565,6 @@ public class Sample implements Runnable {
 				result[i] = 0.0f;
 			}
 		}
-		return result;
 	}
 
 	/**
@@ -1084,6 +1078,8 @@ public class Sample implements Runnable {
 		audioFormat = audioFile.getDecodedFormat();
 		nFrames = audioFile.nFrames;
 		nChannels = audioFile.nChannels;
+		current = new float[nChannels];
+		next = new float[nChannels];
 		length = audioFile.length;
 		isBigEndian = audioFile.getDecodedFormat().isBigEndian();
 	
