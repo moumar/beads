@@ -2,7 +2,7 @@
  * This file is part of Beads. See http://www.beadsproject.net for all information.
  */
 package net.beadsproject.beads.core;
-
+ 
 /**
  * Bead is an abstract class which defines basic behaviour such as starting and stopping, pausing and handling messages. 
  * 
