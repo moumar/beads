@@ -110,12 +110,12 @@ public class Slider extends Envelope implements InterfaceElement {
 		if(component != null) component.repaint();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.olliebown.beads.core.UGen#getValue()
-	 */
-	public float getValue() {
-		return value;
-	}
+//	/* (non-Javadoc)
+//	 * @see com.olliebown.beads.core.UGen#getValue()
+//	 */
+//	public float getValue() {
+//		return value;
+//	}
 	
 	/**
 	 * Gets the min.
@@ -167,7 +167,7 @@ public class Slider extends Envelope implements InterfaceElement {
 
 	public void calculateBuffer() {
 		super.calculateBuffer();
-		value = bufOut[0][0];
+		value = myBufOut[0];
 		if(component != null) component.repaint();
 	}
 	
@@ -288,7 +288,12 @@ public class Slider extends Envelope implements InterfaceElement {
 		g.addInput(wp);
 		Slider s1 = new Slider(ac, "gain", 0, 1, 1);
 		g.setGainEnvelope(s1);
-		Slider s2 = new Slider(ac, "freq", 110, 5000, 440);
+		Slider s2 = new Slider(ac, "freq", 110, 5000, 440) {
+			public void calculateBuffer() {
+				super.calculateBuffer();
+				System.out.println(bufOut[0]);
+			}
+		};
 		wp.setFrequencyEnvelope(s2);
 		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.X_AXIS));
 		frame.getContentPane().add(s1.getComponent());

@@ -40,6 +40,9 @@ public class Envelope extends UGen {
     /** Flag used to note whether the Envelope needs to move to a new segment. */
     private boolean unchanged;
     
+    /** The real output buffer. */
+    protected float[] myBufOut;
+    
     /**
 	 * The nested class Segment. Stores the duration, end value, curvature and trigger for the Segment.
 	 */
@@ -85,13 +88,15 @@ public class Envelope extends UGen {
 	 *            the AudioContext.
 	 */
     public Envelope(AudioContext context) {
-        super(context, 0, 1);
+        super(context, 1);
         segments = new ArrayList<Segment>();
         currentStartValue = 0;
         currentValue = 0;
         currentSegment = null;
         lock = false;
         unchanged = false;
+        outputInitializationRegime = OutputInitializationRegime.NULL;
+        myBufOut = new float[bufferSize];
     }
     
     /**
@@ -248,7 +253,7 @@ public class Envelope extends UGen {
 		            currentTime++;
 		            if(currentTime > currentSegment.duration) getNextSegment();
 		        }
-				bufOut[0][i] = currentValue;
+				myBufOut[i] = currentValue;
 			}
 			if(!iChanged) unchanged = true;
 		} 
@@ -258,7 +263,7 @@ public class Envelope extends UGen {
 		if(unchanged) {
 			return currentValue;
 		} 
-		return bufOut[i][j];
+		return myBufOut[j];
 	}
     
 }

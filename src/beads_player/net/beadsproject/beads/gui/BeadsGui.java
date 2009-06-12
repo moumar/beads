@@ -60,7 +60,7 @@ public class BeadsGui {
 		songGrid.titledBorder("Song Parts");
 		environmentFrame.content.add(songGrid);
 		final Clock clock = (Clock)env.elements.get("master clock");
-		Slider slider = new Slider(env.ac, "tempo", 5, 500, 175);
+		final Slider slider = new Slider(env.ac, "tempo", 5, 500, 175);
 		UGen tempoToInterval = new UGen(clock.getContext(), 1, 1) {
 			@Override
 			public void calculateBuffer() {
@@ -74,9 +74,9 @@ public class BeadsGui {
 		BeadsPanel ci = new BeadsPanel();
 		ci.add(slider.getComponent());
 		environmentFrame.content.add(ci);
-		slider = new Slider(env.ac, "gain", 0f, 1f, 1f);
-		((Gain)env.ac.out).setGainEnvelope(slider);
-		ci.add(slider.getComponent());
+		Slider slider2 = new Slider(env.ac, "gain", 0f, 1f, 1f);
+		((Gain)env.ac.out).setGainEnvelope(slider2);
+		ci.add(slider2.getComponent());
 		ci.titledBorder("Master Controls");
 		TimeGraph tg = new TimeGraph(4);
 		clock.addMessageListener(tg);

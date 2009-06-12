@@ -8,7 +8,7 @@ import net.beadsproject.beads.data.Sample.TotalRegime;
 public class HowManySamplePlayers {
 
 	//Try and thrash your system
-	public final static int NUM_OSCS = 120;
+	public final static int NUM_OSCS = 220;
 	public final static int BUFFER_SIZE = 512;
 	public final static int IO_BUFFER_SIZE = 1024;
 	
@@ -25,7 +25,7 @@ public class HowManySamplePlayers {
 			SamplePlayer wp = new SamplePlayer(ac, s);
 //			wp.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
 //			wp.setKillOnEnd(false);
-			wp.getRateEnvelope().setValue((float)Math.random() + 0.5f);
+//			wp.getRateEnvelope().setValue((float)Math.random() + 0.5f);
 			g.addInput(wp);
 		}
 		ac.out.addInput(g);

@@ -25,9 +25,10 @@ public class Static extends UGen {
 	 *            the value.
 	 */
 	public Static(AudioContext context, float x) {
-		super(context, 0, 1);
+		super(context, 1);
 		this.x = x;
 		pause(true); //might as well be muted
+		outputInitializationRegime = OutputInitializationRegime.NULL;
 	}
 
 	/* (non-Javadoc)

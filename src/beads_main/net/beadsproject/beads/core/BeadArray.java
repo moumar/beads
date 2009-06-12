@@ -101,22 +101,22 @@ public class BeadArray extends Bead {
 		}
 	}
 
-	/**
-	 * Forwards incoming message to all receivers.
-	 * 
-	 * @param message incoming message.
-	 */
-	public void messageReceived(TimeStamp timeStamp, Bead message) {
-		BeadArray clone = clone();
-		for (int i = 0; i < clone.size(); i++) {
-			Bead bead = clone.get(i);
-			if (bead.isDeleted()) {
-				remove(bead);
-			} else {
-				bead.message(timeStamp, message);
-			}
-		}
-	}
+//	/**
+//	 * Forwards incoming message to all receivers.
+//	 * 
+//	 * @param message incoming message.
+//	 */
+//	public void messageReceived(TimeStamp timeStamp, Bead message) {
+//		BeadArray clone = clone();
+//		for (int i = 0; i < clone.size(); i++) {
+//			Bead bead = clone.get(i);
+//			if (bead.isDeleted()) {
+//				remove(bead);
+//			} else {
+//				bead.message(timeStamp, message);
+//			}
+//		}
+//	}
 
 	/**
 	 * Creates a shallow copy of itself.

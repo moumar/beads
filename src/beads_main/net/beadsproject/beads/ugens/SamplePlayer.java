@@ -383,19 +383,27 @@ public class SamplePlayer extends UGen {
 			if(positionEnvelope != null) {
 				positionEnvelope.update();
 			} else {
+				//major speed up possible here if these envelopes are all either null or paused 
+				//(can we pause Envelope when it is not doing anything?).
+				//if this holds true we can tell buffer to just grab the whole frame at the given rate
+				//and then update the position all at once.
 				rateEnvelope.update();
 				loopStartEnvelope.update();
 				loopEndEnvelope.update();
 			}
 			for (int i = 0; i < bufferSize; i++) {
 				//calculate the samples		
-				switch (interpolationType) {
-				case LINEAR:
-					buffer.getFrameLinear(position, frame);
-					break;
-				case CUBIC:
-					buffer.getFrameCubic(position, frame);
-					break;
+				if(rate >= 1.5f) {
+					buffer.getFrameNoInterp(position, frame);
+				} else {
+					switch (interpolationType) {
+					case LINEAR:
+						buffer.getFrameLinear(position, frame);
+						break;
+					case CUBIC:
+						buffer.getFrameCubic(position, frame);
+						break;
+					}
 				}
 				for (int j = 0; j < outs; j++) {
 					bufOut[j][i] = frame[j % buffer.getNumChannels()];

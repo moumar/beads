@@ -14,15 +14,11 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
-
 import net.beadsproject.beads.data.SampleManager;
 import net.beadsproject.beads.play.InterfaceElement;
-
 
 public class Chooser implements InterfaceElement {
 
@@ -52,6 +48,7 @@ public class Chooser implements InterfaceElement {
 	public JComponent getComponent() {
 		refreshList();
 		final JComponent valueComponent = new JComponent() {
+			private static final long serialVersionUID = 1L;
 			public void paintComponent(Graphics g) {
 //				Graphics2D g2d = (Graphics2D)g;
 //				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -68,6 +65,7 @@ public class Chooser implements InterfaceElement {
 				popup.setUndecorated(true);
 				tempChoice = choice;
 				final JComponent list = new JComponent() {
+					private static final long serialVersionUID = 1L;
 					public void paintComponent(Graphics g) {
 						Graphics2D g2d = (Graphics2D)g;
 						g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

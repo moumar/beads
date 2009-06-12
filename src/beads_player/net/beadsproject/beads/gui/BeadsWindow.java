@@ -13,6 +13,6 @@ public class BeadsWindow extends JFrame {
 		content.horizontalBox();
 		content.emptyBorder();
 		getContentPane().add(content);
-		addKeyListener(BeadsKeys.listener);
+		addKeyListener(BeadsKeys.singleton);
 	}
 }

@@ -484,6 +484,19 @@ public class Sample implements Runnable {
 	}
 
 	/**
+	 * Retrieves a frame of audio using no interpolation. 
+	 * If the frame is not in the sample range then zeros are returned.
+	 * 
+	 * @param frame The frame to read -- will take the last frame before this one.
+	 * @return the frame.
+	 */
+	public void getFrameNoInterp(double posInMS, float[] result) {
+		double frame = msToSamples(posInMS);
+		int frame_floor = (int)Math.floor(frame);
+		getFrame(frame_floor,result);
+	}
+
+	/**
 	 * Retrieves a frame of audio using linear interpolation. 
 	 * If the frame is not in the sample range then zeros are returned.
 	 * 

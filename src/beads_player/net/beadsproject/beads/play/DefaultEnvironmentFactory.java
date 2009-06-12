@@ -1,6 +1,7 @@
 package net.beadsproject.beads.play;
 
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.BeadArray;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.Gain;

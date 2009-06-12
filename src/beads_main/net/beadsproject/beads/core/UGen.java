@@ -218,6 +218,7 @@ public abstract class UGen extends Bead {
 			for(int i = 0; i < outs; i++) {
 				bufOut[i] = null;
 			}
+			break;
 		default:
 			for(int i = 0; i < outs; i++) {
 				bufOut[i] = null;
@@ -257,7 +258,7 @@ public abstract class UGen extends Bead {
 						bufIn[i] = bp.getBuffer(); //here we're just pointing to the buffer that is the input
 													//this requires that the data in the output buffer is always correct
 													//but we can't do this for Static and Envelope and stuff like that efficiently
-						//so these kinds of UGens can make sure their outputs are null in this case, by overriding initializeOuts()
+						//so these kinds of UGens can make sure their outputs are null in this case, by setting outputInitializationRegime to NULL.
 						if(bufIn[i] == null) {
 							bufIn[i] = context.getBuf();
 							for (int j = 0; j < bufferSize; j++) {
@@ -499,7 +500,7 @@ public abstract class UGen extends Bead {
 	 * @return the value.
 	 */
 	public float getValue() {
-		return bufOut[0][0];
+		return getValue(0, 0);
 	}
 	
 	/**

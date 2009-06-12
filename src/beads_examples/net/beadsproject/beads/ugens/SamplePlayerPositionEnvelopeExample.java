@@ -19,7 +19,7 @@ public class SamplePlayerPositionEnvelopeExample {
 		Envelope posEnv = new Envelope(ac, 0f) {
 			public void calculateBuffer() {
 				super.calculateBuffer();
-				System.out.println(bufOut[0][0]);
+				System.out.println(bufOut[0]);
 			}
 		};
 		posEnv.addSegment(2000f, 2000f);

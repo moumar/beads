@@ -1,21 +1,13 @@
 package net.beadsproject.beads.gui;
 
-import java.awt.Component;
 import java.awt.Font;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.util.Vector;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
-import javax.swing.table.DefaultTableModel;
-
 
 public class BeadsList extends JList {
 	
+	private static final long serialVersionUID = 1L;
 	DefaultListModel dm;
 	
 	public BeadsList() {

@@ -15,6 +15,7 @@ import javax.swing.border.TitledBorder;
 
 public class BeadsPanel extends JPanel {
 	
+	private static final long serialVersionUID = 1L;
 	private int spacing = 1;
 	
 	public BeadsPanel() {	
