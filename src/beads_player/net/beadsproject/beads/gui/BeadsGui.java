@@ -26,7 +26,7 @@ public class BeadsGui {
 		Environment env = null;
 		try {
 			AudioContext ac = new AudioContext();
-			env = Environment.loadEnvironment("com.olliebown.beads.play.DefaultEnvironmentFactory", ac);
+			env = Environment.loadEnvironment("net.beadsproject.beads.play.DefaultEnvironmentFactory", ac);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -61,6 +61,9 @@ public class BeadsGui {
 		environmentFrame.content.add(songGrid);
 		final Clock clock = (Clock)env.elements.get("master clock");
 		final Slider slider = new Slider(env.ac, "tempo", 5, 500, 175);
+		slider.storeValue(175f);
+		slider.storeValue(87.5f);
+		slider.storeValue(116.66666f);
 		UGen tempoToInterval = new UGen(clock.getContext(), 1, 1) {
 			@Override
 			public void calculateBuffer() {

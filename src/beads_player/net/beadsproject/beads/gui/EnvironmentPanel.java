@@ -62,16 +62,16 @@ public class EnvironmentPanel extends BeadsPanel {
 	}
 	
 	public void rebuild() {
-		reloadList(channelsList, e.channels.keySet());
-		reloadList(pathwaysList, e.pathways.keySet());
+		reloadList(channelsList, e.channels.keySet(), "out");
+		reloadList(pathwaysList, e.pathways.keySet(), "master clock");
 		reloadElementsPanel();
 	}
 	
-	public void reloadList(BeadsList list, Set<String> set) {
+	public void reloadList(BeadsList list, Set<String> set, String selectedValue) {
 		for(String s : set) {
 			list.addElement(s);
 		}
-		list.setSelectedIndex(0);
+		list.setSelectedValue(selectedValue, true);
 	}
 
 	public void reloadElementsPanel() {

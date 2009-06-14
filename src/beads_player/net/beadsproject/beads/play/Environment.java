@@ -2,6 +2,7 @@ package net.beadsproject.beads.play;
 
 import java.lang.reflect.Method;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Random;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.BeadArray;
@@ -18,9 +19,9 @@ import net.beadsproject.beads.core.UGen;
  */
 public class Environment {
 	
-	public final Hashtable<String, Object> elements;
-	public final Hashtable<String, BeadArray> pathways;
-	public final Hashtable<String, UGen> channels;
+	public final Map<String, Object> elements;
+	public final Map<String, BeadArray> pathways;
+	public final Map<String, UGen> channels;
 	public Random rng;
 	public AudioContext ac;
 

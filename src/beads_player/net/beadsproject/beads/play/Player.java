@@ -13,12 +13,14 @@ public class Player {
 	private SongGroup currentGroup = null;
 	private SongGroup nextGroup;
 	private ArrayList<SongPart> playingParts;
+	private boolean withFadeOut;
 	
 	public Player(Environment e) {
 		playingParts = new ArrayList<SongPart>();
-		//I'm worried that if SongParts are also listening to this clock
+		withFadeOut = true;
+		//Potential danger that if SongParts are also listening to this clock
 		//they might miss out on the first 'beat'.
-		//I think this is OK as long as the Player is the first thing to listen to the clock.
+		//This is OK as long as the Player is the first thing to listen to the clock.
 		//if it is then it will switch on the SongParts, and then immediately after that
 		//the clock will trigger them.
 		//However, it will be a problem if one were to change environments after initial startup.
@@ -37,11 +39,20 @@ public class Player {
 	}
 	
 	public void playGroup(SongGroup newGroup) {
+		playGroup(newGroup, true);
+	}
+	
+	private void playGroup(SongGroup newGroup, boolean withFadeOut) {
+		this.withFadeOut = withFadeOut;
 		if(newGroup.getFlipQuantisation() < 1) {
 			doPlayGroupNow(newGroup);
 		} else {
 			nextGroup = newGroup;
 		}
+	}
+	
+	public void playGroupNoFadeOut(SongGroup newGroup) {
+		playGroup(newGroup, false);
 	}
 	
 	private void doPlayGroupNow(SongGroup newGroup) {
@@ -93,7 +104,11 @@ public class Player {
 	}
 	
 	private void endPlayingPart(SongPart p) {
-		p.exit();
+		if(withFadeOut) {
+			p.exit();
+		} else {
+			p.pause(true);
+		}
 		playingParts.remove(p);
 	}
 	

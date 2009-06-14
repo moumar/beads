@@ -5,12 +5,22 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
+
 import javax.swing.BoxLayout;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -50,6 +60,8 @@ public class Slider extends Envelope implements InterfaceElement {
 	/** The component. */
 	private JComponent component;
 	
+	private Vector<Float> storedValues;
+	
 	private float smoothnessInterval;
 	
 	private String name;
@@ -74,6 +86,7 @@ public class Slider extends Envelope implements InterfaceElement {
 	public Slider(AudioContext context, String nam, float min, float max, float val) {
 		//TODO error check max and min values
 		super(context);
+		storedValues = new Vector<Float>();
 		name = nam;
 		setMin(min);
 		setMax(max);
@@ -206,6 +219,8 @@ public class Slider extends Envelope implements InterfaceElement {
 				public void mousePressed(MouseEvent e) {
 					if((e.getModifiers() & MouseEvent.CTRL_MASK) != 0) {
 						runEnvelopeDrawPanel();
+					} else if((e.getModifiers() & MouseEvent.ALT_MASK) != 0) {
+						runTextSelectPanel();
 					} else {
 						if(!isLocked()) {
 							setValueFract(1f - (float)e.getY() / (float)component.getHeight());
@@ -262,11 +277,58 @@ public class Slider extends Envelope implements InterfaceElement {
 				addSegment(calculateValueFromFract(1f - y[1] / (float)component.getHeight()), x[1] / (float)drawPanel.getWidth() * 10000f);
 			}
 		});
+		drawWindow.addWindowFocusListener(new WindowFocusListener() {
+			public void windowGainedFocus(WindowEvent e) {
+			}
+			public void windowLostFocus(WindowEvent e) {
+				drawWindow.dispose();
+			}
+		});
 		drawWindow.setContentPane(drawPanel);
 		drawWindow.setUndecorated(true);
-		drawWindow.setModal(true);
 		drawWindow.setSize(new Dimension(component.getWidth() + 100, component.getHeight()));
 		drawWindow.setLocation(new Point(component.getLocationOnScreen().x + component.getWidth(), component.getLocationOnScreen().y));
+		drawWindow.setVisible(true);
+	}
+	
+	public void storeValue(float f) {
+		if(!storedValues.contains(f)) {
+			storedValues.add(f);
+		}
+	}
+	
+	public void runTextSelectPanel() {
+		final JDialog drawWindow = new JDialog((Frame)component.getTopLevelAncestor());
+		final JPanel drawPanel = new JPanel();
+		final JComboBox selector = new JComboBox(storedValues);
+		selector.setEditable(true);
+		selector.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Object selection = selector.getSelectedItem();
+				try {
+					float f = Float.parseFloat(selection.toString());
+					storeValue(f);
+					Slider.this.setValue(f);
+					drawWindow.dispose();
+				} catch(Exception ex) {
+					//do nothing
+				}
+			}
+		});
+		selector.setSize(new Dimension(100,0));
+		drawPanel.add(selector);
+		drawPanel.setSize(new Dimension(100,0));
+		drawWindow.addWindowFocusListener(new WindowFocusListener() {
+			public void windowGainedFocus(WindowEvent e) {
+			}
+			public void windowLostFocus(WindowEvent e) {
+				drawWindow.dispose();
+			}
+		});
+		drawWindow.setContentPane(drawPanel);
+		drawWindow.setUndecorated(true);
+		drawWindow.pack();
+		drawWindow.setLocation(new Point(MouseInfo.getPointerInfo().getLocation().x, MouseInfo.getPointerInfo().getLocation().y));
 		drawWindow.setVisible(true);
 	}
 	
@@ -288,12 +350,14 @@ public class Slider extends Envelope implements InterfaceElement {
 		g.addInput(wp);
 		Slider s1 = new Slider(ac, "gain", 0, 1, 1);
 		g.setGainEnvelope(s1);
-		Slider s2 = new Slider(ac, "freq", 110, 5000, 440) {
-			public void calculateBuffer() {
-				super.calculateBuffer();
-				System.out.println(bufOut[0]);
-			}
-		};
+		Slider s2 = new Slider(ac, "freq", 110, 5000, 440)
+//		{
+//			public void calculateBuffer() {
+//				super.calculateBuffer();
+//				System.out.println(bufOut[0]);
+//			}
+//		}
+		;
 		wp.setFrequencyEnvelope(s2);
 		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.X_AXIS));
 		frame.getContentPane().add(s1.getComponent());

@@ -56,4 +56,10 @@ public class BeadsKeys implements KeyListener {
 		
 	}
 	
+	public static void main(String[] args) {
+		BeadsWindow bw = new BeadsWindow("hello world");
+//		bw.addKeyListener(BeadsKeys.singleton);
+		bw.setVisible(true);
+	}
+	
 }

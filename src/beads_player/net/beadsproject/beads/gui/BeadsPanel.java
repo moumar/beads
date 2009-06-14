@@ -2,6 +2,7 @@ package net.beadsproject.beads.gui;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import javax.swing.BorderFactory;
@@ -22,6 +23,23 @@ public class BeadsPanel extends JPanel {
 		setAlignmentX(LEFT_ALIGNMENT);
 		setAlignmentY(TOP_ALIGNMENT);
 		setFont(new Font("Courier", Font.PLAIN, 10));
+	}
+
+	public Component add(Component c) {
+		//nasty but necessary -- try to ensure that all elements are non-focusable and have BeadsKeys
+		//watch out - this could have terrible consequences
+		defocusAndAddKeys(c);
+		return super.add(c);
+	}
+	
+	private void defocusAndAddKeys(Component c) {
+		c.setFocusable(false);
+		if(c instanceof Container) {
+			Container cont = (Container)c;
+			for(Component next : cont.getComponents()) {
+				defocusAndAddKeys(next);
+			}
+		}
 	}
 	
 	public void horizontalBox() {

@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -19,6 +20,8 @@ import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+
+import net.beadsproject.beads.gui.BeadsKeys.KeyboardListener;
 import net.beadsproject.beads.play.Player;
 import net.beadsproject.beads.play.SongGroup;
 import net.beadsproject.beads.play.SongPart;
@@ -48,6 +51,7 @@ public class SongGrid extends BeadsPanel {
 		JPanel vPanel = new JPanel();
 		vPanel.setLayout(new BoxLayout(vPanel, BoxLayout.Y_AXIS));
 		partPanel = new JComponent() {
+			private static final long serialVersionUID = 1L;
 			public void paintComponent(Graphics g) {
 				Graphics2D g2d = ((Graphics2D)g);
 				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -105,6 +109,7 @@ public class SongGrid extends BeadsPanel {
 		});
 		add(partPanel);
 		groupPanel = new JComponent() {
+			private static final long serialVersionUID = 1L;
 			public void paintComponent(Graphics g) {
 				Graphics2D g2d = ((Graphics2D)g);
 				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -141,6 +146,7 @@ public class SongGrid extends BeadsPanel {
 		});
 		vPanel.add(groupPanel);
 		grid = new JComponent() {
+			private static final long serialVersionUID = 1L;
 			public void paintComponent(Graphics g) {
 				((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 				g.setColor(Color.white);
@@ -184,10 +190,60 @@ public class SongGrid extends BeadsPanel {
 				}
 				grid.repaint();
 			}
-			
 		});
 		vPanel.add(grid);
 		add(vPanel);
+		//set up the key listener for group flip events
+		BeadsKeys.addListener(new KeyboardListener() {
+			public void keyPressed(int keyCode) {
+				if(keyCode == KeyEvent.VK_RIGHT) {
+					if(player.getCurrentGroup() != null) {
+						//move to next group
+						int i = 0;
+						while(player.getCurrentGroup() != groups.get(i++)) {}
+						if(i < groups.size()) {
+							if(BeadsKeys.keysDown[KeyEvent.VK_CONTROL]) {
+								player.playGroupNoFadeOut(groups.get(i));
+							} else {
+								player.playGroup(groups.get(i));
+							}
+							groupPanel.repaint();
+						}
+					}
+				} else if(keyCode == KeyEvent.VK_LEFT) {
+					if(player.getCurrentGroup() != null) {
+						//move to previous group
+						int i = 0;
+						while(player.getCurrentGroup() != groups.get(i++)) {}
+						if(i > 1) {
+							if(BeadsKeys.keysDown[KeyEvent.VK_CONTROL]) {
+								player.playGroupNoFadeOut(groups.get(i-2));
+							} else {
+								player.playGroup(groups.get(i-2));
+							}
+							groupPanel.repaint();
+						}
+					}
+				} else if(keyCode == KeyEvent.VK_DOWN) {
+					//move to first group
+					if(BeadsKeys.keysDown[KeyEvent.VK_CONTROL]) {
+						player.playGroupNoFadeOut(groups.get(0));
+					} else {
+						player.playGroup(groups.get(0));
+					}
+					groupPanel.repaint();
+				} else if(keyCode == KeyEvent.VK_UP) {
+					//move to last group
+					if(BeadsKeys.keysDown[KeyEvent.VK_CONTROL]) {
+						player.playGroupNoFadeOut(groups.get(groups.size() - 1));
+					} else {
+						player.playGroup(groups.get(groups.size() - 1));
+					}
+					groupPanel.repaint();
+				}
+			}
+			public void keyReleased(int keyCode) {}
+		});
 	}
 	
 	private JPopupMenu groupsPopupMenu() {

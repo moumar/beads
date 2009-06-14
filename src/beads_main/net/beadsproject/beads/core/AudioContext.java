@@ -264,6 +264,14 @@ public class AudioContext {
 				System.out.println(samplesToMs(timeStep * bufferSizeInFrames) / 1000f + " (seconds)");
 			}
 		}
+//		//do this to clear the buffer (should get rid of buzz)
+//		Arrays.fill(interleavedOutput, 0f);
+//		AudioUtils.floatToByte(bbuf, interleavedOutput,
+//				audioFormat.isBigEndian());
+//		while(sourceDataLine.available() > 0) {
+//			sourceDataLine.write(bbuf, 0, Math.min(bbuf.length, sourceDataLine.available()));
+//		}
+		//now clean up
 		sourceDataLine.drain();
 		sourceDataLine.stop();
 		sourceDataLine.close();

@@ -12,6 +12,10 @@ import net.beadsproject.beads.core.UGen;
  */
 public abstract class Function extends UGen {
 
+	// TODO interesting challenge: 
+	//can we get Function to not bother updating if its inputs are not updating?
+	//could UGen have a method 'hasChanged()'?
+	
 	/** An array representing the current values from the array of input UGens. */
 	protected float[] x;
 	

@@ -278,11 +278,23 @@ public class GranularSamplePlayer extends SamplePlayer {
 					//get position in sample for this grain
 					//get the frame for this grain
 					switch (interpolationType) {
+					case ADAPTIVE: 
+						if(pitch > 1.5f) {
+							buffer.getFrameNoInterp(g.position, frame);
+						} else if(pitch > 0.5f) {
+							buffer.getFrameLinear(g.position, frame);
+						} else {
+							buffer.getFrameCubic(g.position, frame);
+						}
+						break;
 					case LINEAR:
 						buffer.getFrameLinear(g.position, frame);
 						break;
 					case CUBIC:
 						buffer.getFrameCubic(g.position, frame);
+						break;
+					case NONE:
+						buffer.getFrameNoInterp(g.position, frame);
 						break;
 					}
 					//add it to the current output frame

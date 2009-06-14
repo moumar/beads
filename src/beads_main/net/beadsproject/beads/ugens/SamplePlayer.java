@@ -21,11 +21,20 @@ public class SamplePlayer extends UGen {
 	 */
 	public static enum InterpolationType {
 
+		/** Use no interpolation. */
+		NONE, 
+		
 		/** Use linear interpolation. */
 		LINEAR, 
 
 		/** Use cubic interpolation. */
-		CUBIC
+		CUBIC,
+		
+		/** Use context dependent interpolation: 
+		 * NONE above 2x, 
+		 * CUBIC below 0.5x, 
+		 * LINEAR otherwise. */
+		ADAPTIVE
 	};
 
 	/**
@@ -114,7 +123,7 @@ public class SamplePlayer extends UGen {
 		super(context, outs);
 		rateEnvelope = new Static(context, 1.0f);
 		positionEnvelope = null;
-		interpolationType = InterpolationType.LINEAR;
+		interpolationType = InterpolationType.ADAPTIVE;
 		loopType = LoopType.NO_LOOP_FORWARDS;
 		forwards = true;
 		killOnEnd = true;
@@ -393,17 +402,25 @@ public class SamplePlayer extends UGen {
 			}
 			for (int i = 0; i < bufferSize; i++) {
 				//calculate the samples		
-				if(rate >= 1.5f) {
-					buffer.getFrameNoInterp(position, frame);
-				} else {
-					switch (interpolationType) {
-					case LINEAR:
+				switch (interpolationType) {
+				case ADAPTIVE: 
+					if(rate > 1.5f) {
+						buffer.getFrameNoInterp(position, frame);
+					} else if(rate > 0.5f) {
 						buffer.getFrameLinear(position, frame);
-						break;
-					case CUBIC:
+					} else {
 						buffer.getFrameCubic(position, frame);
-						break;
 					}
+					break;
+				case LINEAR:
+					buffer.getFrameLinear(position, frame);
+					break;
+				case CUBIC:
+					buffer.getFrameCubic(position, frame);
+					break;
+				case NONE:
+					buffer.getFrameNoInterp(position, frame);
+					break;
 				}
 				for (int j = 0; j < outs; j++) {
 					bufOut[j][i] = frame[j % buffer.getNumChannels()];

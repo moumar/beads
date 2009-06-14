@@ -29,9 +29,7 @@ public class HowManySamplePlayers {
 			g.addInput(wp);
 		}
 		ac.out.addInput(g);
-		
 //		ac.out.addInput(new RTInput(ac));
-		
 //		ac.checkForDroppedFrames(false);
 		ac.start();
 	}
