@@ -84,16 +84,18 @@ public class Slider extends Envelope implements InterfaceElement {
 	 *            the value
 	 */
 	public Slider(AudioContext context, String nam, float min, float max, float val) {
-		//TODO error check max and min values
+		this(context, nam, min, max, val, true);
+	}
+	
+	public Slider(AudioContext context, String nam, float min, float max, float val, boolean log) {
 		super(context);
 		storedValues = new Vector<Float>();
 		name = nam;
-		setMin(min);
-		setMax(max);
+		setMin(Math.min(min, max));
+		setMax(Math.max(min, max));
 		setValue(val);
 		smoothnessInterval = 20;
-		useLogBuffer(true);
-//		useLogBuffer(false);
+		useLogBuffer(log);
 	}
 	
 	public float calculateValueFromFract(float fract) {
@@ -122,13 +124,6 @@ public class Slider extends Envelope implements InterfaceElement {
 		addSegment(value, smoothnessInterval);
 		if(component != null) component.repaint();
 	}
-
-//	/* (non-Javadoc)
-//	 * @see com.olliebown.beads.core.UGen#getValue()
-//	 */
-//	public float getValue() {
-//		return value;
-//	}
 	
 	/**
 	 * Gets the min.
@@ -192,9 +187,9 @@ public class Slider extends Envelope implements InterfaceElement {
 	public JComponent getComponent() {
 		if(component == null) {
 			component = new BeadsComponent() {
+				private static final long serialVersionUID = 1L;
 				public void paintComponent(Graphics g) {
 					Graphics2D g2d = (Graphics2D)g;
-//					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 					//outer box
 					g.setColor(Color.white);
 					g.fillRect(0, 0, getWidth(), getHeight());
@@ -251,6 +246,7 @@ public class Slider extends Envelope implements InterfaceElement {
 		final int[] y = new int[2];
 		y[0] = y[1] = (int)((1f - getValueFract()) * component.getHeight());
 		final JPanel drawPanel = new JPanel() {
+			private static final long serialVersionUID = 1L;
 			public void paintComponent(Graphics g) {
 				Graphics2D g2d = (Graphics2D)g;
 				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -350,14 +346,7 @@ public class Slider extends Envelope implements InterfaceElement {
 		g.addInput(wp);
 		Slider s1 = new Slider(ac, "gain", 0, 1, 1);
 		g.setGainEnvelope(s1);
-		Slider s2 = new Slider(ac, "freq", 110, 5000, 440)
-//		{
-//			public void calculateBuffer() {
-//				super.calculateBuffer();
-//				System.out.println(bufOut[0]);
-//			}
-//		}
-		;
+		Slider s2 = new Slider(ac, "freq", 110, 5000, 440);
 		wp.setFrequencyEnvelope(s2);
 		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.X_AXIS));
 		frame.getContentPane().add(s1.getComponent());

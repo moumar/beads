@@ -67,9 +67,8 @@ public class Readout implements InterfaceElement {
 	public JComponent getComponent() {
 		if(component == null) {
 			JComponent subComponent = new JComponent() {
+				private static final long serialVersionUID = 1L;
 				public void paintComponent(Graphics g) {
-//					Graphics2D g2d = (Graphics2D)g;
-//					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 					g.setColor(Color.white);
 					g.fillRect(0, 0, getWidth(), getHeight());
 					if(text != null) {

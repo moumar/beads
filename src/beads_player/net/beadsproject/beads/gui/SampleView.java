@@ -8,6 +8,11 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
@@ -18,6 +23,7 @@ public class SampleView implements InterfaceElement {
 
 	private static Color transparentOverlay = new Color(0.2f, 0.2f, 0.2f, 0.3f);
 	public static enum SelectMode {REGION, POSITION};
+	public static enum SnapMode {GRID, FREE};
 	
 	private Sample sample;
 	private int[] view;
@@ -28,7 +34,9 @@ public class SampleView implements InterfaceElement {
 	private int chunkSize;
 	private JComponent component;
 	private SelectMode selectionMode;
+	private SnapMode snapMode;
 	private SampleViewListener listener;
+	private TreeSet<Double> snapPoints;
 
 	public SampleView() {
 		this(null);
@@ -40,6 +48,8 @@ public class SampleView implements InterfaceElement {
 		chunkSize = 200;
 		setWidth(500);
 		selectionMode = SelectMode.REGION;
+		snapMode = SnapMode.FREE;
+		snapPoints = new TreeSet<Double>();
 	}
 	
 	public int getSelectionStart() {
@@ -64,6 +74,44 @@ public class SampleView implements InterfaceElement {
 	
 	public void setSelectionMode(SelectMode mode) {
 		this.selectionMode = mode;
+	}
+
+	public SnapMode getSnapMode() {
+		return snapMode;
+	}
+
+	public void setSnapMode(SnapMode snapMode) {
+		this.snapMode = snapMode;
+	}
+	
+	public void addSnapPoint(double timeMS) {
+		snapPoints.add(timeMS);
+	}
+	
+	public void clearSnapPoints() {
+		snapPoints.clear();
+	}
+	
+	public Set<Double> getSnapPoints() {
+		return snapPoints;
+	}
+	
+	//test me
+	public double getSnapPointBefore(double d) {
+		return snapPoints.headSet(d).last();
+	}
+	
+	//test me
+	public double getSnapPointAfter(double d) {
+		return snapPoints.tailSet(d).first();
+	}
+	
+	//test me
+	public double getNearestSnapPoint(double d) {
+		double before = getSnapPointBefore(d);
+		double after = getSnapPointAfter(d);
+		if(Math.abs(before - d) > Math.abs(after - d)) return after;
+		else return before;
 	}
 
 	public void setSample(Sample sample) {

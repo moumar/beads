@@ -16,6 +16,9 @@ import net.beadsproject.beads.data.SampleManager;
  */
 public class SamplePlayer extends UGen {
 
+	public static final float ADAPTIVE_INTERP_LOW_THRESH = 0.5f;
+	public static final float ADAPTIVE_INTERP_HIGH_THRESH = 2.5f;
+	
 	/**
 	 * The Enum InterpolationType.
 	 */
@@ -404,9 +407,9 @@ public class SamplePlayer extends UGen {
 				//calculate the samples		
 				switch (interpolationType) {
 				case ADAPTIVE: 
-					if(rate > 1.5f) {
+					if(rate > ADAPTIVE_INTERP_HIGH_THRESH) {
 						buffer.getFrameNoInterp(position, frame);
-					} else if(rate > 0.5f) {
+					} else if(rate > ADAPTIVE_INTERP_LOW_THRESH) {
 						buffer.getFrameLinear(position, frame);
 					} else {
 						buffer.getFrameCubic(position, frame);
