@@ -154,6 +154,10 @@ public class Clock extends UGen implements IntegerBead {
     	return intervalEnvelope;    	
     }
     
+    public float getTempo() {
+    	return 60000f / intervalEnvelope.getValue();
+    }
+    
     /* (non-Javadoc)
      * @see com.olliebown.beads.core.UGen#calculateBuffer()
      */

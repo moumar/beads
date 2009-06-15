@@ -1,10 +1,12 @@
 package net.beadsproject.beads.gui;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -22,6 +24,8 @@ import net.beadsproject.beads.play.InterfaceElement;
 public class SampleView implements InterfaceElement {
 
 	private static Color transparentOverlay = new Color(0.2f, 0.2f, 0.2f, 0.3f);
+	private static Color veryTransparentOverlay = new Color(0.2f, 0.2f, 0.2f, 0.1f);
+	private static Stroke lightStroke = new BasicStroke(0.1f);
 	public static enum SelectMode {REGION, POSITION};
 	public static enum SnapMode {GRID, FREE};
 	
@@ -36,7 +40,7 @@ public class SampleView implements InterfaceElement {
 	private SelectMode selectionMode;
 	private SnapMode snapMode;
 	private SampleViewListener listener;
-	private TreeSet<Double> snapPoints;
+	private TreeSet<Double> snapPoints; //could make this multilayered
 
 	public SampleView() {
 		this(null);
@@ -116,6 +120,7 @@ public class SampleView implements InterfaceElement {
 
 	public void setSample(Sample sample) {
 		this.sample = sample;
+		clearSnapPoints();
 		calculateOverview();
 	}
 
@@ -166,9 +171,8 @@ public class SampleView implements InterfaceElement {
 		if(component == null) {
 			final JComponent subComponent = new JComponent() {
 				public void paintComponent(Graphics g) {
-//					Graphics2D g2d = (Graphics2D)g;
-//					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 					//outer box
+					((Graphics2D)g).setStroke(lightStroke);
 					g.setColor(Color.white);
 					g.fillRect(0, 0, getWidth(), getHeight());
 					g.setColor(Color.black);
@@ -180,15 +184,26 @@ public class SampleView implements InterfaceElement {
 							g.drawLine(i - 1, getHeight() - view[i - 1], i, getHeight() - view[i]);
 						}
 					}
-					//overlay
+					//snap points
 					g.setColor(transparentOverlay);
+					for(Double d : snapPoints) {
+						int x = (int)(d * getWidth() / sample.getLength());
+						g.drawLine(x, 0, x, getHeight());
+					}
+					//overlay
+					g.setColor(veryTransparentOverlay);
 					g.fillRect(Math.min(selectionStart, selectionEnd), 0, Math.abs(selectionEnd - selectionStart), height);
 				}
 			};
 			subComponent.addMouseListener(new MouseAdapter() {
 				public void mousePressed(MouseEvent e) {
-					selectionStart = e.getX();
-					selectionEnd = selectionStart + 1;
+					if(snapMode == SnapMode.FREE) {
+						selectionStart = e.getX();
+						selectionEnd = selectionStart + 1;
+					} else {
+						selectionStart = (int)(width / sample.getLength() * getSnapPointBefore((float)e.getX() / width * sample.getLength()));
+						selectionEnd = (int)(width / sample.getLength() * getSnapPointAfter((float)e.getX() / width * sample.getLength()));
+					}
 					if(listener != null) {
 						listener.selectionChanged(pixelsToMS(Math.min(selectionStart, selectionEnd)), pixelsToMS(Math.max(selectionStart, selectionEnd)));
 					}
