@@ -8,7 +8,7 @@ import net.beadsproject.beads.data.Sample.TotalRegime;
 public class HowManySamplePlayers {
 
 	//Try and thrash your system
-	public final static int NUM_OSCS = 220;
+	public final static int NUM_OSCS = 110;
 	public final static int BUFFER_SIZE = 512;
 	public final static int IO_BUFFER_SIZE = 1024;
 	

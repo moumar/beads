@@ -52,14 +52,22 @@
   	       processing - following the guidelines here: 
   	         http://dev.processing.org/libraries/basics.html -->
     	<mkdir dir="build/processing/Beads/library" />
-    		<jarjar jarfile="build/processing/Beads/library/beads.jar">
+    		<property name="processing" location="build/processing/Beads"/>
+    		<jarjar jarfile="${processing}/library/beads.jar">
     	  	<fileset dir="build/Beads/library/bin/main"/>
     	    <rule pattern="net.beadsproject.beads.*.**" result="beads.@2"/>
     		</jarjar>
-	  		<copy file="dependencies/jl1.0.1.jar" toFile="build/processing/Beads/library/jl1.0.1.jar" />
-    		<copy file="dependencies/mp3spi1.9.4.jar" toFile="build/processing/Beads/library/mp3spi1.9.4.jar" />
-    		<copy file="dependencies/tritonus_share.jar" toFile="build/processing/Beads/library/tritonus_share.jar" />
-    	
+	  		<copy file="dependencies/jl1.0.1.jar" toFile="${processing}/library/jl1.0.1.jar" />
+    		<copy file="dependencies/mp3spi1.9.4.jar" toFile="${processing}/library/mp3spi1.9.4.jar" />
+    		<copy file="dependencies/tritonus_share.jar" toFile="${processing}/library/tritonus_share.jar" />
+    	  
+    	  <!-- copy tutorials into an "examples" directory -->
+    	  <mkdir dir="${processing}/examples" />
+    	  <copy todir="${processing}/examples">
+    	  	<fileset dir="tutorials/Beads Processing Tutorial/Beads Tutorial/">
+    	  		<include name="**/*" />    	  	
+    	  	</fileset>
+				</copy>
 			<!-- CLEAN UP -->
 			<delete dir="build/Beads/library/bin"/>	    	
     </target>

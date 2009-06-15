@@ -43,5 +43,9 @@ public abstract class BufferFactory {
     	}
     	return Buffer.staticBufs.get(name);
 	}
+	/*
+	public static Buffer default(){
+		
+	}*/
 
 }

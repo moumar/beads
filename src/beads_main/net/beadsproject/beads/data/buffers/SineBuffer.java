@@ -32,5 +32,4 @@ public class SineBuffer extends BufferFactory {
     public String getName() {
     	return "Sine";
     }
-
 }

@@ -6,6 +6,11 @@ package net.beadsproject.beads.data;
 import java.io.Serializable;
 import java.util.Hashtable;
 
+import net.beadsproject.beads.data.buffers.NoiseBuffer;
+import net.beadsproject.beads.data.buffers.SawBuffer;
+import net.beadsproject.beads.data.buffers.SineBuffer;
+import net.beadsproject.beads.data.buffers.SquareBuffer;
+
 /**
  * A Buffer stores a one-dimensional buffer of floats for use as a wavetable or a window.
  * 
@@ -65,6 +70,9 @@ public class Buffer implements Serializable {
 //	        else return 0.0f;
 	}
 
-
-
+	// A collection of default buffers, initialised for your convenience.
+	public static final Buffer SINE = new SineBuffer().getDefault();
+	public static final Buffer SAW = new SawBuffer().getDefault();
+	public static final Buffer SQUARE = new SquareBuffer().getDefault();
+	public static final Buffer NOISE = new NoiseBuffer().getDefault();
 }
