@@ -75,7 +75,7 @@
     	  		<include name="**/*" />    	  	
     	  	</fileset>
 				</copy>
-    	
+			<copy file="tutorials/Beads Processing Tutorial/README.txt" toFile="${processing}/" />
 			<!-- CLEAN UP -->
 			<delete dir="build/Beads/library/bin"/>	    	
     </target>
@@ -129,8 +129,11 @@
     	<delete file="${exportdir}/Beads/library/beads-play.jar"></delete>
     	<exec executable="${svn}"><arg line="--force export readme ${exportdir}/Beads/readme"/></exec>
     	<!-- Beads Processing Tutorial -->
-    	<exec executable="${svn}"><arg line="--force export 'tutorials/Beads Processing Tutorial' '${exportdir}/Beads Processing Tutorial'"/></exec>
-    	<exec executable="cp"><arg line="-R ${exportdir}/Beads '${exportdir}/Beads Processing Tutorial/'"/></exec>   	    	
+    	
+
+    	<exec executable="cp"><arg line="-R build/processing/Beads '${exportdir}/Beads Processing Tutorial'"/></exec>   
+    	
+    
     	<!-- Beads Eclipse Tutorial -->
     	<exec executable="${svn}"><arg line="--force export 'tutorials/Beads Eclipse Tutorial' '${exportdir}/Beads Eclipse Tutorial'"/></exec>
     </target>
