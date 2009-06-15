@@ -18,7 +18,7 @@ public class Add extends UGen {
 	 * Instantiates a new Add UGen with UGen a and UGen b added together.
 	 * 
 	 * @param context the AudioContext.
-	 * @param a the first UGen.
+	 * @param a the first UGen. 
 	 * @param b the second UGen.
 	 */
 	public Add(AudioContext context, UGen a, UGen b) {
