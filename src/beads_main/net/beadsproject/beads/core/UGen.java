@@ -4,7 +4,6 @@
 package net.beadsproject.beads.core;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import net.beadsproject.beads.ugens.Clock;
 
@@ -383,6 +382,7 @@ public abstract class UGen extends Bead {
 	 * @param ugen the UGen to test.
 	 * @return true if the given UGen is plugged into this UGen.
 	 */
+	@SuppressWarnings("unchecked")
 	public boolean containsInput(UGen ugen) {
 		if(noInputs) {
 			return false;
@@ -404,6 +404,7 @@ public abstract class UGen extends Bead {
 	 * 
 	 * @param sourceUGen the UGen to disconnect.
 	 */
+	@SuppressWarnings("unchecked")
 	public void removeAllConnections(UGen sourceUGen) {
 		if (!noInputs) {
 			int inputCount = 0;
@@ -426,6 +427,7 @@ public abstract class UGen extends Bead {
 	/**
 	 * Clear all of this UGen's input connections.
 	 */
+	@SuppressWarnings("unchecked")
 	public void clearInputConnections() {
 		for(int i = 0; i < inputs.length; i++) {
 			ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputs[i].clone();
@@ -495,7 +497,7 @@ public abstract class UGen extends Bead {
 	}
 	
 	/**
-	 * Gets the value of the buffer, assuming that the buffer only has one value. This is mainly a convenience method for use with {@link #Static} type UGens. It is equivalent to {@link #getValue(0, 0)}.
+	 * Gets the value of the buffer, assuming that the buffer only has one value. This is mainly a convenience method for use with {@link net.beadsproject.beads.ugens.Static Static} type UGens. It is equivalent to {@link #getValue(0, 0)}.
 	 * 
 	 * @return the value.
 	 */
@@ -504,7 +506,7 @@ public abstract class UGen extends Bead {
 	}
 	
 	/**
-	 * Sets the value of {@link #bufOut[0][0]}. This is mainly a convenience method for use with {@link #Static} and {@link #Envelope} type UGens.
+	 * Sets the value of {@link #bufOut}. This is mainly a convenience method for use with {@link net.beadsproject.beads.ugens.Static Static} and {@link net.beadsproject.beads.ugens.Envelope Envelope} type UGens.
 	 * 
 	 * @param value the new value.
 	 */
@@ -525,7 +527,7 @@ public abstract class UGen extends Bead {
 	 * 
 	 * @see Bead#pause(boolean)
 	 * 
-	 * @param true if paused.
+	 * @param paused is true if paused.
 	 */
 	public void pause(boolean paused) {
 		if(!isPaused() && paused) {

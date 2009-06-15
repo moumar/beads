@@ -294,7 +294,7 @@ public class Recorder extends UGen {
 	 * Checks if loop record mode is enabled.
 	 * 
 	 * @return true if loop record mode is enabled.
-	 * @deprecated Use {@link #getMode())}
+	 * @deprecated Use {@link #getMode()} instead.
 	 */
 	public boolean isLoopRecord() {
 		return mode==Mode.LOOPING;
@@ -304,7 +304,7 @@ public class Recorder extends UGen {
 	 * Starts/stops loop record mode.
 	 * 
 	 * @param loopRecord true to enable loop record mode.
-	 * @deprecated Use {@link #setMode(Mode)}
+	 * @deprecated Use {@link #setMode(Mode)} instead.
 	 */
 	public void setLoopRecord(boolean loopRecord) {
 		mode = Mode.LOOPING;

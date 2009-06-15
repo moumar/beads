@@ -17,10 +17,8 @@ import net.beadsproject.beads.data.SampleManager;
 
 /**
  * SamplePlayer plays back a {@link Sample}. Playback rate and loop points can be controlled by {@link UGen}s. The playback point in the {@link Sample} can also be directly controlled from {@link UGen} to perform scrubbing. The player can be set to a number of different loop modes. If constructed with a {@link Sample} argument, the number of outputs of SamplePlayer is determined by the number of channels of the {@link Sample}. {@link Sample} playback can use either linear or cubic interpolation.
- *
- *
  * 
- * 
+ * @category sample players
  * @author ollie
  */
 public class SamplePlayer extends UGen {

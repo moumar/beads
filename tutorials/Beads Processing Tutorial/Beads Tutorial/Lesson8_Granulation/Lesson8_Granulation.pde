@@ -1,11 +1,4 @@
-import net.beadsproject.beads.events.*;
-import net.beadsproject.beads.data.*;
-import net.beadsproject.beads.ugens.*;
-import net.beadsproject.beads.analysis.segmenters.*;
-import net.beadsproject.beads.analysis.featureextractors.*;
-import net.beadsproject.beads.analysis.*;
-import net.beadsproject.beads.data.buffers.*;
-import net.beadsproject.beads.core.*;
+import beads.*;
 
 AudioContext ac;
 
@@ -25,7 +18,7 @@ void setup() {
    //loop the sample at its end points
    player.setLoopType(SamplePlayer.LoopType.LOOP_ALTERNATING);
    player.getLoopStartEnvelope().setValue(0);
-   player.getLoopEndEnvelope().setValue(SampleManager.sample(audioFile).length);
+   player.getLoopEndEnvelope().setValue(SampleManager.sample(audioFile).getLength());
    //control the rate of grain firing
    Envelope grainIntervalEnvelope = new Envelope(ac, 100);
    grainIntervalEnvelope.addSegment(20, 10000);

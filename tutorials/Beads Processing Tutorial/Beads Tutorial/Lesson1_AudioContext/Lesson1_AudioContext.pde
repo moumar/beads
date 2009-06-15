@@ -1,11 +1,4 @@
-import net.beadsproject.beads.events.*;
-import net.beadsproject.beads.data.*;
-import net.beadsproject.beads.ugens.*;
-import net.beadsproject.beads.analysis.segmenters.*;
-import net.beadsproject.beads.analysis.featureextractors.*;
-import net.beadsproject.beads.analysis.*;
-import net.beadsproject.beads.data.buffers.*;
-import net.beadsproject.beads.core.*;
+import beads.*;
 
 /*
  * Lesson 1: Make some noise! Note, if you don't know Processing, you'd

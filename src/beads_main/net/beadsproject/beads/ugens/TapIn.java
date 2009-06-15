@@ -5,15 +5,19 @@ import java.util.Arrays;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
+/**
+ * TapIn stores and serves sound data. Can be used with TapOut to implement delays, etc.
+ * 
+ * @author ben
+ */
 public class TapIn extends UGen
 {
   private float buffer[];
   private int counter;
 
   /**
-   * 
    * @param ac AudioContext
-   * @param bufferSizeInSamples The size of the tapin buffer 
+   * @param bufferSizeInMS The size of the tapin buffer in milliseconds. 
    */
   public TapIn(AudioContext ac, float bufferSizeInMS)
   {

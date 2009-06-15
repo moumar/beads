@@ -28,14 +28,20 @@
     <target name="compile main" description="compiles main beads project to beads.jar">
     	<!-- we use jarjar to package up all beads dependencies into a single beads.jar -->
     	<taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask"
-    	        classpath="dependencies/jarjar-1.0.jar"/>   	
+    	        classpath="dependencies/jarjar-1.0.jar"/>
     	
     	<mkdir dir="build/Beads/library/bin/main"/>
 			<javac srcdir="src/beads_main" destdir="build/Beads/library/bin/main" debug="off"> 
 				<classpath>
 					<pathelement location="dependencies/tritonus_share.jar"/>
 				</classpath>
+				<compilerarg value="-Xlint:unchecked" />
 			</javac>
+    	<javac srcdir="src/beads_experimental" destdir="build/Beads/library/bin/main" debug="off"> 
+				<classpath>
+					<pathelement location="dependencies/tritonus_share.jar"/>
+				</classpath>
+    	</javac>
     	
       <!-- JAVA -->        	
     	<mkdir dir="build"/>
@@ -55,7 +61,8 @@
     		<property name="processing" location="build/processing/Beads"/>
     		<jarjar jarfile="${processing}/library/beads.jar">
     	  	<fileset dir="build/Beads/library/bin/main"/>
-    	    <rule pattern="net.beadsproject.beads.*.**" result="beads.@2"/>
+    			<rule pattern="net.beadsproject.beads.*.*.**" result="beads.@3"/>
+    			<rule pattern="net.beadsproject.beads.*.**" result="beads.@2"/>
     		</jarjar>
 	  		<copy file="dependencies/jl1.0.1.jar" toFile="${processing}/library/jl1.0.1.jar" />
     		<copy file="dependencies/mp3spi1.9.4.jar" toFile="${processing}/library/mp3spi1.9.4.jar" />
@@ -68,6 +75,7 @@
     	  		<include name="**/*" />    	  	
     	  	</fileset>
 				</copy>
+    	
 			<!-- CLEAN UP -->
 			<delete dir="build/Beads/library/bin"/>	    	
     </target>
@@ -92,6 +100,16 @@
 					<pathelement location="dependencies/tritonus_share.jar"/>
 				</classpath>
 			</javadoc>	
+    	
+    	<!-- generate single page reference -->
+    	<mkdir dir="build/tmp" />
+    	<javac srcdir="src/beads_doc" destdir="build/tmp" />
+    	<javadoc doclet="BeadsDoclet" docletpath="build/tmp" sourcepath="src/beads_main" destdir="build/overview">
+    		<classpath>
+    			<pathelement location="dependencies/tritonus_share.jar"/>
+    		</classpath>
+    	</javadoc>
+    	<delete dir="build/tmp" />
     </target>
 	
     <!-- ================================= 
@@ -99,7 +117,7 @@
          ================================= -->
     <target name="doc play" description="generate docs for play and main in same location">
     	<javadoc sourcepath="src/beads_main:src/beads_player" destdir="build/Beads/doc"></javadoc>	
-    </target>
+    </target>	
 	
     <!-- ================================= 
           target: genrate packages             
@@ -126,7 +144,8 @@
     	<copy file="${exportdir}/Beads.zip" tofile="${exportdir}/Beads${TODAY}.zip"/>
     	<exec executable="scp"><arg line="${exportdir}/Beads.zip orsjb@beadsproject.net:beadsproject.net/downloads/"/></exec>
     	<exec executable="scp"><arg line="${exportdir}/Beads${TODAY}.zip orsjb@beadsproject.net:beadsproject.net/downloads/"/></exec>
-    	<!-- Beads Processing Tutorial -->
+    	<!-- Beads Processing Tutorial 
+    	TODO: this should be zipped up slightly differently BP150609) -->
     	<zip basedir="${exportdir}/Beads Processing Tutorial" destfile="${exportdir}/Beads_Processing_Tutorial.zip"/>
     	<copy file="${exportdir}/Beads_Processing_Tutorial.zip" tofile="${exportdir}/Beads_Processing_Tutorial${TODAY}.zip"/>
     	<exec executable="scp"><arg line="${exportdir}/Beads_Processing_Tutorial.zip orsjb@beadsproject.net:beadsproject.net/downloads/"/></exec>

@@ -5,11 +5,12 @@ package net.beadsproject.beads.analysis;
 
 import java.util.ArrayList;
 import net.beadsproject.beads.core.Bead;
-import net.beadsproject.beads.core.BeadArray;
 import net.beadsproject.beads.core.TimeStamp;
 
 /**
- * FeatureExtractor is an abstract base class for classes that perform some kind of analysis on incoming data. Both the incoming data (P) and the generated data (R) are generic types. Implementing classes use the method {@link #process(P)} to process data. 
+ * FeatureExtractor is an abstract base class for classes that perform some kind of analysis 
+ * on incoming data. Both the incoming data (P) and the generated data (R) are generic types. 
+ * Implementing classes use the method {@link #process} to process data. 
  * 
  * @author ollie
  */

@@ -1,11 +1,4 @@
-import net.beadsproject.beads.events.*;
-import net.beadsproject.beads.data.*;
-import net.beadsproject.beads.ugens.*;
-import net.beadsproject.beads.analysis.segmenters.*;
-import net.beadsproject.beads.analysis.featureextractors.*;
-import net.beadsproject.beads.analysis.*;
-import net.beadsproject.beads.data.buffers.*;
-import net.beadsproject.beads.core.*;
+import beads.*;
 
 AudioContext ac;
 
@@ -20,7 +13,7 @@ ac = new AudioContext();
   * the event. The event itself is a special class that
   * kills the AudioContext.
   */
-  WavePlayer wp = new WavePlayer(ac, 500, new SawBuffer().getDefault());
+  WavePlayer wp = new WavePlayer(ac, 500, Buffer.SINE);
   Gain g = new Gain(ac, 1, new Envelope(ac, 0.1));
   /*
    * In this line we make the Gain envelope do something (fade to 

@@ -1,11 +1,4 @@
-import net.beadsproject.beads.events.*;
-import net.beadsproject.beads.data.*;
-import net.beadsproject.beads.ugens.*;
-import net.beadsproject.beads.analysis.segmenters.*;
-import net.beadsproject.beads.analysis.featureextractors.*;
-import net.beadsproject.beads.analysis.*;
-import net.beadsproject.beads.data.buffers.*;
-import net.beadsproject.beads.core.*;
+import beads.*;
 
 AudioContext ac;
 PowerSpectrum ps;
@@ -17,6 +10,7 @@ void setup() {
    * Here's something we've seen before...
    */
   String audioFile = selectInput();
+  SampleManager.setBufferingRegime(Sample.Regime.newStreamingRegime(1000));
   SamplePlayer player = new SamplePlayer(ac, SampleManager.sample(audioFile));
   Gain g = new Gain(ac, 2, 0.2);
   g.addInput(player);
@@ -47,25 +41,18 @@ void setup() {
 color fore = color(255, 102, 204);
 color back = color(0,0,0);
 
-/*
- * Just do the work straight into Processing's draw() method.
- */
-void draw() {
-  loadPixels();
-  //set the background
-  Arrays.fill(pixels, back);
-  //get the features
+void draw()
+{
+  background(back);
+  stroke(fore);
+  
   float[] features = ps.getFeatures();
   if(features != null) {
     //scan across the pixels
     for(int i = 0; i < width; i++) {
-      //for each pixel work out where in the current audio buffer we are
       int featureIndex = i * features.length / width;
-      //then work out the pixel height of the feature data at that point
       int vOffset = height - 1 - Math.min((int)(features[featureIndex] * height), height - 1);
-      //draw into Processing's convenient 1-D array of pixels
-      pixels[vOffset * height + i] = fore;
+      line(i,height,i,vOffset);
     }
   }
-  updatePixels();
 }

@@ -1,12 +1,17 @@
-import net.beadsproject.beads.core.*;
-import net.beadsproject.beads.data.buffers.*;
-import net.beadsproject.beads.ugens.*;
+/*
+ * Many oscillators with frequency control through sliders.
+ * BP09
+ * 
+ * Change NUMOSC below. 
+ */
+
+import beads.*;
 import controlP5.*;
 
 ControlP5 controlP5;
 AudioContext ac;
 
-final int NUMOSC = 10;
+final int NUMOSC = 20;
 WavePlayer oscillators[];
 
 void setup() {

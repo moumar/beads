@@ -11,6 +11,7 @@ import net.beadsproject.beads.data.buffers.SineBuffer;
 /**
  * An OscillatorBank sums the output of a set of oscillators with assignable frequencies and amplitudes. The frequencies and amplitudes of the set of oscillators can be assigned using arrays.
  *
+ * @category synth
  * @author ollie
  */
 public class OscillatorBank extends UGen {

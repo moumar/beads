@@ -1,11 +1,4 @@
-import net.beadsproject.beads.events.*;
-import net.beadsproject.beads.data.*;
-import net.beadsproject.beads.ugens.*;
-import net.beadsproject.beads.analysis.segmenters.*;
-import net.beadsproject.beads.analysis.featureextractors.*;
-import net.beadsproject.beads.analysis.*;
-import net.beadsproject.beads.data.buffers.*;
-import net.beadsproject.beads.core.*;
+import beads.*;
 
 AudioContext ac;
 
@@ -16,11 +9,13 @@ void setup() {
    * Here's how to play back a sample.
    * 
    * The first line gives you a way to choose the audio file.
-   * The second line creates a sample player and loads in the Sample.
+   * The (commented, optional) second line allows you to stream the audio rather than loading it all at once.
+   * The third line creates a sample player and loads in the Sample.
    * SampleManager is a utility which keeps track of loaded audio
    * files according to their file names, so you don't have to load them again.
    */
   String audioFile = selectInput();
+  // SampleManager.setBufferingRegime(Sample.Regime.newStreamingRegime(1000));
   SamplePlayer player = new SamplePlayer(ac, SampleManager.sample(audioFile));
   /*
    * And as before...

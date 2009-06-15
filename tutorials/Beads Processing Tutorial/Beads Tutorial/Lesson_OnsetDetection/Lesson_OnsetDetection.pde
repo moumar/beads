@@ -1,14 +1,7 @@
-import net.beadsproject.beads.events.*;
-import net.beadsproject.beads.data.*;
-import net.beadsproject.beads.ugens.*;
-import net.beadsproject.beads.analysis.segmenters.*;
-import net.beadsproject.beads.analysis.featureextractors.*;
-import net.beadsproject.beads.analysis.*;
-import net.beadsproject.beads.data.buffers.*;
-import net.beadsproject.beads.core.*;
+import beads.*;
 
 AudioContext ac;
-OnsetDetector od;
+PeakDetector od;
 
 // In this example we detect onsets in the audio signal
 // and pulse the screen when they occur. The brightness is controlled by 
@@ -26,6 +19,7 @@ void setup() {
   
   ac = new AudioContext();
   String audioFile = selectInput();
+  SampleManager.setBufferingRegime(Sample.Regime.newStreamingRegime(1000));
   SamplePlayer player = new SamplePlayer(ac, SampleManager.sample(audioFile));
   Gain g = new Gain(ac, 2, 0.2);
   g.addInput(player);
@@ -49,7 +43,7 @@ void setup() {
    */
   SpectralDifference sd = new SpectralDifference(ac.getSampleRate());
   ps.addListener(sd);
-  od = new OnsetDetector();
+  od = new PeakDetector();
   sd.addListener(od);
   /*
    * These parameters will need to be adjusted based on the 

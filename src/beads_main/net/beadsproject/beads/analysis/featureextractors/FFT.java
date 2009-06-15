@@ -8,7 +8,9 @@ import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.core.TimeStamp;
 
 /**
- * FFT performs a Fast Fourier Transform and forwards the complex data to any listeners. The complex data is a float of the form float[2][frameSize], with real and imaginary parts stored respectively.
+ * FFT performs a Fast Fourier Transform and forwards the complex data to any listeners. 
+ * The complex data is a float of the form float[2][frameSize], with real and imaginary 
+ * parts stored respectively.
  */
 public class FFT extends FeatureExtractor<float[][], float[]>  {
 	
@@ -122,11 +124,9 @@ public class FFT extends FeatureExtractor<float[][], float[]>  {
 	/**
 	 * Perform FFT on data with given length, regular or inverse.
 	 * 
-	 * @param data
-	 *            the data.
-	 * @param length the length.
-	 * @param isign
-	 *            true for regular, false for inverse.
+	 * @param data the data
+	 * @param n the length
+	 * @param isign true for regular, false for inverse.
 	 */
 	protected static void fft(float[] data, int n, boolean isign) {
 		float c1 = 0.5f; 

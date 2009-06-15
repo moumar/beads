@@ -10,7 +10,8 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.buffers.Log01Buffer;
 
 /**
- * Gain modifies the gain of a multi-channel audio signal. The gain value can be controlled by an audio signal.
+ * Gain modifies the gain of a multi-channel audio signal. The gain value 
+ * can be controlled by an audio signal.
  *
  * @author ollie
  */
@@ -41,7 +42,7 @@ public class Gain extends UGen {
 	 *            the AudioContext.
 	 * @param inouts
 	 *            the number of inputs (= number of outputs).
-	 * @param gainEnvelope
+	 * @param gain
 	 *            the fixed gain level.
 	 */
     public Gain(AudioContext context, int inouts, float gain) {

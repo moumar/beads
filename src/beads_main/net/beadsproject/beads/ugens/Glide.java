@@ -4,6 +4,11 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.buffers.SineBuffer;
 
+/**
+ * 
+ * @author ben
+ * @category control
+ */
 public class Glide extends UGen {
 
 	private float currentValue;

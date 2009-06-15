@@ -5,11 +5,11 @@
 package net.beadsproject.beads.analysis.featureextractors;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
-import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.TimeStamp;
 
 /**
- * Frequency processes spectral data forwarded to it by a {@link PowerSpectrum} to determine the best estimate for the frequency of the current signal.
+ * Frequency processes spectral data forwarded to it by a {@link PowerSpectrum} 
+ * to determine the best estimate for the frequency of the current signal.
  */
 public class Frequency extends FeatureExtractor<Float, float[]> {
 
@@ -26,8 +26,7 @@ public class Frequency extends FeatureExtractor<Float, float[]> {
 	/**
 	 * Instantiates a new Frequency.
 	 * 
-	 * @param context
-	 *            the AudioContext.
+	 * @param sampleRate The sample rate of the audio context 
 	 */
 	public Frequency(float sampleRate) {
 		bufferSize = -1;

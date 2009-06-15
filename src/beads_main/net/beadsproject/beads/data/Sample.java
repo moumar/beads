@@ -3,12 +3,10 @@ package net.beadsproject.beads.data;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.lang.Thread.State;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -37,13 +35,13 @@ import net.beadsproject.beads.core.AudioUtils;
  * Samples are usually played with a {@link net.beadsproject.beads.ugens.SamplePlayer}. Sample data 
  * can also be accessed through the methods: 
  * {@link #getFrame(int, float[]) getFrame},
- * {@link #getFrameLinear(int, float) getFrameLinear}, and  
+ * {@link #getFrameLinear(double, float[]) getFrameLinear}, and  
  * {@link #getFrames(int, float[][]) getFrames}.
  * Sample data can be written with: 
  * {@link #putFrame(int, float[]) putFrame} or
  * {@link #putFrames(int, float[][]) putFrames}. <i>However</i> you can only
  * write into a sample if the sample {@link #isWriteable()}, which occurs if the buffering regime
- * is a {@link TotalRegime Total Regime} or has been created with the {@link #Sample(AudioFormat, long) empty sample constructor}.
+ * is a {@link TotalRegime Total Regime} or has been created with the {@link #Sample(AudioFormat, double) empty sample constructor}.
  * </p>
  * 
  * <p>
@@ -54,10 +52,10 @@ import net.beadsproject.beads.core.AudioUtils;
  * <p>
  * A set of handy factory methods for handling common situations is also provided. These are:
  * <ul>
- * <li>{@link #Regime.newTotalRegime()}</li>
- * <li>{@link #Regime.newTotalRegimeNative(long)}</li>
- * <li>{@link #Regime.newStreamingRegime(long)}</li>
- * <li>{@link #Regime.newStreamingRegimeWithAging(long)}</li>
+ * <li>{@link Sample.Regime#newTotalRegime()}</li>
+ * <li>{@link Sample.Regime#newTotalRegimeNative()}</li>
+ * <li>{@link Sample.Regime#newStreamingRegime(long)}</li>
+ * <li>{@link Sample.Regime#newStreamingRegimeWithAging(long,long)}</li>
  * </ul>
  * </p>
  * 
@@ -126,14 +124,13 @@ public class Sample implements Runnable {
 		} 
 		
 		/**
-		 * Like {@link #Regime.newStreamingRegime(long)} but each buffered segment is discarded after a specified
+		 * Like {@link Sample.Regime#newStreamingRegime(long)} but each buffered segment is discarded after a specified
 		 * amount of time. This is useful if the sample is very large to conserve memory.
 		 * 
 		 * @param regionSize Buffer size in ms. Generally should be a small fraction of the entire file. 
 		 * @param memory Amount of time (ms) that an untouched region is allowed to live for.
-		 * @return
 		 */
-		static public TimedRegime newStreamRegimeWithAging(long regionSize, long memory)
+		static public TimedRegime newStreamingRegimeWithAging(long regionSize, long memory)
 		{
 			return new TimedRegime(regionSize,regionSize*2,0,memory,TimedRegime.Order.ORDERED);
 		}
@@ -307,7 +304,7 @@ public class Sample implements Runnable {
 	
 		private boolean[] regionQueued; // true if a region is currently queued
 		private ConcurrentLinkedQueue<Integer> regionQueue; // a queue of regions to be loaded
-		private Thread regionThread; // the thread that loads regions in the background
+		// private Thread regionThread; // the thread that loads regions in the background
 		private Lock[] regionLocks; // to support safe deletion/writing of regions
 		
 		private boolean isScheduled;
@@ -450,7 +447,6 @@ public class Sample implements Runnable {
 				while (!regionLocks[whichRegion].tryLock(0, TimeUnit.MILLISECONDS))
 				{}
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
@@ -487,8 +483,8 @@ public class Sample implements Runnable {
 	 * Retrieves a frame of audio using no interpolation. 
 	 * If the frame is not in the sample range then zeros are returned.
 	 * 
-	 * @param frame The frame to read -- will take the last frame before this one.
-	 * @return the frame.
+	 * @param posInMS The frame to read -- will take the last frame before this one.
+	 * @param result The framedata to fill.
 	 */
 	public void getFrameNoInterp(double posInMS, float[] result) {
 		double frame = msToSamples(posInMS);
@@ -500,8 +496,8 @@ public class Sample implements Runnable {
 	 * Retrieves a frame of audio using linear interpolation. 
 	 * If the frame is not in the sample range then zeros are returned.
 	 * 
-	 * @param frame The frame to read -- can be fractional (e.g., 4.4).
-	 * @return the interpolated frame.
+	 * @param posInMS The frame to read -- can be fractional (e.g., 4.4).
+	 * @param result The framedata to fill.
 	 */
 	public void getFrameLinear(double posInMS, float[] result) {
 		double frame = msToSamples(posInMS);
@@ -531,8 +527,8 @@ public class Sample implements Runnable {
 	 * Retrieves a frame of audio using cubic interpolation.
 	 * If the frame is not in the sample range then zeros are returned.
 	 * 
-	 * @param frame The frame to read -- can be fractional (e.g., 4.4).
-	 * @return the interpolated frame.
+	 * @param posInMS The frame to read -- can be fractional (e.g., 4.4).
+	 * @param result The framedata to fill.
 	 */
 	public void getFrameCubic(double posInMS, float[] result) {
 		double frame = msToSamples(posInMS);
@@ -640,7 +636,6 @@ public class Sample implements Runnable {
 				try {
 					while (!regionLocks[whichregion].tryLock(0, TimeUnit.MILLISECONDS)){}
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
@@ -856,7 +851,7 @@ public class Sample implements Runnable {
 	 * Change the number of frames in the (writeable) sample. 
 	 * This is slow and so should be used sparingly.
 	 * 
-	 * The new frames may contain garbage, but see {@link #resizeWithZeros(int)}.
+	 * The new frames may contain garbage, but see {@link #resizeWithZeros(long)}.
 	 * 
 	 * @param frames The total number of frames the sample should have.
 	 * @throws Exception Thrown if the sample isn't writeable.
@@ -890,7 +885,7 @@ public class Sample implements Runnable {
 	}
 	
 	/**
-	 * Just like {@link #resize(int)} but initialises the new frames with zeros.
+	 * Just like {@link #resize(long)} but initialises the new frames with zeros.
 	 * 
 	 * @param frames The total number of frames the sample should have.
 	 * @throws Exception Thrown if the sample isn't writeable.

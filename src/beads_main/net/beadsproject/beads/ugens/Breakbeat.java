@@ -14,6 +14,7 @@ import net.beadsproject.beads.ugens.SamplePlayer;
 /**
  * A {@link UGen} that plays back a {@link Sample} using {@link GranularSamplePlayer} such that the Sample's playback rate is controlled by an envelope that also controls the rate of a {@link Clock}. Breakbeat is actually a subclass of {@link Gain} and inherits its gain controls.
  *
+ * @category sample players
  * @author ollie
  */
 public class Breakbeat extends Gain {

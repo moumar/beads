@@ -11,9 +11,19 @@ import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.UGen;
 
 /**
- * An Envelope generates a sequence of timed transitions (segments) between values as an audio signal. New segments are added to a running Envelope using variations of the method {@link #addSegment()}. With the method {@link #addSegment(float, float, float, Bead)} a {@link Bead} can be provided which gets triggered when the segment has reached its destination. 
- * At any point in time, the Envelope maintains a current value. New segments define transitions from that current value to a destination value over a given duration. Instead of a linear transition, a curved transition can be used. The curve is defined as the mapping of the range [0,1] from y=x to y=x^p with a given exponent p.    
+ * An Envelope generates a sequence of timed transitions (segments) between 
+ * values as an audio signal. New segments are added to a running Envelope 
+ * using variations of the method <code>addSegment</code>. With the method 
+ * {@link #addSegment(float, float, float, Bead)} a {@link Bead} 
+ * can be provided which gets triggered when the segment has reached its destination.
+ *  
+ * At any point in time, the Envelope maintains a current value. 
+ * New segments define transitions from that current value to a destination value 
+ * over a given duration. Instead of a linear transition, a curved transition 
+ * can be used. The curve is defined as the mapping of the range <code>[0,1]</code> 
+ * from <code>y=x</code> to <code>y=x^p</code> with a given exponent <code>p</code>.    
  *
+ * @category control
  * @author ollie
  */
 public class Envelope extends UGen {
@@ -177,7 +187,7 @@ public class Envelope extends UGen {
     
     /**
 	 * Clears the list of Segments and sets the current value of the Envelope immediately.
-     * @see com.olliebown.beads.core.UGen#setValue(float)
+     * @see #setValue(float)
      */
     public void setValue(float value) {
     	if(!lock) {

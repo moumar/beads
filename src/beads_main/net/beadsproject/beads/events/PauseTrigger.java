@@ -25,7 +25,7 @@ public class PauseTrigger extends Bead {
 	
 	/** 
      * Any incoming message will cause the specified {@link Bead} to get paused.
-	 * @see com.olliebown.beads.core.Bead#message(com.olliebown.beads.core.Bead)
+	 * @see #message(Bead)
 	 */
 	public void messageReceived(Bead message) {
 		if(receiver != null) receiver.pause(true);

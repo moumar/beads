@@ -17,16 +17,16 @@ import net.beadsproject.beads.data.buffers.MeanFilter;
  * OnsetDetectionFunction (like SpectralDifference) to get Onsets. Use
  * addMessageListener to receive a message when an onset is detected.
  * 
- * The algorithm follows the one described in: Dixon, S (2006)
+ * The algorithm follows the one described in: <code>Dixon, S (2006)
  * "Onset Detection Revisited" Proc. of the 9th Int. Conference on Digital Audio
- * Effects (DAFx-06), Montreal, Canada, September 18-20, 2006
+ * Effects (DAFx-06), Montreal, Canada, September 18-20, 2006</code>
  * 
  * @author ben
  */
 
 public class PeakDetector extends FeatureExtractor<Float, Float> implements SegmentMaker {
 
-	/**
+	/*
 	 * thresholdListeners receive the filtered threshold value TODO: DISABLE
 	 * AFTER DEBUG, BP170309
 	 */
@@ -86,9 +86,7 @@ public class PeakDetector extends FeatureExtractor<Float, Float> implements Segm
 	}
 
 	/**
-	 * Get the correct BufferSize for the OnsetDetector Any
-	 * 
-	 * @return
+	 * Get the correct BufferSize for the OnsetDetector 
 	 */
 	public int getBufferSize() {
 		return M;

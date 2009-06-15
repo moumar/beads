@@ -2,29 +2,19 @@
  * Onset Detection demo
  * BP 170309
  *
- * This demonstrates how to use the OnsetDetector. 
- * 1. Configure "dir" and "filename" to point to an appropriate file.
- * 2. Run the sketch. The two parameters of the OnsetDetector are available as sliders.
- * 3. Higher alpha and threshold will result in less onsets detected.
- * 4. The display shows two visualisations of the onsets.
+ * This is a more sophisticated example of how to use PeakDetector. 
+ * 
+ * 1. Run the sketch. The two parameters of the OnsetDetector are available as sliders.
+ * 2. Higher alpha and threshold will result in less onsets detected.
+ * 3. The display shows two visualisations of the onsets.
  */
 
-import net.beadsproject.beads.core.*;
-import net.beadsproject.beads.data.*;
-import net.beadsproject.beads.data.buffers.*;
-import net.beadsproject.beads.ugens.*;
-import net.beadsproject.beads.analysis.segmenters.*;
-import net.beadsproject.beads.analysis.featureextractors.*;
+import beads.*;
 import controlP5.*;
-
-String dir = "C:/Users/ben/Projects/eclipse/BeadsDemos/processing/onsetdemo/data/";
-String files[] = {"1234.aif","11 Eaguru Guru.aif","1-03 _Instrumentals_ Volume 1.aif","01 Get Up.aif","01 Leek.aif","04 Turnaround.aif"};
-
-String filename = files[4];
 
 ControlP5 controlP5;
 AudioContext ac;
-OnsetDetector od;
+PeakDetector od;
 
 class OnsetGraph extends Bead
 {
@@ -54,7 +44,7 @@ class OnsetGraph extends Bead
        lastNOnsetStrengths[i-1] = lastNOnsetStrengths[i];
      }
      lastNOnsetTimes[n-1] = (float)ac.getTime();
-     lastNOnsetStrengths[n-1] = ((OnsetDetector)b).getLastOnsetValue();     
+     lastNOnsetStrengths[n-1] = ((PeakDetector)b).getLastOnsetValue();     
      strengthScale += (1+lastNOnsetStrengths[n-1])/n;
   }
   
@@ -105,7 +95,7 @@ class Flasher extends Bead
   protected void messageReceived(Bead b)
   {
     flash = true;    
-    strength = ((OnsetDetector)b).getLastOnsetValue();
+    strength = ((PeakDetector)b).getLastOnsetValue();
   }
 
   public void draw()
@@ -126,13 +116,7 @@ Flasher f = new Flasher();
 OnsetGraph og;
 
 void setup()
-{
-  /*
-	System.out.println("HEY!!!!!");
-  System.out.println("Before you run this example, set the dir and filename variables to point to an audio file (and then delete the System.exit(1) command!!!).");
-  System.exit(1);
-  */
-  
+{  
   size(400,400);
   frameRate(60);
 
@@ -141,8 +125,11 @@ void setup()
   controlP5.addSlider("alpha",0.0f,1.0f,0.9f,width-80,height-90,10,70);
   
   ac = new AudioContext();
+
   //sample
-  SamplePlayer sp = new SamplePlayer(ac, SampleManager.sample("file:///"+dir+filename));
+  SampleManager.setBufferingRegime(Sample.Regime.newStreamingRegime(1000));
+  String filename = selectInput();
+  SamplePlayer sp = new SamplePlayer(ac, SampleManager.sample(filename));
   sp.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
   ac.out.addInput(sp);
 
@@ -169,7 +156,7 @@ void setup()
   SpectralDifference sd = new SpectralDifference(ac.getSampleRate());
   //sd.setFreqWindow(80.f,1100.f);
   ps.addListener(sd);
-  od = new OnsetDetector();
+  od = new PeakDetector();
   sd.addListener(od);
   od.setThreshold(0.2f);
   od.setAlpha(.9f);

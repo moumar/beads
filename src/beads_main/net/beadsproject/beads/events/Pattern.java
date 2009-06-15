@@ -8,11 +8,15 @@ import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.BeadArray;
 
 /**
- * A Pattern is a {@link Bead} that responds to integer events by generating other integer events and forwarding them to a {@link BeadArray} of listeners. Typically, Patterns are used with {@link Clock}s. 
+ * A Pattern is a {@link Bead} that responds to integer events by 
+ * generating other integer events and forwarding them to a {@link BeadArray} 
+ * of listeners. Typically, Patterns are used with {@link net.beadsproject.beads.ugens.Clock Clocks}. 
  * 
  * <p/>Patterns contain a list of events specified as key/value pairs of integers. A Pattern keeps an internal counter which is incremented internally. When the counter is incremented, if its new value is listed as a key, Pattern forwards the corresponding value to its listeners. 
  * 
- * Pattern responds to {@link Bead} messages that implement {@link IntegerBead}. An incoming integer causes Pattern's internal counter to increment if it is a multiple of {@link #hop}. If the internal counter reaches {@link Pattern#loop}, it returns to zero. In this way, Pattern can be quicly maniuplated to play back at different speeds and loop lengths in response to a regular {@link Clock}. 
+ * Pattern responds to {@link Bead} messages that implement {@link IntegerBead}. An incoming integer causes Pattern's internal counter to increment if it is a multiple of {@link #hop}. If the internal counter reaches {@link Pattern#loop}, it returns to zero. In this 
+ * way, Pattern can be quicly maniuplated to play back at different speeds and loop lengths in 
+ * response to a regular {@link net.beadsproject.beads.ugens.Clock Clock}. 
  */
 public class Pattern extends Bead implements IntegerBead {
 	
@@ -103,7 +107,7 @@ public class Pattern extends Bead implements IntegerBead {
 
     /**
      * Handles a message. The message argument must implement {@link IntegerBead}. Checks to see if it should do anything for the given integer, and forwards any resulting integer to its listeners.
-     * @see com.olliebown.beads.core.Bead#message(com.olliebown.beads.core.Bead)
+     * @see #message(Bead)
      */
     public void messageReceived(Bead message) {
         int index = ((IntegerBead)message).getInt();

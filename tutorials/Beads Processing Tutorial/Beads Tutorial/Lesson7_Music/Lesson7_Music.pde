@@ -1,11 +1,4 @@
-import net.beadsproject.beads.events.*;
-import net.beadsproject.beads.data.*;
-import net.beadsproject.beads.ugens.*;
-import net.beadsproject.beads.analysis.segmenters.*;
-import net.beadsproject.beads.analysis.featureextractors.*;
-import net.beadsproject.beads.analysis.*;
-import net.beadsproject.beads.data.buffers.*;
-import net.beadsproject.beads.core.*;
+import beads.*;
 
 AudioContext ac;
 
@@ -31,7 +24,7 @@ ac = new AudioContext();
      public void messageReceived(Bead message) {
         Clock c = (Clock)message;
         if(c.isBeat()) {
-          WavePlayer wp = new WavePlayer(ac, (float)Math.random() * 3000 + 100, new SineBuffer().getDefault());
+          WavePlayer wp = new WavePlayer(ac, (float)Math.random() * 3000 + 100, Buffer.SINE);
           Gain g = new Gain(ac, 1, new Envelope(ac, 0.1));
           ((Envelope)g.getGainEnvelope()).addSegment(0, 1000, new KillTrigger(g));
           g.addInput(wp);

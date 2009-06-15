@@ -1,11 +1,4 @@
-import net.beadsproject.beads.events.*;
-import net.beadsproject.beads.data.*;
-import net.beadsproject.beads.ugens.*;
-import net.beadsproject.beads.analysis.segmenters.*;
-import net.beadsproject.beads.analysis.featureextractors.*;
-import net.beadsproject.beads.analysis.*;
-import net.beadsproject.beads.data.buffers.*;
-import net.beadsproject.beads.core.*;
+import beads.*;
 
 AudioContext ac;
 
@@ -22,7 +15,7 @@ void setup() {
    * Here's the modulating WavePlayer. It has a low 
    * frequency.
    */
-  WavePlayer freqModulator = new WavePlayer(ac, 50, new SineBuffer().getDefault());
+  WavePlayer freqModulator = new WavePlayer(ac, 50, Buffer.SINE);
   /*
    * The next line might look outrageous if you're not
    * experienced in Java. Basically we're defining a 
@@ -42,7 +35,7 @@ void setup() {
    * Now we plug in the function. Compare this to the previous
    * example, where we plugged in an envelope.
    */
-  WavePlayer wp = new WavePlayer(ac, function, new SineBuffer().getDefault());
+  WavePlayer wp = new WavePlayer(ac, function, Buffer.SINE);
   /*
    * Connect it all together as before.
    */

@@ -11,10 +11,21 @@ import net.beadsproject.beads.data.buffers.SineBuffer;
 import net.beadsproject.beads.data.buffers.SquareBuffer;
 
 /**
- * WavePlayer iterates over wave data stored in a {@link Buffer}. The frequency of the WavePlayer is controlled by a {@link @UGen}, meaning that WavePlayers can easily be combined to perform FM synthesis or ring modulation. 
+ * WavePlayer iterates over wave data stored in a {@link Buffer}. The frequency of the 
+ * WavePlayer is controlled by a {@link UGen}, meaning that WavePlayers can 
+ * easily be combined to perform FM synthesis or ring modulation. 
  *
- * @see Buffer {@link SineBuffer} {@link SawBuffer} {@link SquareBuffer}
+ * The simplest use of WavePlayer is:
+ * <code>
+ * WavePlayer wp = new WavePlayer(ac, 440.f, Buffer.SINE);
+ * </code>
+ *
+ * @see Buffer
+ * @see SineBuffer
+ * @see SawBuffer
+ * @see SquareBuffer
  * 
+ * @category synth
  * @author ollie
  */
 public class WavePlayer extends UGen {

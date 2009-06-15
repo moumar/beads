@@ -25,7 +25,7 @@ public class StartTrigger extends Bead {
 	
 	/**
 	 * Any incoming message will cause the specified {@link Bead} to start.
-	 * @see com.olliebown.beads.core.Bead#message(com.olliebown.beads.core.Bead)
+	 * @see #message(Bead)
 	 */
 	public void messageReceived(Bead message) {
 		receiver.start();
