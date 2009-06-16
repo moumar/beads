@@ -21,12 +21,23 @@ public class ButtonBox implements InterfaceElement {
 	private SelectionMode selectionMode;
 	
 	public ButtonBox(int width, int height) {
-		buttons = new boolean[width][height];
-		boxWidth = 10;
-		selectionMode = SelectionMode.SINGLE_SELECTION;
-		
+		this(width, height, SelectionMode.SINGLE_SELECTION);		
 	}
 	
+	public ButtonBox(int width, int height, SelectionMode selectionMode) {
+		buttons = new boolean[width][height];
+		boxWidth = 10;
+		this.selectionMode = selectionMode;	
+	}
+	
+	public SelectionMode getSelectionMode() {
+		return selectionMode;
+	}
+
+	public void setSelectionMode(SelectionMode selectionMode) {
+		this.selectionMode = selectionMode;
+	}
+
 	public JComponent getComponent() {
 		final JComponent component = new JComponent() {
 			private static final long serialVersionUID = 1L;
@@ -47,6 +58,7 @@ public class ButtonBox implements InterfaceElement {
 				}
 				g.setColor(Color.gray);
 				g.drawLine(0, getHeight() - 1, getWidth(), getHeight() - 1);
+				g.drawLine(getWidth() - 1, 0, getWidth() - 1, getHeight() - 1);
 			}
 		};
 		component.addMouseListener(new MouseAdapter() {
@@ -79,7 +91,7 @@ public class ButtonBox implements InterfaceElement {
 		return component;
 	}
 	
-	private void makeSelection(int i, int j) {
+	public void makeSelection(int i, int j) {
 		switch(selectionMode) {
 		case SINGLE_SELECTION:
 			boolean currentValue = buttons[i][j];

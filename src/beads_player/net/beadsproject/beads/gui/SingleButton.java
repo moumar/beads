@@ -50,6 +50,7 @@ public class SingleButton implements InterfaceElement {
 			this.state = state;
 			if(component != null) component.repaint();
 		}
+		if(listener != null) listener.buttonPressed(state);
 	}
 
 	public JComponent getComponent() {

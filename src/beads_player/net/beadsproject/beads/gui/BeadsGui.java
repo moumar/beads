@@ -21,6 +21,7 @@ import net.beadsproject.beads.ugens.Gain;
 public class BeadsGui {
 	
 	SongGrid songGrid;
+	BeadsWindow environmentFrame;
 	
 	public BeadsGui() {
 		Environment env = null;
@@ -39,7 +40,7 @@ public class BeadsGui {
 	}
 	
 	private void setup(final Environment env) {
-		BeadsWindow environmentFrame = new BeadsWindow("Beads");
+		environmentFrame = new BeadsWindow("Beads");
 		final JButton audioButton = new JButton("Start");
 		audioButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -101,14 +102,17 @@ public class BeadsGui {
 	
 	public void addSongGroup(SongGroup sg) {
 		songGrid.addSongGroup(sg);
+		environmentFrame.pack();
 	}
 	
 	public void addSongGroup() {
 		songGrid.addSongGroup();
+		environmentFrame.pack();
 	}
 	
 	public void addSongGroups(int numGroups) {
 		songGrid.addSongGroups(numGroups);
+		environmentFrame.pack();
 	}
 	
 	public void setCurrentGroup(int i) {
@@ -117,6 +121,7 @@ public class BeadsGui {
 
 	public void addSongPart(SongPart sp) {
 		songGrid.addSongPart(sp);
+		environmentFrame.pack();
 	}
 
 }

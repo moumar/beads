@@ -10,16 +10,20 @@ import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
+import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.play.InterfaceElement;
+import net.beadsproject.beads.ugens.SamplePlayer;
 
 public class SampleView implements InterfaceElement {
 
@@ -33,6 +37,7 @@ public class SampleView implements InterfaceElement {
 	private int[] view;
 	private int selectionStart;
 	private int selectionEnd;
+	private int tempSelectionMarker;
 	private int height;
 	private int width;
 	private int chunkSize;
@@ -41,6 +46,8 @@ public class SampleView implements InterfaceElement {
 	private SnapMode snapMode;
 	private SampleViewListener listener;
 	private TreeSet<Double> snapPoints; //could make this multilayered
+	private SamplePlayer player;
+	private BufferedImage waveForm;
 
 	public SampleView() {
 		this(null);
@@ -54,6 +61,11 @@ public class SampleView implements InterfaceElement {
 		selectionMode = SelectMode.REGION;
 		snapMode = SnapMode.FREE;
 		snapPoints = new TreeSet<Double>();
+		player = null;
+	}
+	
+	public void bindToSamplePlayer(SamplePlayer sp) {
+		player = sp;
 	}
 	
 	public int getSelectionStart() {
@@ -107,7 +119,12 @@ public class SampleView implements InterfaceElement {
 	
 	//test me
 	public double getSnapPointAfter(double d) {
-		return snapPoints.tailSet(d).first();
+		SortedSet<Double> tailSet = snapPoints.tailSet(d);
+		if(tailSet == null || tailSet.size() == 0) {
+			return sample.getLength();
+		} else {
+			return tailSet.first();
+		}
 	}
 	
 	//test me
@@ -161,6 +178,20 @@ public class SampleView implements InterfaceElement {
 					view[i] = (int)((average + 1f) * (float)height / 2f);
 				}
 			}
+			//now draw to the buffered image
+			Graphics g = waveForm.getGraphics();
+			((Graphics2D)g).setStroke(lightStroke);
+			g.setColor(Color.white);
+			g.fillRect(0, 0, width, height);
+			g.setColor(Color.black);
+			g.drawRect(0, 0, width - 1, height - 1);
+			//wave
+			if(view != null) {
+				for(int i = 1; i < view.length; i++) {
+					g.drawLine(i - 1, view[i - 1], i, view[i]);
+					g.drawLine(i - 1, height - view[i - 1], i, height - view[i]);
+				}
+			}
 			if(component != null) {
 				component.getTopLevelAncestor().repaint();
 			}
@@ -169,23 +200,24 @@ public class SampleView implements InterfaceElement {
 
 	public JComponent getComponent() {
 		if(component == null) {
+			waveForm = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+			Graphics g = waveForm.getGraphics();
+			((Graphics2D)g).setStroke(lightStroke);
+			g.setColor(Color.white);
+			g.fillRect(0, 0, width, height);
+			g.setColor(Color.black);
+			g.drawRect(0, 0, width - 1, height - 1);
 			final JComponent subComponent = new JComponent() {
 				public void paintComponent(Graphics g) {
 					//outer box
-					((Graphics2D)g).setStroke(lightStroke);
-					g.setColor(Color.white);
-					g.fillRect(0, 0, getWidth(), getHeight());
-					g.setColor(Color.black);
-					g.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
-					//wave
-					if(view != null) {
-						for(int i = 1; i < view.length; i++) {
-							g.drawLine(i - 1, view[i - 1], i, view[i]);
-							g.drawLine(i - 1, getHeight() - view[i - 1], i, getHeight() - view[i]);
-						}
+					g.drawImage(waveForm, 0, 0, null);
+					//playback
+					g.setColor(transparentOverlay);
+					if(player != null) {
+						int x = (int)(player.getPosition() / sample.getLength() * getWidth());
+						g.drawLine(x, 0, x, getHeight());
 					}
 					//snap points
-					g.setColor(transparentOverlay);
 					for(Double d : snapPoints) {
 						int x = (int)(d * getWidth() / sample.getLength());
 						g.drawLine(x, 0, x, getHeight());
@@ -201,6 +233,7 @@ public class SampleView implements InterfaceElement {
 						selectionStart = e.getX();
 						selectionEnd = selectionStart + 1;
 					} else {
+						tempSelectionMarker = e.getX();
 						selectionStart = (int)(width / sample.getLength() * getSnapPointBefore((float)e.getX() / width * sample.getLength()));
 						selectionEnd = (int)(width / sample.getLength() * getSnapPointAfter((float)e.getX() / width * sample.getLength()));
 					}
@@ -212,19 +245,33 @@ public class SampleView implements InterfaceElement {
 			});
 			subComponent.addMouseMotionListener(new MouseMotionListener() {
 				public void mouseDragged(MouseEvent e) {
-					switch(selectionMode) {
-					case REGION:
-						selectionStart = e.getX();
-						break;
-					case POSITION:
-						selectionStart = e.getX();
-						selectionEnd = selectionStart + 1;
-						break;
+					if(e.getX() > 0 && e.getX() < width && e.getY() > 0 && e.getY() < height) {
+						switch(selectionMode) {
+						case REGION:
+							if(snapMode == SnapMode.FREE) {
+								selectionStart = e.getX();
+							} else {
+								int min = (int)Math.min(tempSelectionMarker, e.getX());
+								int max = (int)Math.max(tempSelectionMarker, e.getX());
+								selectionStart = (int)(width / sample.getLength() * getSnapPointBefore((float)min / width * sample.getLength()));
+								selectionEnd = (int)(width / sample.getLength() * getSnapPointAfter((float)max / width * sample.getLength()));
+								
+							}
+							break;
+						case POSITION:
+							if(snapMode == SnapMode.FREE) {
+								selectionStart = e.getX();
+							} else {
+								selectionStart = (int)(width / sample.getLength() * getSnapPointBefore((float)e.getX() / width * sample.getLength()));
+							}
+							selectionEnd = selectionStart + 1;
+							break;
+						}
+						if(listener != null) {
+							listener.selectionChanged(pixelsToMS(Math.min(selectionStart, selectionEnd)), pixelsToMS(Math.max(selectionStart, selectionEnd)));
+						}
+						subComponent.repaint();
 					}
-					if(listener != null) {
-						listener.selectionChanged(pixelsToMS(Math.min(selectionStart, selectionEnd)), pixelsToMS(Math.max(selectionStart, selectionEnd)));
-					}
-					subComponent.repaint();
 				}
 				public void mouseMoved(MouseEvent e) {
 				}

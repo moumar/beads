@@ -32,8 +32,8 @@ public class SongGrid extends BeadsPanel {
 	private JComponent grid;
 	private JComponent groupPanel;
 	private JComponent partPanel;
-	private List<SongPart> parts;
-	private List<SongGroup> groups;
+	private ArrayList<SongPart> parts;
+	private ArrayList<SongGroup> groups;
 	private Map<SongPart, BeadsWindow> partWindows;
 	private int boxWidth = 20;
 	private int partTextWidth = 50;
@@ -59,10 +59,9 @@ public class SongGrid extends BeadsPanel {
 				g2d.fillRect(0, 0, getWidth(), getHeight());
 				g2d.setColor(Color.black);
 				int i = 1;
-				synchronized(parts) {
-					for(SongPart sp : parts) {
-						g2d.drawString(sp.getName(), 5, groupTextHeight + i++ * boxWidth - 4);
-					}
+				ArrayList<SongPart> partsCopy = (ArrayList<SongPart>)parts.clone();
+				for(SongPart sp : partsCopy) {
+					g2d.drawString(sp.getName(), 5, groupTextHeight + i++ * boxWidth - 4);
 				}
 			}
 		};
@@ -116,11 +115,12 @@ public class SongGrid extends BeadsPanel {
 				g2d.setColor(Color.white);
 				g2d.fillRect(0, 0, getWidth(), getHeight());
 				int i = 1;
-				for(SongGroup sg : groups) {
+				ArrayList<SongGroup> groupsCopy = (ArrayList<SongGroup>)groups.clone();
+				for(SongGroup sg : groupsCopy) {
 					g2d.rotate(-Math.PI / 2f);
 					if(player.getCurrentGroup() == sg) {
 						g2d.setColor(Color.gray);
-						g2d.fillRect(-groupTextHeight, (i - 1) * boxWidth, groupTextHeight, boxWidth);
+						g2d.fillRect(-groupTextHeight, (i - 1) * boxWidth, groupTextHeight, boxWidth + 1);
 					}
 					g2d.setColor(Color.black);
 					g2d.drawString(sg.getName(), -groupTextHeight + 5, i++ * boxWidth - 4);
@@ -153,22 +153,20 @@ public class SongGrid extends BeadsPanel {
 				g.fillRect(0, 0, getWidth(), getHeight());
 				g.setColor(Color.gray);
 				int i = 0;
-				synchronized(groups) {
-					for(SongGroup sg : groups) {
-						int j = 0;
-						synchronized(parts) {
-							for(SongPart sp : parts) {
-								//draw a dot
-								if(sg.contains(sp)) {
-									g.fillRect(i * boxWidth, j * boxWidth, boxWidth, boxWidth);
-								} else {
-									g.drawRect(i * boxWidth, j * boxWidth, boxWidth, boxWidth);
-								}
-								j++;
-							}
+				ArrayList<SongGroup> groupsCopy = (ArrayList<SongGroup>)groups.clone();
+				for(SongGroup sg : groupsCopy) {
+					int j = 0;
+					ArrayList<SongPart> partsCopy = (ArrayList<SongPart>)parts.clone();
+					for(SongPart sp : partsCopy) {
+						//draw a dot
+						if(sg.contains(sp)) {
+							g.fillRect(i * boxWidth, j * boxWidth, boxWidth, boxWidth);
+						} else {
+							g.drawRect(i * boxWidth, j * boxWidth, boxWidth, boxWidth);
 						}
-						i++;
+						j++;
 					}
+					i++;
 				}
 				g.drawLine(0, getHeight() - 1, getWidth(), getHeight() - 1);
 			}
