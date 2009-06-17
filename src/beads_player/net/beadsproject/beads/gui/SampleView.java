@@ -46,6 +46,7 @@ public class SampleView implements InterfaceElement {
 	private SnapMode snapMode;
 	private SampleViewListener listener;
 	private TreeSet<Double> snapPoints; //could make this multilayered
+	private double[] orderedSnapPoints;
 	private SamplePlayer player;
 	private BufferedImage waveForm;
 
@@ -61,6 +62,7 @@ public class SampleView implements InterfaceElement {
 		selectionMode = SelectMode.REGION;
 		snapMode = SnapMode.FREE;
 		snapPoints = new TreeSet<Double>();
+		orderedSnapPoints = null;
 		player = null;
 	}
 	
@@ -102,6 +104,8 @@ public class SampleView implements InterfaceElement {
 	
 	public void addSnapPoint(double timeMS) {
 		snapPoints.add(timeMS);
+		orderedSnapPoints = null;
+		waveForm = null;
 	}
 	
 	public void clearSnapPoints() {
@@ -178,48 +182,60 @@ public class SampleView implements InterfaceElement {
 					view[i] = (int)((average + 1f) * (float)height / 2f);
 				}
 			}
-			//now draw to the buffered image
-			Graphics g = waveForm.getGraphics();
-			((Graphics2D)g).setStroke(lightStroke);
-			g.setColor(Color.white);
-			g.fillRect(0, 0, width, height);
-			g.setColor(Color.black);
-			g.drawRect(0, 0, width - 1, height - 1);
-			//wave
-			if(view != null) {
-				for(int i = 1; i < view.length; i++) {
-					g.drawLine(i - 1, view[i - 1], i, view[i]);
-					g.drawLine(i - 1, height - view[i - 1], i, height - view[i]);
+		}
+		waveForm = null;
+	}
+	
+	public void recalculateBackgroundImage() {
+		//now draw to the buffered image
+		waveForm = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		Graphics g = waveForm.getGraphics();
+		((Graphics2D)g).setStroke(lightStroke);
+		g.setColor(Color.white);
+		g.fillRect(0, 0, width, height);
+		g.setColor(Color.black);
+		g.drawRect(0, 0, width - 1, height - 1);
+		//wave
+		if(view != null) {
+			for(int i = 1; i < view.length; i++) {
+				g.drawLine(i - 1, view[i - 1], i, view[i]);
+				g.drawLine(i - 1, height - view[i - 1], i, height - view[i]);
+			}
+		}
+		//snap points
+		g.setColor(transparentOverlay);
+		if(snapPoints != null) {
+			if(orderedSnapPoints == null) {
+				orderedSnapPoints = new double[snapPoints.size()];
+				int count = 0;
+				for(Double d : snapPoints) {
+					int x = (int)(d * width / sample.getLength());
+					g.drawLine(x, 0, x, height);
+					orderedSnapPoints[count++] = d;
+				}
+			} else {
+				for(int i = 0; i < orderedSnapPoints.length; i++) {
+					int x = (int)(orderedSnapPoints[i] * width / sample.getLength());
+					g.drawLine(x, 0, x, height);
 				}
 			}
-			if(component != null) {
-				component.getTopLevelAncestor().repaint();
-			}
+		}
+		if(component != null) {
+			component.getTopLevelAncestor().repaint();
 		}
 	}
 
 	public JComponent getComponent() {
 		if(component == null) {
-			waveForm = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-			Graphics g = waveForm.getGraphics();
-			((Graphics2D)g).setStroke(lightStroke);
-			g.setColor(Color.white);
-			g.fillRect(0, 0, width, height);
-			g.setColor(Color.black);
-			g.drawRect(0, 0, width - 1, height - 1);
 			final JComponent subComponent = new JComponent() {
 				public void paintComponent(Graphics g) {
 					//outer box
+					if(waveForm == null) recalculateBackgroundImage();
 					g.drawImage(waveForm, 0, 0, null);
 					//playback
 					g.setColor(transparentOverlay);
 					if(player != null) {
 						int x = (int)(player.getPosition() / sample.getLength() * getWidth());
-						g.drawLine(x, 0, x, getHeight());
-					}
-					//snap points
-					for(Double d : snapPoints) {
-						int x = (int)(d * getWidth() / sample.getLength());
 						g.drawLine(x, 0, x, getHeight());
 					}
 					//overlay
