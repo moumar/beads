@@ -2,6 +2,7 @@ package net.beadsproject.beads.data;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
@@ -27,6 +28,7 @@ import net.beadsproject.beads.core.AudioUtils;
  */
 public class AudioFile {
 	public File file;
+	public URL url;
 	public AudioFileFormat audioFileFormat;
 	/** The number of channels. */
 	public int nChannels;
@@ -84,14 +86,20 @@ public class AudioFile {
 	 * @throws UnsupportedAudioFileException If the file is of an unsupported audio type.
 	 */
 	public AudioFile(String filename, int bufferSize) throws IOException, UnsupportedAudioFileException {
-		file = new File(filename);						
-		audioFileFormat = AudioSystem.getAudioFileFormat(file);
+		//first try to interpret string as URL, then as local file
+		try {
+			url = new URL(filename);						
+		} catch(Exception e) {
+			file = new File(filename);
+			url = file.toURL();
+		}
+		audioFileFormat = AudioSystem.getAudioFileFormat(url);
 		
 		// check if .wav ending and detected as .mp3, if so it is bad!		
-		if (!file.getName().endsWith(".mp3") && audioFileFormat instanceof TAudioFileFormat)
+		if (!url.getFile().endsWith(".mp3") && audioFileFormat instanceof TAudioFileFormat)
 		{
 			//System.out.printf("File \"%s\" \n", file.getName());
-			throw(new UnsupportedAudioFileException("Cannot read " + file.getName() + ". If it is a .wav then try re-saving it in a different audio program."));
+			throw(new UnsupportedAudioFileException("Cannot read " + url.getFile() + ". If it is a .wav then try re-saving it in a different audio program."));
 		}
 		
 		nFrames = audioFileFormat.getFrameLength();
@@ -121,7 +129,7 @@ public class AudioFile {
 	 */
 	public void reset()
 	{
-		if (trace) System.err.printf("AudioFile %s reset\n",file.getName());
+		if (trace) System.err.printf("AudioFile %s reset\n",url.getFile());
 		
 		try{
 			if (encodedStream.markSupported())		
@@ -233,11 +241,12 @@ public class AudioFile {
 	{
 		// TODO: Implement reset() to takes some shortcuts - rather than executing all of the logic below
 		
-		if (trace) System.err.printf("AudioFile %s open\n",file.getName());
+		if (trace) System.err.printf("AudioFile %s open\n",url.getFile());
 		finished = false;
 		nTotalFramesRead = 0;
 		
-		if (file.exists()) encodedStream = AudioSystem.getAudioInputStream(file);
+//		if (file.exists()) 
+		encodedStream = AudioSystem.getAudioInputStream(url);
 		encodedFormat = encodedStream.getFormat();
 		decodedFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
 				encodedFormat.getSampleRate(),
@@ -266,7 +275,7 @@ public class AudioFile {
 //			System.out.println("length " + length);
 			if (length<0)
 			{
-				System.out.println("Beads cannot determine the duration of the file " + file.getAbsolutePath() + " - is it missing the duration tag?\n");
+				System.out.println("Beads cannot determine the duration of the file " + url.getFile() + " - is it missing the duration tag?\n");
 				System.exit(1);
 			}
 			else
@@ -291,13 +300,13 @@ public class AudioFile {
 
 		if (nFrames==AudioSystem.NOT_SPECIFIED)
 		{
-			System.out.println("Cannot determine the length of the audio file: " + file.getName());
+			System.out.println("Cannot determine the length of the audio file: " + url.getFile());
 			System.out.println("AudioFile needs to know the length in order to operate appropriately.");
 			System.out.println("Now exiting.");
 			System.exit(1);
 		}
 
-		if (encodedStream.markSupported())
+		if (file != null && encodedStream.markSupported())
 			encodedStream.mark(Math.min(bufferSize,(int) file.length()));
 	}
 	
@@ -305,17 +314,18 @@ public class AudioFile {
 	/// note that this will not recalculate length, etc. 
 	private void reopen() throws UnsupportedAudioFileException, IOException
 	{
-		if (trace) System.err.printf("AudioFile %s reopen\n",file.getName());
+		if (trace) System.err.printf("AudioFile %s reopen\n",url.getFile());
 		finished = false;
 		nTotalFramesRead = 0;
 		
-		if (file.exists()) encodedStream = AudioSystem.getAudioInputStream(file);
+//		if (file.exists())
+		encodedStream = AudioSystem.getAudioInputStream(url);
 		if (isEncoded)		
 			decodedStream = AudioSystem.getAudioInputStream(decodedFormat, encodedStream);
 		else
 			decodedStream = encodedStream;
 
-		if (encodedStream.markSupported())
+		if (file != null && encodedStream.markSupported())
 			encodedStream.mark(Math.min(bufferSize,(int) file.length()));
 	}	
 	
@@ -326,13 +336,13 @@ public class AudioFile {
 	{
 		if (!isOpen())
 		{
-			String str = "Filename: " + file.getName() + "\n";
+			String str = "Filename: " + url.getFile() + "\n";
 			str += "File not open.\n";
 			return str;
 		}
 		else
 		{		
-			String str = "Filename: " + file.getName() + "\n";
+			String str = "Filename: " + url.getFile() + "\n";
 			str += "Number of channels: " + nChannels + "\n";
 			str += "Number of frames: " + nFrames + "\n";
 			// str += "Number of bytes per frame per channel: " + numBytes + "\n";
@@ -364,7 +374,7 @@ public class AudioFile {
 	 */
 	public void close() throws IOException
 	{
-		if (trace) System.err.printf("AudioFile %s close\n",file.getName());
+		if (trace) System.err.printf("AudioFile %s close\n",url.getFile());
 		
 		if (isEncoded)
 			decodedStream.close();
