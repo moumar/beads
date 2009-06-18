@@ -3,6 +3,7 @@ package net.beadsproject.beads.data;
 import java.util.Random;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
+import net.beadsproject.beads.events.KillTrigger;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.SamplePlayer;
@@ -12,9 +13,13 @@ public class LoadSampleFromWeb {
 
 	public static void main(String[] args) throws Exception {
 		
-		Sample kik = SampleManager.sample("http://www.olliebown.com/files/music/Roland909/BT0A0A7.WAV");
-		Sample hh = SampleManager.sample("http://www.olliebown.com/files/music/Roland909/HHCD8.WAV");
-		Sample sn = SampleManager.sample("http://www.olliebown.com/files/music/Roland909/STAT3S7.WAV");
+//		String prefix = "http://www.olliebown.com/files/music/Roland909";
+		String prefix = "/Users/ollie/Music/Audio/crash test audio/chopped live sounds/Drum machines/Roland 909";
+		
+		Sample kik = SampleManager.sample(prefix + "/BT0A0A7.WAV");
+		Sample hh = SampleManager.sample(prefix + "/HHCD8.WAV");
+		Sample sn = SampleManager.sample(prefix + "/STAT3S7.WAV");
+		
 		final Sample[] kit = new Sample[] {kik, hh, sn};
 		final Random rng = new Random();
 		
@@ -37,6 +42,7 @@ public class LoadSampleFromWeb {
 					SamplePlayer sp = new SamplePlayer(ac, kit[rng.nextInt(2)]);
 					Gain g = new Gain(ac, 1, rng.nextFloat());
 					g.addInput(sp);
+					sp.setKillListener(new KillTrigger(g));
 					ac.out.addInput(g);
 				}
 				if(c.getCount() % 8 == 0 && rng.nextFloat() < 0.1f) {
@@ -44,6 +50,7 @@ public class LoadSampleFromWeb {
 					sp.getRateEnvelope().setValue(2f);
 					Gain g = new Gain(ac, 1, rng.nextFloat());
 					g.addInput(sp);
+					sp.setKillListener(new KillTrigger(g));
 					ac.out.addInput(g);
 				}
 			}
