@@ -75,7 +75,7 @@ public class SongPart1 extends SongPart {
 	
 	public void messageReceived(Bead message) {
 		int time = ((IntegerBead)message).getInt();
-		Integer eventIndex = pattern.getEventAtIndex(time);
+		Integer eventIndex = pattern.getEventAtStep(time).get(0);
 		if(eventIndex != null) playEvent(events.get(eventIndex));
 		if(Math.random() < 0.1) {
 			if(Math.random() < 0.5f) {

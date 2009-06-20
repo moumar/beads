@@ -15,7 +15,8 @@ public class ButtonBox implements InterfaceElement {
 	public static enum SelectionMode {SINGLE_SELECTION, MULTIPLE_SELECTION};
 	
 	private int boxWidth;
-	private boolean[][] buttons;
+	private int boxHeight;
+	protected boolean[][] buttons;
 	private ButtonBoxListener listener;
 	private int previousX = -1, previousY = -1;
 	private SelectionMode selectionMode;
@@ -25,9 +26,14 @@ public class ButtonBox implements InterfaceElement {
 	}
 	
 	public ButtonBox(int width, int height, SelectionMode selectionMode) {
-		buttons = new boolean[width][height];
+		resize(width, height);
 		boxWidth = 10;
+		boxHeight = 10;
 		this.selectionMode = selectionMode;	
+	}
+	
+	public void resize(int width, int height) {
+		buttons = new boolean[width][height];
 	}
 	
 	public SelectionMode getSelectionMode() {
@@ -49,10 +55,10 @@ public class ButtonBox implements InterfaceElement {
 					for(int j = 0; j < buttons[i].length; j++) {
 						if(buttons[i][j]) {
 							g.setColor(Color.black);
-							g.fillRect(i * boxWidth, j * boxWidth, boxWidth, boxWidth);
+							g.fillRect(i * boxWidth, j * boxHeight, boxWidth, boxHeight);
 						} else {
 							g.setColor(Color.gray);
-							g.drawRect(i * boxWidth, j * boxWidth, boxWidth, boxWidth);
+							g.drawRect(i * boxWidth, j * boxHeight, boxWidth, boxHeight);
 						}
 					}
 				}
@@ -64,7 +70,7 @@ public class ButtonBox implements InterfaceElement {
 		component.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
 				int i = e.getX() / boxWidth;
-				int j = e.getY() / boxWidth;
+				int j = e.getY() / boxHeight;
 				if(i >= 0 && i < buttons.length && j >= 0 && j < buttons[0].length) {
 					makeSelection(i, j);
 					component.repaint();
@@ -74,7 +80,7 @@ public class ButtonBox implements InterfaceElement {
 		component.addMouseMotionListener(new MouseMotionListener() {
 			public void mouseDragged(MouseEvent e) {
 				int i = e.getX() / boxWidth;
-				int j = e.getY() / boxWidth;
+				int j = e.getY() / boxHeight;
 				if(i >= 0 && i < buttons.length && j >= 0 && j < buttons[0].length) {
 					if(i != previousX || j != previousY) {
 						makeSelection(i, j);
@@ -84,7 +90,7 @@ public class ButtonBox implements InterfaceElement {
 			}
 			public void mouseMoved(MouseEvent e) {}
 		});
-		Dimension size = new Dimension(buttons.length * boxWidth + 1, buttons[0].length * boxWidth + 1);
+		Dimension size = new Dimension(buttons.length * boxWidth + 1, buttons[0].length * boxHeight + 1);
 		component.setMinimumSize(size);
 		component.setPreferredSize(size);
 		component.setMaximumSize(size);
@@ -131,6 +137,12 @@ public class ButtonBox implements InterfaceElement {
 			break;
 		}
 	}
+	
+	public void clear() {
+		int width = buttons.length;
+		int height = buttons[0].length;
+		buttons = new boolean[width][height];
+	}
 
 	public static interface ButtonBoxListener {
 		public void buttonOn(int i, int j);
@@ -143,6 +155,14 @@ public class ButtonBox implements InterfaceElement {
 
 	public void setBoxWidth(int boxWidth) {
 		this.boxWidth = boxWidth;
+	}
+	
+	public int getBoxHeight() {
+		return boxHeight;
+	}
+	
+	public void setBoxHeight(int boxHeight) {
+		this.boxHeight = boxHeight;
 	}
 
 	public ButtonBoxListener getListener() {

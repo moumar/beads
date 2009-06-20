@@ -5,6 +5,11 @@
  */
 package net.beadsproject.beads.core;
 
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.Random;
 
 /**
@@ -246,7 +251,7 @@ public final class AudioUtils {
 	}
 
 	/**
-	 * Does a freaky shortcut for calculating pow, faster but less accurate than regular Math.pow().
+	 * Does a freaky shortcut for calculating pow (limited to base with range 0-1), faster but less accurate than regular Math.pow(). 
 	 * 
 	 * <p/>CREDIT: this method is copied directly from <a href="http://martin.ankerl.com/2007/10/04/optimized-pow-approximation-for-java-and-c-c/">http://martin.ankerl.com/2007/10/04/optimized-pow-approximation-for-java-and-c-c/</a>
 	 * 
@@ -255,10 +260,60 @@ public final class AudioUtils {
 	 * 
 	 * @return the result
 	 */
-	public static double fastPow(final double a, final double b) {  
-		final int x = (int) (Double.doubleToLongBits(a) >> 32);  
+	public static double fastPow01(final double a, final double b) {  
+		double realA = Math.max(0, Math.min(1, a));
+		final int x = (int) (Double.doubleToLongBits(realA) >> 32);  
 		final int y = (int) (b * (x - 1072632447) + 1072632447);  
 		return Double.longBitsToDouble(((long) y) << 32);  
 	}  
+	
+	/**
+	 * Attempts to determine a URL given a String. Firstly the String is interpreted as a System Resource. Failing that, it is interpreted as a proper URL. Failing that it is interpreted as
+	 * a file path. All Exceptions are suppressed but the method returns null.
+	 * @param s String to interpret as System Resource, URL or file path.
+	 * @return a URL if successful, null otherwise.
+	 */
+	public static URL urlFromString(String s) {
+		URL url = null;
+		url = ClassLoader.getSystemResource(s);
+		if(url != null) {
+			return url;
+		}
+		try {
+			url = new URL(s);
+		} catch(Exception e) {
+			File f = new File(s);
+			try {
+				url = f.toURL();
+			} catch (MalformedURLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		return url;
+	}
+	
+	/**
+	 * Attempts to get a File from a URL, suppressing warnings. Assumes UTF-8 encoding.
+	 * @param url to get File from.
+	 * @return a File if successful, null otherwise.
+	 */
+	public static File fileFromURL(URL url) {
+		File theDirectory = null;
+		try {
+			theDirectory = new File(URLDecoder.decode(url.getPath(), "UTF-8"));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return theDirectory;
+	}
+	
+	/**
+	 * Equivalent to fileFromURL(urlFromString(s)). See these methods.
+	 * @param s the String to interpret as System Resource, URL or file path.
+	 * @return a File if successful, null otherwise.
+	 */
+	public static File fileFromString(String s) {
+		return fileFromURL(urlFromString(s));
+	}
  
 }

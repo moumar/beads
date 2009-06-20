@@ -3,7 +3,12 @@
  */
 package net.beadsproject.beads.events;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Set;
+
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.BeadArray;
 
@@ -18,10 +23,12 @@ import net.beadsproject.beads.core.BeadArray;
  * way, Pattern can be quicly maniuplated to play back at different speeds and loop lengths in 
  * response to a regular {@link net.beadsproject.beads.ugens.Clock Clock}. 
  */
-public class Pattern extends Bead implements IntegerBead {
+public class Pattern extends Bead implements Serializable {
 	
-    /** A list of events. */
-    private final Hashtable<Integer, Integer> events;
+	private static final long serialVersionUID = 1L;
+
+	/** A list of events. */
+    private final Hashtable<Integer, ArrayList<Integer>> events;
     
     /** A BeadArray which is notified for each event. */
     private final BeadArray listeners;
@@ -36,14 +43,14 @@ public class Pattern extends Bead implements IntegerBead {
     private int currentIndex;
     
     /** The current value. */
-    private Integer currentValue;
+    private ArrayList<Integer> currentValue;
     
     /**
      * Instantiates a new empty pattern.
      */
     public Pattern() {
     	listeners = new BeadArray();
-        events = new Hashtable<Integer, Integer>();
+        events = new Hashtable<Integer, ArrayList<Integer>>();
         setNoLoop();
         setHop(1);
         reset();
@@ -81,7 +88,12 @@ public class Pattern extends Bead implements IntegerBead {
      * @param value the value.
      */
     public void addEvent(int key, int value) {
-        events.put(key, value);
+    	ArrayList<Integer> eventSet = events.get(key);
+    	if(eventSet == null) {
+    		eventSet = new ArrayList<Integer>();
+    		events.put(key, eventSet);
+    	}
+        eventSet.add(value);
     }
     
     /**
@@ -89,13 +101,11 @@ public class Pattern extends Bead implements IntegerBead {
      * 
      * @param key the key.
      */
-    public void removeEvent(int key) {
-    	for(int index : events.keySet()) {
-            if(index == key) {
-                events.remove(index);
-                break;
-            }
-        }
+    public void removeEvent(int key, int value) {
+    	ArrayList<Integer> eventSet = events.get(key);
+    	if(eventSet != null) {
+    		eventSet.remove(new Integer(value));
+    	}
     }
     
     /**
@@ -111,7 +121,7 @@ public class Pattern extends Bead implements IntegerBead {
      */
     public void messageReceived(Bead message) {
         int index = ((IntegerBead)message).getInt();
-        getEventAtIndex(index);
+        getEventAtStep(index);
         if(currentValue != null) {
     		listeners.message(this);
     	}
@@ -124,7 +134,7 @@ public class Pattern extends Bead implements IntegerBead {
      * 
      * @return the event at this index, or null if no event exists.
      */
-    public Integer getEventAtIndex(int index) {
+    public ArrayList<Integer> getEventAtStep(int index) {
     	currentValue = null;
     	if(index % hop == 0) {
     		currentValue = events.get(currentIndex);
@@ -132,6 +142,10 @@ public class Pattern extends Bead implements IntegerBead {
     		if(currentIndex >= loop) reset();
     	}
         return currentValue;
+    }
+    
+    public Set<Integer> getEvents() {
+    	return events.keySet();
     }
 
     /**
@@ -177,20 +191,5 @@ public class Pattern extends Bead implements IntegerBead {
 		this.hop = hop;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.olliebown.beads.events.IntegerBead#getInt()
-	 */
-	public int getInt() {
-		return currentValue;
-	}
-	
-	/**
-	 * Gets the current value.
-	 * 
-	 * @return the current value.
-	 */
-	public int getValue() {
-		return currentValue;
-	}
     
 }

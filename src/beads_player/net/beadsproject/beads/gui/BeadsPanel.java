@@ -97,10 +97,18 @@ public class BeadsPanel extends JPanel {
 	}
 
 	public void fixSize(int i, int j) {
-		Dimension d = new Dimension(i, j);
+		fixSize(new Dimension(i, j));
+		
+	}
+	
+	public void fixSize(Dimension d) {
 		setPreferredSize(d);
 		setMinimumSize(d);
 		setMaximumSize(d);
+	}
+	
+	public Dimension getSize() {
+		return getPreferredSize();
 	}
 	
 }
