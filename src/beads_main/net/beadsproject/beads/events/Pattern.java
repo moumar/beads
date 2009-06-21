@@ -26,6 +26,7 @@ import net.beadsproject.beads.core.BeadArray;
 public class Pattern extends Bead implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
+	public static enum ContinuousPlayMode {INTERNAL, EXTERNAL};
 
 	/** A list of events. */
     private final Hashtable<Integer, ArrayList<Integer>> events;
@@ -45,6 +46,8 @@ public class Pattern extends Bead implements Serializable {
     /** The current value. */
     private ArrayList<Integer> currentValue;
     
+    private ContinuousPlayMode continuousPlayMode;
+    
     /**
      * Instantiates a new empty pattern.
      */
@@ -54,6 +57,7 @@ public class Pattern extends Bead implements Serializable {
         setNoLoop();
         setHop(1);
         reset();
+        continuousPlayMode = ContinuousPlayMode.EXTERNAL;
     }
     
     /**
@@ -136,12 +140,30 @@ public class Pattern extends Bead implements Serializable {
      */
     public ArrayList<Integer> getEventAtStep(int index) {
     	currentValue = null;
-    	if(index % hop == 0) {
-    		currentValue = events.get(currentIndex);
-    		currentIndex++;
-    		if(currentIndex >= loop) reset();
+    	if(continuousPlayMode == ContinuousPlayMode.INTERNAL) {
+	    	if(index % hop == 0) {
+	    		currentValue = events.get(currentIndex);
+	    		currentIndex++;
+	    		if(currentIndex >= loop) reset();
+	    	}
+    	} else {
+    		if(index % hop == 0) {
+    			currentIndex = index / hop % loop;
+    			currentValue = events.get(currentIndex);
+    		}
     	}
         return currentValue;
+    }
+    
+    public int getLastIndex() {
+    	if(continuousPlayMode == ContinuousPlayMode.INTERNAL) {
+	    	if(currentIndex == 0) {
+	    		return loop - 1;
+	    	}
+	    	return currentIndex - 1;
+    	} else {
+    		return currentIndex;
+    	}
     }
     
     public Set<Integer> getEvents() {

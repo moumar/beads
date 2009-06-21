@@ -13,13 +13,17 @@ import net.beadsproject.beads.play.InterfaceElement;
 public class ButtonBox implements InterfaceElement {
 
 	public static enum SelectionMode {SINGLE_SELECTION, MULTIPLE_SELECTION};
+	private static Color transparentOverlay = new Color(0.2f, 0.2f, 0.2f, 0.3f);
 	
-	private int boxWidth;
-	private int boxHeight;
+	private float boxWidth;
+	private float boxHeight;
+	private int columnHighlight;
+	private int rowHighlight;
 	protected boolean[][] buttons;
 	private ButtonBoxListener listener;
 	private int previousX = -1, previousY = -1;
 	private SelectionMode selectionMode;
+	private JComponent component;
 	
 	public ButtonBox(int width, int height) {
 		this(width, height, SelectionMode.SINGLE_SELECTION);		
@@ -29,6 +33,8 @@ public class ButtonBox implements InterfaceElement {
 		resize(width, height);
 		boxWidth = 10;
 		boxHeight = 10;
+		columnHighlight = -1;
+		rowHighlight = -1;
 		this.selectionMode = selectionMode;	
 	}
 	
@@ -44,56 +50,93 @@ public class ButtonBox implements InterfaceElement {
 		this.selectionMode = selectionMode;
 	}
 
+	public int getColumnHighlight() {
+		return columnHighlight;
+	}
+
+	public void setColumnHighlight(int columnHighlight) {
+		this.columnHighlight = columnHighlight;
+		if(component != null) component.repaint();
+	}
+	
+	public void clearColumnHighlight() {
+		setColumnHighlight(-1);
+	}
+
+	public int getRowHighlight() {
+		return rowHighlight;
+	}
+
+	public void setRowHighlight(int rowHighlight) {
+		this.rowHighlight = rowHighlight;
+		if(component != null) component.repaint();
+	}
+	
+	public void clearRowHighlight() {
+		setRowHighlight(-1);
+	}
+
 	public JComponent getComponent() {
-		final JComponent component = new JComponent() {
-			private static final long serialVersionUID = 1L;
-			public void paintComponent(Graphics g) {
-				//outer box
-				g.setColor(Color.white);
-				g.fillRect(0, 0, getWidth(), getHeight());
-				for(int i = 0; i < buttons.length; i++) {
-					for(int j = 0; j < buttons[i].length; j++) {
-						if(buttons[i][j]) {
-							g.setColor(Color.black);
-							g.fillRect(i * boxWidth, j * boxHeight, boxWidth, boxHeight);
-						} else {
-							g.setColor(Color.gray);
-							g.drawRect(i * boxWidth, j * boxHeight, boxWidth, boxHeight);
+		if(component == null) {
+			component = new JComponent() {
+				private static final long serialVersionUID = 1L;
+				public void paintComponent(Graphics g) {
+					//outer box
+					g.setColor(Color.white);
+					g.fillRect(0, 0, getWidth(), getHeight());
+					for(int i = 0; i < buttons.length; i++) {
+						for(int j = 0; j < buttons[i].length; j++) {
+							if(buttons[i][j]) {
+								g.setColor(Color.black);
+								g.fillRect((int)(i * boxWidth), (int)(j * boxHeight), (int)boxWidth, (int)boxHeight);
+							} else {
+								g.setColor(Color.gray);
+								g.drawRect((int)(i * boxWidth), (int)(j * boxHeight), (int)boxWidth, (int)boxHeight);
+							}
 						}
 					}
+					g.setColor(Color.gray);
+					g.drawLine(0, getHeight() - 1, getWidth(), getHeight() - 1);
+					g.drawLine(getWidth() - 1, 0, getWidth() - 1, getHeight() - 1);
+					//do highlights
+					if(columnHighlight >= 0) {
+						g.setColor(transparentOverlay);
+						g.fillRect((int)(columnHighlight * boxWidth), 0, (int)boxWidth, getHeight());
+					}
+					if(rowHighlight >= 0) {
+						g.setColor(transparentOverlay);
+						g.fillRect(0, (int)(rowHighlight * boxHeight), getWidth(), (int)boxHeight);
+					}
 				}
-				g.setColor(Color.gray);
-				g.drawLine(0, getHeight() - 1, getWidth(), getHeight() - 1);
-				g.drawLine(getWidth() - 1, 0, getWidth() - 1, getHeight() - 1);
-			}
-		};
-		component.addMouseListener(new MouseAdapter() {
-			public void mousePressed(MouseEvent e) {
-				int i = e.getX() / boxWidth;
-				int j = e.getY() / boxHeight;
-				if(i >= 0 && i < buttons.length && j >= 0 && j < buttons[0].length) {
-					makeSelection(i, j);
-					component.repaint();
-				}
-			}
-		});
-		component.addMouseMotionListener(new MouseMotionListener() {
-			public void mouseDragged(MouseEvent e) {
-				int i = e.getX() / boxWidth;
-				int j = e.getY() / boxHeight;
-				if(i >= 0 && i < buttons.length && j >= 0 && j < buttons[0].length) {
-					if(i != previousX || j != previousY) {
+			};
+			component.addMouseListener(new MouseAdapter() {
+				public void mousePressed(MouseEvent e) {
+					int i = (int)(e.getX() / boxWidth);
+					int j = (int)(e.getY() / boxHeight);
+					if(i >= 0 && i < buttons.length && j >= 0 && j < buttons[0].length) {
 						makeSelection(i, j);
 						component.repaint();
 					}
 				}
-			}
-			public void mouseMoved(MouseEvent e) {}
-		});
-		Dimension size = new Dimension(buttons.length * boxWidth + 1, buttons[0].length * boxHeight + 1);
-		component.setMinimumSize(size);
-		component.setPreferredSize(size);
-		component.setMaximumSize(size);
+			});
+			component.addMouseMotionListener(new MouseMotionListener() {
+				public void mouseDragged(MouseEvent e) {
+					int i = (int)(e.getX() / boxWidth);
+					int j = (int)(e.getY() / boxHeight);
+					if(i >= 0 && i < buttons.length && j >= 0 && j < buttons[0].length) {
+						if(i != previousX || j != previousY) {
+							makeSelection(i, j);
+							component.repaint();
+						}
+					}
+				}
+				public void mouseMoved(MouseEvent e) {}
+			});
+			Dimension size = new Dimension((int)(buttons.length * boxWidth + 1), (int)(buttons[0].length * boxHeight + 1));
+			component.setMinimumSize(size);
+			component.setPreferredSize(size);
+			component.setMaximumSize(size);
+		}
 		return component;
 	}
 	
@@ -149,19 +192,19 @@ public class ButtonBox implements InterfaceElement {
 		public void buttonOff(int i, int j);
 	}
 
-	public int getBoxWidth() {
+	public float getBoxWidth() {
 		return boxWidth;
 	}
 
-	public void setBoxWidth(int boxWidth) {
+	public void setBoxWidth(float boxWidth) {
 		this.boxWidth = boxWidth;
 	}
 	
-	public int getBoxHeight() {
+	public float getBoxHeight() {
 		return boxHeight;
 	}
 	
-	public void setBoxHeight(int boxHeight) {
+	public void setBoxHeight(float boxHeight) {
 		this.boxHeight = boxHeight;
 	}
 

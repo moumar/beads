@@ -9,6 +9,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.play.Environment;
 import net.beadsproject.beads.play.Player;
@@ -61,7 +62,7 @@ public class BeadsGui {
 		songGrid.titledBorder("Song Parts");
 		environmentFrame.content.add(songGrid);
 		final Clock clock = (Clock)env.elements.get("master clock");
-		final Slider slider = new Slider(env.ac, "tempo", 5, 500, 175);
+		final Slider slider = new Slider(env.ac, "tempo", 1, 1000, 175);
 		slider.storeValue(175f);
 		slider.storeValue(87.5f);
 		slider.storeValue(116.66666f);
@@ -90,6 +91,13 @@ public class BeadsGui {
 			}
 		});
 		ci.add(tg.getComponent());
+		final Readout r = new Readout("time", "");
+		clock.addMessageListener(new Bead() {
+			public void messageReceived(Bead message) {
+				r.setText(clock.getBeatCount() + " " + clock.getCount());
+			}
+		});
+		ci.add(r.getComponent());
 		environmentFrame.content.add(ci);
 		environmentFrame.setResizable(true);
 		environmentFrame.setVisible(true);

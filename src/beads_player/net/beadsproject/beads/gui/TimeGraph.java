@@ -33,8 +33,6 @@ public class TimeGraph extends Bead implements InterfaceElement {
 		if(component == null) {
 			component = new JComponent() {
 				public void paintComponent(Graphics g) {
-	//				Graphics2D g2d = (Graphics2D)g;
-	//				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 					//outer box
 					g.setColor(Color.white);
 					g.fillRect(0, 0, getWidth(), getHeight());
@@ -51,6 +49,8 @@ public class TimeGraph extends Bead implements InterfaceElement {
 					}
 					g.setColor(Color.gray);
 					g.drawLine(0, getHeight() - 1, getWidth(), getHeight() - 1);
+					g.setColor(Color.black);
+					g.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
 				}
 			};
 			Dimension size = new Dimension(range * boxWidth + 1, range * boxWidth + 1);

@@ -8,13 +8,16 @@ import java.awt.Font;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
-public class BeadsPanel extends JPanel {
+import net.beadsproject.beads.play.InterfaceElement;
+
+public class BeadsPanel extends JPanel implements InterfaceElement {
 	
 	private static final long serialVersionUID = 1L;
 	private int spacing = 1;
@@ -109,6 +112,10 @@ public class BeadsPanel extends JPanel {
 	
 	public Dimension getSize() {
 		return getPreferredSize();
+	}
+
+	public JComponent getComponent() {
+		return this;
 	}
 	
 }

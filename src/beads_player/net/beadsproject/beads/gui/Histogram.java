@@ -22,6 +22,7 @@ public class Histogram implements InterfaceElement {
 	private int boxHeight;
 	private float[] sliders;
 	private HistogramListener listener;
+	private JComponent component;
 	
 	public Histogram(String name, int numSliders) {
 		this.name = name;
@@ -31,63 +32,66 @@ public class Histogram implements InterfaceElement {
 	}
 	
 	public JComponent getComponent() {
-		final JComponent component = new JComponent() {
-			public void paintComponent(Graphics g) {
-//				Graphics2D g2d = (Graphics2D)g;
-//				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-				//outer box
-				g.setColor(Color.white);
-				g.fillRect(0, 0, getWidth(), getHeight());
-				g.setColor(Color.black);
-				for(int i = 0; i < sliders.length; i++) {
-					g.fillRect(i * boxWidth, (int)((1f - sliders[i]) * getHeight()), boxWidth, getHeight());
+		if(component == null) {
+			component = new JComponent() {
+				public void paintComponent(Graphics g) {
+					//outer box
+					g.setColor(Color.white);
+					g.fillRect(0, 0, getWidth(), getHeight());
+					g.setColor(Color.black);
+					for(int i = 0; i < sliders.length; i++) {
+						g.fillRect(i * boxWidth, (int)((1f - sliders[i]) * getHeight()), boxWidth, getHeight());
+					}
+					g.setColor(Color.gray);
+					for(int i = 0; i < sliders.length; i++) {
+						g.drawRect(i * boxWidth, 0, boxWidth, getHeight());
+					}
+					g.drawLine(0, getHeight() - 1, getWidth(), getHeight() - 1);
+					//name
+					g.drawString(Histogram.this.name, 2, 12);
 				}
-				g.setColor(Color.gray);
-				for(int i = 0; i < sliders.length; i++) {
-					g.drawRect(i * boxWidth, 0, boxWidth, getHeight());
+			};
+			component.addMouseListener(new MouseAdapter() {
+				public void mousePressed(MouseEvent e) {
+					int i = e.getX() / boxWidth;
+					float j = 1f - (float)e.getY() / boxHeight;
+					if(i >= 0 && i < sliders.length && j >= 0 && j < 1) {
+						makeSelection(i, j);
+						component.repaint();
+					}
 				}
-				g.drawLine(0, getHeight() - 1, getWidth(), getHeight() - 1);
-				//name
-				g.drawString(Histogram.this.name, 2, 12);
-			}
-		};
-		component.addMouseListener(new MouseAdapter() {
-			public void mousePressed(MouseEvent e) {
-				int i = e.getX() / boxWidth;
-				float j = 1f - (float)e.getY() / boxHeight;
-				if(i >= 0 && i < sliders.length && j >= 0 && j < 1) {
-					makeSelection(i, j);
-					component.repaint();
+			});
+			component.addMouseMotionListener(new MouseMotionListener() {
+				public void mouseDragged(MouseEvent e) {
+					int i = e.getX() / boxWidth;
+					float j = 1f - (float)e.getY() / boxHeight;
+					if(i >= 0 && i < sliders.length && j >= 0 && j < 1) {
+						makeSelection(i, j);
+						component.repaint();
+					}
 				}
-			}
-		});
-		component.addMouseMotionListener(new MouseMotionListener() {
-			public void mouseDragged(MouseEvent e) {
-				int i = e.getX() / boxWidth;
-				float j = 1f - (float)e.getY() / boxHeight;
-				if(i >= 0 && i < sliders.length && j >= 0 && j < 1) {
-					makeSelection(i, j);
-					component.repaint();
-				}
-			}
-			public void mouseMoved(MouseEvent e) {}
-		});
-		Dimension size = new Dimension(sliders.length * boxWidth + 1, 100);
-		component.setMinimumSize(size);
-		component.setPreferredSize(size);
-		component.setMaximumSize(size);
+				public void mouseMoved(MouseEvent e) {}
+			});
+			Dimension size = new Dimension(sliders.length * boxWidth + 1, 100);
+			component.setMinimumSize(size);
+			component.setPreferredSize(size);
+			component.setMaximumSize(size);
+		}
 		return component;
 	}
 	
 	private void makeSelection(int index, float value) {
-		sliders[index] = value;
+		setValue(index, value);
 		if(listener != null) {
 			listener.valueChanged(index, value);
 		}
 	}
 	
-	public float[] getSliders() {
-		return sliders;
+	public void setValue(int index, float value) {
+		if(index < sliders.length) {
+			sliders[index] = value;
+		}
+		if(component != null) component.repaint();
 	}
 	
 	public float getValue(int index) {

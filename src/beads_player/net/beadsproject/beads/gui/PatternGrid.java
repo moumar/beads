@@ -34,8 +34,6 @@ public class PatternGrid extends ButtonBox {
 
 	private Pattern pattern;
 	private JComponent component;
-
-	//TODO determine vertical number of boxes, determine horizontal size
 	
 	public PatternGrid(int width, int height) {
 		super(width, height, SelectionMode.MULTIPLE_SELECTION);
@@ -43,10 +41,10 @@ public class PatternGrid extends ButtonBox {
 		pattern.setLoop(width);
 		setListener(new ButtonBoxListener() {
 			public void buttonOff(int i, int j) {
-				pattern.removeEvent(i, j);
+				pattern.removeEvent(i * pattern.getHop(), j);
 			}
 			public void buttonOn(int i, int j) {
-				pattern.addEvent(i, j);
+				pattern.addEvent(i * pattern.getHop(), j);
 			}
 		});
 	}
@@ -55,8 +53,8 @@ public class PatternGrid extends ButtonBox {
 		int numNotesVisible = 20;
 		this.pattern = pattern;
 		resize(pattern.getLoop(), numNotesVisible);
-		setBoxWidth(200 / pattern.getLoop());
-		setBoxHeight(100 / numNotesVisible);
+		setBoxWidth(200f / pattern.getLoop());
+		setBoxHeight(100f / numNotesVisible);
 		setBBFromPattern();
 		if(component != null) component.repaint();
 	}
@@ -75,6 +73,14 @@ public class PatternGrid extends ButtonBox {
 				}
 			}
 		}
+	}
+	
+	public ArrayList<Integer> goToStep(int index) {
+		//work out the column to highlight
+		ArrayList<Integer> event = pattern.getEventAtStep(index);
+		setColumnHighlight(pattern.getLastIndex());	//does this break if the continuous update mode changes?
+		//the return the data
+		return event;
 	}
 	
 	public JComponent getComponent() {
