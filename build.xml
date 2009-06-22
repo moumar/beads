@@ -8,7 +8,7 @@
     	Beads - a computer music and sound art library for Java.
     </description>
 
-	<!-- Requires svn ant (retrieve from: http://subclipse.tigris.org/svnant/ ) -->
+	<!-- Requires svn ant (retrieve from: http://subclipse.tigris.org/svnant.html ) (on OSX put this in /Applications/eclipse/plugins/org.apache.ant_1.7.0.v200803061910/lib) -->
 	<typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpath="svnant.jar" /> 
 	
 	<!-- directory from which to copy package related data (such as readmes, etc.) -->
@@ -165,6 +165,7 @@
           target: commit packages (project admin only)            
          ================================= -->
 	<target name="commit packages" description="upload the generated packages" depends="compile main">
+		<mkdir dir="${exportdir}"/>
 		<!-- main Beads dir -->
 		<zip basedir="${build}/beads" destfile="${exportdir}/Beads.zip" />
 		<copy file="${exportdir}/Beads.zip" tofile="${exportdir}/Beads${TODAY}.zip" />
