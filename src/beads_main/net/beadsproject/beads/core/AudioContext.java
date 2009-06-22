@@ -36,6 +36,9 @@ import net.beadsproject.beads.ugens.Recorder;
  */
 public class AudioContext {
 
+	public static final int DEFAULT_BUFFER_SIZE = 512;
+	public static final int DEFAULT_SYSTEM_BUFFER_SIZE = 5000;
+	
 	/** The audio format. */
 	private AudioFormat audioFormat;
 
@@ -88,7 +91,7 @@ public class AudioContext {
 	 */
 	public AudioContext() {
 		// use entirely default settings
-		this(512);
+		this(DEFAULT_BUFFER_SIZE);
 	}
 
 	/**
@@ -99,7 +102,7 @@ public class AudioContext {
 	 * @param bufferSizeInFrames the buffer size in samples.
 	 */
 	public AudioContext(int bufferSizeInFrames) {
-		this(bufferSizeInFrames, 5000);
+		this(bufferSizeInFrames, DEFAULT_SYSTEM_BUFFER_SIZE);
 	}
 
 	/**
@@ -479,6 +482,10 @@ public class AudioContext {
 												audioFormat.getFrameRate(),
 												audioFormat.isBigEndian());
 		return newFormat;
+	}
+	
+	public static AudioFormat defaultAudioFormat(int numChannels) {
+		return new AudioFormat(44100, 16, numChannels, true, true);
 	}
 
 	/**
