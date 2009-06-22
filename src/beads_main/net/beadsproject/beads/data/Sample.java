@@ -317,7 +317,7 @@ public class Sample implements Runnable {
 
 	/**
 	 * Instantiates a new writeable Sample with the specified audio format and
-	 * number of frames. 
+	 * length;
 	 * 
 	 * The sample isn't initialised, so may contain junk. Use {@link #clear()} to clear it.
 	 * 
@@ -339,7 +339,7 @@ public class Sample implements Runnable {
 		{
 			f_sampleData = new float[nChannels][(int)nFrames];			
 		}
-		length = nFrames / audioFormat.getSampleRate() * 1000f;
+		this.length = 1000f * nFrames / audioFormat.getSampleRate();
 	}
 
 	/**
