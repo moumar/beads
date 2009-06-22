@@ -8,6 +8,8 @@ import net.beadsproject.beads.core.UGen;
 
 /**
  * RangeLimiter forces a signal within the range [-1,1].
+ * 
+ * @beads.category effect
  */
 public class RangeLimiter extends UGen {
 

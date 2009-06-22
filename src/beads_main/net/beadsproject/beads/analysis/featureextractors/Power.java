@@ -8,6 +8,8 @@ import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * Power calculates the RMS power over a frame directly from an audio signal.
+ * 
+ * @beads.category analysis
  */
 public class Power extends FeatureExtractor<Float, float[]>  {
 

@@ -10,6 +10,7 @@ import net.beadsproject.beads.core.UGen;
 /**
  * Adds two {@link UGen} outputs together. In most cases this is more easily and efficiently achieved by just plugging two output connections into the same input, in which case the signals get added automatically.
  *
+ * @beads.category utilities
  * @author ollie
  */
 public class Add extends UGen {

@@ -10,6 +10,7 @@ import net.beadsproject.beads.ugens.Static;
 /**
  * A basic Filter thingamyjig.
  * 
+ * @beads.category effect
  * @author ollie
  */
 public class Filter extends UGen {

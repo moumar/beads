@@ -8,6 +8,7 @@ import net.beadsproject.beads.core.UGen;
  * PRE: Signal must be in (-1,1) range
  * POST: Signal is in (-1,1) range 
  * 
+ * @beads.category effect
  * @author ben
  *
  */

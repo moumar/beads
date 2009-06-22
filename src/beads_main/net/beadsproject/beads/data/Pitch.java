@@ -6,6 +6,7 @@ package net.beadsproject.beads.data;
 /**
  * A set of static fields and utility methods associated with pitch.
  * 
+ * @beads.category data
  * @author ollie
  */
 public abstract class Pitch {

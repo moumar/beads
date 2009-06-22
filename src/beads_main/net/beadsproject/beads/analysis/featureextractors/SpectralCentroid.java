@@ -10,6 +10,8 @@ import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * SpectralCentroid calculates the spectral centroid of a signal. It should be set up to listen to a {@link PowerSpectrum} object.
+ * 
+ * @beads.category analysis
  */
 public class SpectralCentroid extends FeatureExtractor<Float, float[]>  {
 

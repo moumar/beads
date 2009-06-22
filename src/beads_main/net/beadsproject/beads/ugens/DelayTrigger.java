@@ -10,6 +10,7 @@ import net.beadsproject.beads.core.UGen;
 /**
  * A DelayTrigger waits for a specified duration and then notifies a receiver.
  *
+ * @beads.category utilities
  * @author ollie
  */
 public class DelayTrigger extends UGen {

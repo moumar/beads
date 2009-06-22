@@ -3,6 +3,9 @@ package net.beadsproject.beads.analysis.featureextractors;
 import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.core.TimeStamp;
 
+/**
+ * @beads.category analysis
+ */
 public class SpectralDifference extends FeatureExtractor<Float, float[]> {
 
 	public enum DifferenceType {

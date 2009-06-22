@@ -16,7 +16,7 @@ import net.beadsproject.beads.data.buffers.HanningWindow;
  * {@link UGen}s can be used to control playback rate, pitch, loop points, grain size, grain interval, grain randomness and position (this last case assumes that the playback rate is zero). 
  * 
  * @see SamplePlayer Sample
- * @category sample players
+ * @beads.category sample players
  * @author ollie
  */
 public class GranularSamplePlayer extends SamplePlayer {

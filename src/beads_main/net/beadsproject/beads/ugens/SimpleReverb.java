@@ -4,7 +4,9 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.SampleManager;
 
-
+/**
+ * @beads.category effect
+ */
 public class SimpleReverb extends UGen {
 
 	//use a standard tap in

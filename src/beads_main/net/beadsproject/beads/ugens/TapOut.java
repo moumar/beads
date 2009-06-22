@@ -3,6 +3,9 @@ package net.beadsproject.beads.ugens;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
+/**
+ * @beads.category effect
+ */
 public class TapOut extends UGen
 {
   private TapIn ti;

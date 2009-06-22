@@ -9,6 +9,7 @@ import net.beadsproject.beads.core.UGen;
 /**
  * PanStereoToStereo pans a stereo source between two stereo channels.
  * 
+ * @beads.category effect
  * @author ollie
  */
 public class PanStereoToStereo extends UGen {

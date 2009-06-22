@@ -31,7 +31,7 @@ import net.beadsproject.beads.ugens.Recorder;
  * audio buffer size and the system IO buffer size. An AudioContext also has provides a {@link UGen} called {@link #out}, which is the output point for networks of UGens in a Beads
  * project.
  * 
- * @category control
+ * @beads.category control
  * @author ollie
  */
 public class AudioContext {

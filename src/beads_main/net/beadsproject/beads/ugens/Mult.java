@@ -9,6 +9,7 @@ import net.beadsproject.beads.core.UGen;
 /**
  * Mult multiplies two {@link UGen}s together.
  * 
+ * @beads.category utilities
  * @author ollie
  */
 public class Mult extends UGen {

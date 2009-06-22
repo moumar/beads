@@ -7,7 +7,7 @@ import net.beadsproject.beads.data.buffers.SineBuffer;
 /**
  * 
  * @author ben
- * @category control
+ * @beads.category control
  */
 public class Glide extends UGen {
 

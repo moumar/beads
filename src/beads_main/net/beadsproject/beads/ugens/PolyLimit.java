@@ -6,6 +6,10 @@ import java.util.Queue;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
+/**
+ * 
+ * @beads.category utilities 
+ */
 public class PolyLimit extends UGen {
 
 	private int maxInputs;

@@ -1,8 +1,0 @@
-Mac OS binary provided by Stéphane Letz.
-This is a universal binary for i386 and ppc.
-
-Installation on OSX
-------------------------------------------------------------------------------
-Copy library in system location:
-
-sudo cp libjjack.jnilib  /usr/lib/java/

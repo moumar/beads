@@ -9,7 +9,7 @@ import net.beadsproject.beads.core.UGen;
 /**
  * A MouseResponder is a way of getting mouse input to control audio rate data.
  * 
- * @category control
+ * @beads.category control
  */
 public class MouseResponder extends UGen {
 

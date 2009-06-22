@@ -45,7 +45,7 @@ public abstract class UGen extends Bead {
 	protected int bufferSize;
 	
 	/** An collection of pointers to the output buffers of UGens connected to this UGen's inputs. */
-	private ArrayList<BufferPointer>[] inputs;
+	private ArrayList<BufferPointer>[] inputsAtChannel;
 	
 	/** A collection of UGens that should be triggered by this one. */
 	private ArrayList<UGen> dependents;
@@ -136,9 +136,9 @@ public abstract class UGen extends Bead {
 	@SuppressWarnings("unchecked")
 	private void setIns(int ins) {
 		this.ins = ins;
-		inputs = new ArrayList[ins];
+		inputsAtChannel = new ArrayList[ins];
 		for (int i = 0; i < ins; i++) {
-			inputs[i] = new ArrayList<BufferPointer>();
+			inputsAtChannel[i] = new ArrayList<BufferPointer>();
 		}
 	}
 	
@@ -231,7 +231,11 @@ public abstract class UGen extends Bead {
 	 */
 	@SuppressWarnings("unchecked")
 	private void pullInputs() {
-		ArrayList<UGen> dependentsClone = (ArrayList<UGen>) dependents.clone(); //this may be slow, but avoids concurrent mod exceptions
+		ArrayList<UGen> dependentsClone = null;
+		synchronized(dependents)
+		{
+			dependentsClone = (ArrayList<UGen>) dependents.clone(); //this may be slow, but avoids concurrent mod exceptions
+		}
 		int size = dependentsClone.size();
 		for (int i = 0; i < size; i++) {
 			UGen dependent = dependentsClone.get(i);
@@ -242,14 +246,24 @@ public abstract class UGen extends Bead {
 		}
 		if (!noInputs) {
 			noInputs = true;
-			for (int i = 0; i < inputs.length; i++) {
-				ArrayList<BufferPointer> inputsCopy = (ArrayList<BufferPointer>) inputs[i].clone();
-				size = inputsCopy.size();
+			
+			/* This needs to be synchronised. If any inputs get removed during 
+			 * the loop then the badness will happen.   
+			 */
+			
+			for (int i = 0; i < inputsAtChannel.length; i++) {
+				ArrayList<BufferPointer> inputsAtChannelICopy = null;
+				// sync
+				synchronized(inputsAtChannel[i])
+				{
+					inputsAtChannelICopy = (ArrayList<BufferPointer>) inputsAtChannel[i].clone();
+				}
+				size = inputsAtChannelICopy.size();
 				bufIn[i] = context.getZeroBuf();
 				if(size == 1) {
-					BufferPointer bp = inputsCopy.get(0);
+					BufferPointer bp = inputsAtChannelICopy.get(0);
 					if (bp.ugen.isDeleted()) {
-						inputs[i].remove(bp);
+						removeInputAtChannel(i,bp);
 					} else {
 						bp.ugen.update();
 						noInputs = false;	//we actually updated something, so we must have inputs
@@ -268,9 +282,9 @@ public abstract class UGen extends Bead {
 				} else if(size != 0) {
 					bufIn[i] = context.getCleanBuf();
 					for (int ip = 0; ip < size; ip++) {
-						BufferPointer bp = inputsCopy.get(ip);
+						BufferPointer bp = inputsAtChannelICopy.get(ip);						
 						if (bp.ugen.isDeleted()) {
-							inputs[i].remove(bp);
+							removeInputAtChannel(i,bp);
 						} else {
 							bp.ugen.update();
 							noInputs = false;	//we actually updated something, so we must have inputs
@@ -306,9 +320,9 @@ public abstract class UGen extends Bead {
 	 * Prints a list of UGens connected to this UGen's inputs to System.out.
 	 */
 	public void printInputList() {
-		for (int i = 0; i < inputs.length; i++) {
-			System.out.print(inputs[i].size() + " inputs: ");
-			for (BufferPointer bp : inputs[i]) {
+		for (int i = 0; i < inputsAtChannel.length; i++) {
+			System.out.print(inputsAtChannel[i].size() + " inputs: ");
+			for (BufferPointer bp : inputsAtChannel[i]) {
 				System.out.print(bp.ugen + ":" + bp.index + " ");
 			}
 			System.out.println();
@@ -341,7 +355,10 @@ public abstract class UGen extends Bead {
 	 * connection.
 	 */
 	public void addInput(int inputIndex, UGen sourceUGen, int sourceOutputIndex) {
-		inputs[inputIndex].add(new BufferPointer(sourceUGen, sourceOutputIndex));
+		synchronized(inputsAtChannel[inputIndex])
+		{
+			inputsAtChannel[inputIndex].add(new BufferPointer(sourceUGen, sourceOutputIndex));
+		}
 		noInputs = false;
 //		System.out.println("Adding input from " + sourceUGen + ":" + sourceOutputIndex + " to " + inputIndex);
 	}
@@ -353,7 +370,10 @@ public abstract class UGen extends Bead {
 	 * @param dependent the dependent UGen.
 	 */
 	public void addDependent(UGen dependent) {
-		dependents.add(dependent);
+		synchronized(dependents)
+		{
+			dependents.add(dependent);
+		}
 	}
 
 	/**
@@ -362,7 +382,10 @@ public abstract class UGen extends Bead {
 	 * @param dependent UGen to remove.
 	 */
 	public void removeDependent(UGen dependent) {
-		dependents.remove(dependent);
+		synchronized(dependents)
+		{
+			dependents.remove(dependent);
+		}
 	}
 
 	/**
@@ -374,7 +397,7 @@ public abstract class UGen extends Bead {
 	 * @return number of UGen outputs connected to that input.
 	 */
 	public int getNumberOfConnectedUGens(int index) {
-		return inputs[index].size();
+		return inputsAtChannel[index].size();
 	}
 
 	/**
@@ -387,8 +410,8 @@ public abstract class UGen extends Bead {
 		if(noInputs) {
 			return false;
 		} else {
-			for (int i = 0; i < inputs.length; i++) {
-				ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputs[i].clone();
+			for (int i = 0; i < inputsAtChannel.length; i++) {
+				ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputsAtChannel[i].clone();
 				for (BufferPointer bp : bplist) {
 					if (ugen.equals(bp.ugen)) {
 						return true;
@@ -399,6 +422,14 @@ public abstract class UGen extends Bead {
 		}
 	}
 	
+	private void removeInputAtChannel(int channel, BufferPointer bp)
+	{
+		synchronized(inputsAtChannel[channel])
+		{
+			inputsAtChannel[channel].remove(bp);
+		}
+	}	
+	
 	/**
 	 * Disconnects the specified UGen from this UGen at all inputs.
 	 * 
@@ -408,11 +439,11 @@ public abstract class UGen extends Bead {
 	public void removeAllConnections(UGen sourceUGen) {
 		if (!noInputs) {
 			int inputCount = 0;
-			for (int i = 0; i < inputs.length; i++) {
-				ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputs[i].clone();
+			for (int i = 0; i < inputsAtChannel.length; i++) {
+				ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputsAtChannel[i].clone();
 				for (BufferPointer bp : bplist) {
 					if (sourceUGen.equals(bp.ugen)) {
-						inputs[i].remove(bp);
+						removeInputAtChannel(i,bp);
 					} else
 						inputCount++;
 				}
@@ -429,10 +460,10 @@ public abstract class UGen extends Bead {
 	 */
 	@SuppressWarnings("unchecked")
 	public void clearInputConnections() {
-		for(int i = 0; i < inputs.length; i++) {
-			ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputs[i].clone();
+		for(int i = 0; i < inputsAtChannel.length; i++) {
+			ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputsAtChannel[i].clone();
 			for (BufferPointer bp : bplist) {
-				inputs[i].remove(bp);
+				inputsAtChannel[i].remove(bp);
 			}
 			noInputs = true;
 			zeroIns();

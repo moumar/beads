@@ -14,6 +14,7 @@ import net.beadsproject.beads.core.UGen;
 
 /**
  * RTInput gathers audio from an audio input device.
+ * @beads.category input
  */
 public class RTInput extends UGen {
 

@@ -10,6 +10,8 @@ import net.beadsproject.beads.core.TimeStamp;
 
 /**
  * Peaks finds the strongest N peaks in a signal passed from a {@link PowerSpectrum}, where N is the specified number of features. Peaks must be set as a listener to a {@link PowerSpectrum} object to work properly.
+ * 
+ * @beads.category analysis
  */
 public class SpectralPeaks extends FeatureExtractor<float[], float[]>  {
 

@@ -10,6 +10,7 @@ import net.beadsproject.beads.ugens.Static;
 /**
  * PanMonoToStereo pans a mono source between stereo channels.
  * 
+ * @beads.category effect
  * @author ollie
  */
 public class PanMonoToStereo extends UGen {

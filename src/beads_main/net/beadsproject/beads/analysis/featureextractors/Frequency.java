@@ -10,6 +10,8 @@ import net.beadsproject.beads.core.TimeStamp;
 /**
  * Frequency processes spectral data forwarded to it by a {@link PowerSpectrum} 
  * to determine the best estimate for the frequency of the current signal.
+ * 
+ * @beads.category analysis
  */
 public class Frequency extends FeatureExtractor<Float, float[]> {
 

@@ -11,7 +11,7 @@ import net.beadsproject.beads.data.buffers.NoiseBuffer;
 /**
  * Noise generates white noise.
  * 
- * @category synth
+ * @beads.category synth
  * @author ollie
  */
 public class Noise extends UGen {

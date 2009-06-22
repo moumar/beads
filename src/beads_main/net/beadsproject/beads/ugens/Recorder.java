@@ -30,6 +30,8 @@ import net.beadsproject.beads.data.Sample;
  * <i>ADVANCED:</i> When resizing a sample in INFINITE mode, the recorder uses a set of parameters
  * that specify how it behaves. If necessary you can modify the parameters on a per-recorder basis. See
  * {@link #setResizingParameters(double, double)}.
+ * 
+ * @beads.category input
  *  
  */
 public class Recorder extends UGen {

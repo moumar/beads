@@ -22,6 +22,8 @@ import net.beadsproject.beads.analysis.FeatureSet;
 
 /**
  * SampleManager provides a static repository for {@link Sample} data and provides methods to organise samples into groups.
+ * 
+ * @beads.category data
  */
 public class SampleManager {
 

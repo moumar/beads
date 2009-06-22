@@ -65,6 +65,7 @@ import net.beadsproject.beads.core.AudioUtils;
  * <li>Some issues with the boundary of regions with TimedRegime for MP3 files.</li>
  * </ul>
  * 
+ * @beads.category data
  * @see SampleManager
  * @see net.beadsproject.beads.ugens.Recorder
  * @author Beads Team

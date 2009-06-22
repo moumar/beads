@@ -21,6 +21,7 @@ import net.beadsproject.beads.data.buffers.MeanFilter;
  * "Onset Detection Revisited" Proc. of the 9th Int. Conference on Digital Audio
  * Effects (DAFx-06), Montreal, Canada, September 18-20, 2006</code>
  * 
+ * @beads.category analysis
  * @author ben
  */
 

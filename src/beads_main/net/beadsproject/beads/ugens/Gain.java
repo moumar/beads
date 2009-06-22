@@ -13,6 +13,7 @@ import net.beadsproject.beads.data.buffers.Log01Buffer;
  * Gain modifies the gain of a multi-channel audio signal. The gain value 
  * can be controlled by an audio signal.
  *
+ * @beads.category effect
  * @author ollie
  */
 public class Gain extends UGen {

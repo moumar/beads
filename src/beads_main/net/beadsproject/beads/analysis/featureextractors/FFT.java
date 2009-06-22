@@ -11,6 +11,8 @@ import net.beadsproject.beads.core.TimeStamp;
  * FFT performs a Fast Fourier Transform and forwards the complex data to any listeners. 
  * The complex data is a float of the form float[2][frameSize], with real and imaginary 
  * parts stored respectively.
+ * 
+ * @beads.category analysis
  */
 public class FFT extends FeatureExtractor<float[][], float[]>  {
 	

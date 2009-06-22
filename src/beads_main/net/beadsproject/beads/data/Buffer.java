@@ -14,6 +14,7 @@ import net.beadsproject.beads.data.buffers.SquareBuffer;
 /**
  * A Buffer stores a one-dimensional buffer of floats for use as a wavetable or a window.
  * 
+ * @beads.category data
  * @see Sample BufferFactory
  * @author ollie
  */
