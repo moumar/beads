@@ -55,7 +55,7 @@ public class BeadsDoclet {
 			}
 			
 			// Write the output to a quickref html page
-			String filename = outputDir + "/quickref.html";
+			String filename = outputDir + "/index.html";
 			System.out.println("Writing overview to \"" + filename + "\"");			
 			PrintWriter file = new PrintWriter(filename);
 			// write header

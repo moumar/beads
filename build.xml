@@ -158,36 +158,11 @@
 	</target>
 
 	<!-- ================================= 
-          target: generate packages             
-         ================================= -->
-	<target name="generate packages" description="copy them somewhere" depends="default">
-		<mkdir dir="${exportdir}" />
-		<!-- main Beads dir -->
-		<exec executable="cp">
-			<arg line="-R build/Beads '${exportdir}'" />
-		</exec>
-		<delete file="${exportdir}/Beads/library/beads-play.jar">
-		</delete>
-		<exec executable="${svn}">
-			<arg line="--force export readme ${exportdir}/Beads/readme" />
-		</exec>
-		<!-- Beads Processing Tutorial -->
-		<exec executable="cp">
-			<arg line="-R build/processing/Beads '${exportdir}/Beads Processing Tutorial'" />
-		</exec>
-
-		<!-- Beads Eclipse Tutorial -->
-		<exec executable="${svn}">
-			<arg line="--force export 'tutorials/Beads Eclipse Tutorial' '${exportdir}/Beads Eclipse Tutorial'" />
-		</exec>
-	</target>
-
-	<!-- ================================= 
           target: commit packages (project admin only)            
          ================================= -->
-	<target name="commit packages" description="upload the generated packages" depends="generate packages">
+	<target name="commit packages" description="upload the generated packages" depends="compile main">
 		<!-- main Beads dir -->
-		<zip basedir="${exportdir}/Beads" destfile="${exportdir}/Beads.zip" />
+		<zip basedir="${build}/beads" destfile="${exportdir}/Beads.zip" />
 		<copy file="${exportdir}/Beads.zip" tofile="${exportdir}/Beads${TODAY}.zip" />
 		<exec executable="scp">
 			<arg line="${exportdir}/Beads.zip orsjb@beadsproject.net:beadsproject.net/downloads/" />
@@ -195,28 +170,21 @@
 		<exec executable="scp">
 			<arg line="${exportdir}/Beads${TODAY}.zip orsjb@beadsproject.net:beadsproject.net/downloads/" />
 		</exec>
-		<!-- Beads Processing Tutorial 
-    	TODO: this should be zipped up slightly differently BP150609) -->
-		<zip basedir="${exportdir}/Beads Processing Tutorial" destfile="${exportdir}/Beads_Processing_Tutorial.zip" />
+		<!-- Beads Processing Tutorial -->
+		<zip basedir="${build}/processing" destfile="${exportdir}/Beads_Processing_Tutorial.zip" />
 		<copy file="${exportdir}/Beads_Processing_Tutorial.zip" tofile="${exportdir}/Beads_Processing_Tutorial${TODAY}.zip" />
 		<exec executable="scp">
 			<arg line="${exportdir}/Beads_Processing_Tutorial.zip orsjb@beadsproject.net:beadsproject.net/downloads/" />
 		</exec>
 		<exec executable="scp">
 			<arg line="${exportdir}/Beads_Processing_Tutorial${TODAY}.zip orsjb@beadsproject.net:beadsproject.net/downloads/" />
-		</exec>
-		<!-- Beads Eclipse Tutorial -->
-		<zip basedir="${exportdir}/Beads Eclipse Tutorial" destfile="${exportdir}/Beads_Eclipse_Tutorial.zip" />
-		<copy file="${exportdir}/Beads_Eclipse_Tutorial.zip" tofile="${exportdir}/Beads_Eclipse_Tutorial${TODAY}.zip" />
-		<exec executable="scp">
-			<arg line="${exportdir}/Beads_Eclipse_Tutorial.zip orsjb@beadsproject.net:beadsproject.net/downloads/" />
-		</exec>
-		<exec executable="scp">
-			<arg line="${exportdir}/Beads_Eclipse_Tutorial${TODAY}.zip orsjb@beadsproject.net:beadsproject.net/downloads/" />
-		</exec>
+		</exec>		
 		<!-- Documentation -->
 		<exec executable="scp">
-			<arg line="-r ${exportdir}/Beads/doc orsjb@beadsproject.net:beadsproject.net/" />
+			<arg line="-r ${build}/doc orsjb@beadsproject.net:beadsproject.net/" />
+		</exec>
+		<exec executable="scp">
+			<arg line="-r ${build}/ref orsjb@beadsproject.net:beadsproject.net/" />
 		</exec>
 	</target>
 
