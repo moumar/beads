@@ -102,6 +102,7 @@ public class BeadsGui {
 		environmentFrame.setResizable(true);
 		environmentFrame.setVisible(true);
 		environmentFrame.pack();
+		env.ac.start();
 	}
 
 	public void repack() {

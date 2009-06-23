@@ -155,6 +155,10 @@ public class Pattern extends Bead implements Serializable {
         return currentValue;
     }
     
+    public ArrayList<Integer> getEventAtIndex(int index) {
+    	return events.get(index);
+    }
+    
     public int getLastIndex() {
     	if(continuousPlayMode == ContinuousPlayMode.INTERNAL) {
 	    	if(currentIndex == 0) {

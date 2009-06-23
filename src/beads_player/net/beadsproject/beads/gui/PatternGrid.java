@@ -41,10 +41,12 @@ public class PatternGrid extends ButtonBox {
 		pattern.setLoop(width);
 		setListener(new ButtonBoxListener() {
 			public void buttonOff(int i, int j) {
-				pattern.removeEvent(i * pattern.getHop(), j);
+//				pattern.removeEvent(i * pattern.getHop(), j);
+				pattern.removeEvent(i, j);
 			}
 			public void buttonOn(int i, int j) {
-				pattern.addEvent(i * pattern.getHop(), j);
+//				pattern.addEvent(i * pattern.getHop(), j);
+				pattern.addEvent(i, j);
 			}
 		});
 	}
@@ -63,7 +65,7 @@ public class PatternGrid extends ButtonBox {
 		clear();
 		for(Integer i : pattern.getEvents()) {
 			if(i < buttons.length) {
-				ArrayList<Integer> sounds = pattern.getEventAtStep(i);
+				ArrayList<Integer> sounds = pattern.getEventAtIndex(i);
 				if(sounds != null) {
 					for(Integer j : sounds) {
 						if(j < buttons[i].length) {

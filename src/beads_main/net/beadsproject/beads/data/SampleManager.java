@@ -134,6 +134,10 @@ public class SampleManager {
 	 * @param folderName the folder address (URL or file path).
 	 */
 	public static void group(String groupName, String folderName) {
+		group(groupName, folderName, Integer.MAX_VALUE);
+	}
+	
+	public static void group(String groupName, String folderName, int maxItems) {
 		//first try interpreting the folderName as a system resource
 		File theDirectory = null;
 		try {
@@ -151,8 +155,9 @@ public class SampleManager {
 		String[] fileNameList = theDirectory.list();
 		for (int i = 0; i < fileNameList.length; i++) {
 			fileNameList[i] = theDirectory.getAbsolutePath() + "/" + fileNameList[i];
+			
 		}
-		group(groupName, fileNameList);
+		group(groupName, fileNameList, maxItems);
 	}
 
 	/**
@@ -163,18 +168,24 @@ public class SampleManager {
 	 * @param fileNameList the file name list.
 	 */
 	public static void group(String groupName, String[] fileNameList) {
+		group(groupName, fileNameList, Integer.MAX_VALUE);
+	}
+	
+	public static void group(String groupName, String[] fileNameList, int maxItems) {
 		ArrayList<Sample> group;
 		if (!groups.keySet().contains(groupName)) {
 			group = new ArrayList<Sample>();
 			groups.put(groupName, group);
 		} else
 			group = groups.get(groupName);
+		int count = 0;
 		for (int i = 0; i < fileNameList.length; i++) {
 			String simpleName = new File(fileNameList[i]).getName();
 			try {
 				Sample sample = sample(simpleName, fileNameList[i]);
 				if (!group.contains(simpleName) && sample != null) {
 					group.add(sample);
+					if(count++ >= maxItems) break;
 				}
 			} catch(Exception e) {
 				//snuff the exception
