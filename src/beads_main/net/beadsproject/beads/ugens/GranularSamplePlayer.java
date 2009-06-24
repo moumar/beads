@@ -9,6 +9,7 @@ import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.SampleManager;
+import net.beadsproject.beads.data.buffers.CosineWindow;
 import net.beadsproject.beads.data.buffers.HanningWindow;
 
 /**
@@ -93,7 +94,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 		setGrainIntervalEnvelope(new Static(context, 70.0f));
 		setGrainSizeEnvelope(new Static(context, 100.0f));
 		setRandomnessEnvelope(new Static(context, 0.0f));
-		setWindow(new HanningWindow().getDefault());
+		setWindow(new CosineWindow().getDefault());
 		msPerSample = context.samplesToMs(1f);
 		loopInsideGrains = false;
 	}
