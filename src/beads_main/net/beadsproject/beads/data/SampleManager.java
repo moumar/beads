@@ -14,10 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
 import javax.sound.sampled.UnsupportedAudioFileException;
-
-import net.beadsproject.beads.analysis.FeatureFrame;
 import net.beadsproject.beads.analysis.FeatureSet;
 
 /**

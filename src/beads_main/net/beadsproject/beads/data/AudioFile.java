@@ -1,7 +1,9 @@
 package net.beadsproject.beads.data;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 import javax.sound.sampled.AudioFileFormat;
@@ -27,21 +29,24 @@ import net.beadsproject.beads.core.AudioUtils;
  * @author ben
  */
 public class AudioFile {
-	public File file;
-	public URL url;
-	public AudioFileFormat audioFileFormat;
+	
+	protected File file;
+	protected URL url;
+	protected AudioInputStream audioInputStream;
+	
+	protected AudioFileFormat audioFileFormat;
 	/** The number of channels. */
-	public int nChannels;
+	protected int nChannels;
 	
 	/** The total number of frames.
 	 *  If it equals AudioSystem.NOT_SPECIFIED then the length is unknown. 
 	 **/
-	public long nFrames;
+	protected long nFrames;
 	/** Length of the file in milliseconds */
-	public float length;
+	protected float length;
 	
-	public long nTotalFramesRead = 0; // also a pointer into the current pos
-	public boolean finished = false;
+	private long nTotalFramesRead = 0; // also a pointer into the current pos
+	private boolean finished = false;
 	
 	// stream-specific stuff
 	private Map<String,Object> audioInfo;
@@ -88,20 +93,44 @@ public class AudioFile {
 	public AudioFile(String filename, int bufferSize) throws IOException, UnsupportedAudioFileException {
 		//first try to interpret string as URL, then as local file
 		try {
-			url = new URL(filename);						
+			url = new URL(filename);
+			file = null;
 		} catch(Exception e) {
 			file = new File(filename);
 			url = file.toURL();
 		}
-		audioFileFormat = AudioSystem.getAudioFileFormat(url);
+		audioInputStream = null;
 		
 		// check if .wav ending and detected as .mp3, if so it is bad!		
-		if (!url.getFile().endsWith(".mp3") && audioFileFormat instanceof TAudioFileFormat)
+		if (!url.getFile().endsWith(".mp3") && AudioSystem.getAudioFileFormat(url) instanceof TAudioFileFormat)
 		{
 			//System.out.printf("File \"%s\" \n", file.getName());
 			throw(new UnsupportedAudioFileException("Cannot read " + url.getFile() + ". If it is a .wav then try re-saving it in a different audio program."));
 		}
+
+		audioFileFormat = AudioSystem.getAudioFileFormat(url);
+		// common init
+		init(bufferSize);
 		
+	}
+
+	public AudioFile(InputStream stream) throws IOException, UnsupportedAudioFileException {
+		this(stream, -1);
+	}
+	
+	public AudioFile(InputStream stream, int bufferSize) throws IOException, UnsupportedAudioFileException {
+		BufferedInputStream bis = new BufferedInputStream(stream);
+		audioFileFormat = AudioSystem.getAudioFileFormat(bis);
+		audioInputStream = AudioSystem.getAudioInputStream(bis);
+		url = null;
+		file = null;
+		init(bufferSize);
+		
+	}
+	
+	private void init(int bufferSize) throws UnsupportedAudioFileException, IOException
+	{
+
 		nFrames = audioFileFormat.getFrameLength();
 		
 		if (audioFileFormat instanceof TAudioFileFormat && bufferSize < 0)
@@ -129,7 +158,7 @@ public class AudioFile {
 	 */
 	public void reset()
 	{
-		if (trace) System.err.printf("AudioFile %s reset\n",url.getFile());
+		if (trace && url != null) System.err.printf("AudioFile %s reset\n",url.getFile());
 		
 		try{
 			if (encodedStream.markSupported())		
@@ -241,12 +270,12 @@ public class AudioFile {
 	{
 		// TODO: Implement reset() to takes some shortcuts - rather than executing all of the logic below
 		
-		if (trace) System.err.printf("AudioFile %s open\n",url.getFile());
+		if (trace && url != null) System.err.printf("AudioFile %s open\n",url.getFile());
 		finished = false;
 		nTotalFramesRead = 0;
 		
 //		if (file.exists()) 
-		encodedStream = AudioSystem.getAudioInputStream(url);
+		encodedStream = getStream();
 		encodedFormat = encodedStream.getFormat();
 		decodedFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
 				encodedFormat.getSampleRate(),
@@ -275,7 +304,7 @@ public class AudioFile {
 //			System.out.println("length " + length);
 			if (length<0)
 			{
-				System.out.println("Beads cannot determine the duration of the file " + url.getFile() + " - is it missing the duration tag?\n");
+				System.out.println("Beads cannot determine the duration of the file -- is it missing the duration tag?\n");
 				System.exit(1);
 			}
 			else
@@ -306,20 +335,21 @@ public class AudioFile {
 			System.exit(1);
 		}
 
-		if (file != null && encodedStream.markSupported())
+		if (file != null && encodedStream.markSupported()) {
 			encodedStream.mark(Math.min(bufferSize,(int) file.length()));
+		}
 	}
 	
 	/// re-opens a file, resetting the file pointers, etc..
 	/// note that this will not recalculate length, etc. 
 	private void reopen() throws UnsupportedAudioFileException, IOException
 	{
-		if (trace) System.err.printf("AudioFile %s reopen\n",url.getFile());
+		if (trace && url != null) System.err.printf("AudioFile %s reopen\n",url.getFile());
 		finished = false;
 		nTotalFramesRead = 0;
 		
 //		if (file.exists())
-		encodedStream = AudioSystem.getAudioInputStream(url);
+		encodedStream = getStream();
 		if (isEncoded)		
 			decodedStream = AudioSystem.getAudioInputStream(decodedFormat, encodedStream);
 		else
@@ -329,6 +359,14 @@ public class AudioFile {
 			encodedStream.mark(Math.min(bufferSize,(int) file.length()));
 	}	
 	
+	private AudioInputStream getStream() throws UnsupportedAudioFileException, IOException {
+		if(url != null) {
+			return AudioSystem.getAudioInputStream(url);
+		} else {
+			return audioInputStream;
+		}
+	}
+	
 	/*
 	 * Returns some useful information about this audiofile.
 	 */
@@ -336,13 +374,13 @@ public class AudioFile {
 	{
 		if (!isOpen())
 		{
-			String str = "Filename: " + url.getFile() + "\n";
+			String str = "Filename: " + ((url != null) ? url.getFile() : "NONE") + "\n";
 			str += "File not open.\n";
 			return str;
 		}
 		else
 		{		
-			String str = "Filename: " + url.getFile() + "\n";
+			String str = "Filename: " + ((url != null) ? url.getFile() : "NONE") + "\n";
 			str += "Number of channels: " + nChannels + "\n";
 			str += "Number of frames: " + nFrames + "\n";
 			// str += "Number of bytes per frame per channel: " + numBytes + "\n";
@@ -374,7 +412,7 @@ public class AudioFile {
 	 */
 	public void close() throws IOException
 	{
-		if (trace) System.err.printf("AudioFile %s close\n",url.getFile());
+		if (trace && url != null) System.err.printf("AudioFile %s close\n",url.getFile());
 		
 		if (isEncoded)
 			decodedStream.close();

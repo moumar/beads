@@ -93,7 +93,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 		setGrainIntervalEnvelope(new Static(context, 70.0f));
 		setGrainSizeEnvelope(new Static(context, 100.0f));
 		setRandomnessEnvelope(new Static(context, 0.0f));
-		window = new HanningWindow().getDefault();
+		setWindow(new HanningWindow().getDefault());
 		msPerSample = context.samplesToMs(1f);
 		loopInsideGrains = false;
 	}
@@ -165,6 +165,15 @@ public class GranularSamplePlayer extends SamplePlayer {
 	 */
 	public void setGrainSizeEnvelope(UGen grainSizeEnvelope) {
 		this.grainSizeEnvelope = grainSizeEnvelope;
+	}
+	
+	public Buffer getWindow() {
+		return window;
+	}
+
+	
+	public void setWindow(Buffer window) {
+		this.window = window;
 	}
 
 	/**

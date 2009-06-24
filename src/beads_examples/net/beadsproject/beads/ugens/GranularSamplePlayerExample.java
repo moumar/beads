@@ -3,6 +3,7 @@ package net.beadsproject.beads.ugens;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.SampleManager;
+import net.beadsproject.beads.data.buffers.CosineWindow;
 import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.GranularSamplePlayer;
 import net.beadsproject.beads.ugens.SamplePlayer;
@@ -14,7 +15,11 @@ public class GranularSamplePlayerExample {
     	AudioContext ac = new AudioContext(512);
     	Sample s1 = SampleManager.sample("audio/1234.aif");	
     	System.out.println(s1.getLength());
-    	GranularSamplePlayer gsp = new GranularSamplePlayer(ac, s1); 	
+    	GranularSamplePlayer gsp = new GranularSamplePlayer(ac, s1); 
+    	
+    	//could choose a different grain window
+    	gsp.setWindow(new CosineWindow().getDefault());
+    	
     	gsp.getGrainIntervalEnvelope().setValue(20f);
     	gsp.getGrainSizeEnvelope().setValue(50f);
     	Envelope rateEnv = new Envelope(ac, 1f);
