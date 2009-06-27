@@ -27,7 +27,7 @@ public class Chooser implements InterfaceElement {
 	private int boxWidth;
 	private int charachterWidth;
 	private int popupBoxWidth;
-	private int choice;
+	protected int choice;
 	private int tempChoice;
 	private int textVOffset;
 	private ChooserListener listener;
@@ -216,15 +216,26 @@ public class Chooser implements InterfaceElement {
 	}
 	
 	public static Chooser sampleGroupChooser() {
-		Chooser c = new Chooser("group") {
+		final Chooser c = new Chooser("group") {
 			public void refreshList() {
+				String currentChoice = getChoice();
 				clear();
+				int count = 0;
 				for(String s : SampleManager.groups()) {
 					add(s);
+					if(s == currentChoice) {
+						choice = count;
+					}
+					count++;
 				}
 				repaint();
 			}
 		};
+		SampleManager.addGroupListener(new SampleManager.SampleGroupListener() {
+			public void changed() {
+				c.refreshList();	
+			}
+		});
 		c.refreshList();
 		c.setChoice(0);
 		return c;

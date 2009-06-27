@@ -9,6 +9,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,8 @@ public class SampleManager {
 	private final static Map<String, ArrayList<Sample>> groups = new TreeMap<String, ArrayList<Sample>>();
 
 	private final static Map<Sample, FeatureSet> featureSets = new Hashtable<Sample, FeatureSet>();
+	
+	private final static Set<SampleGroupListener> listeners = new HashSet<SampleGroupListener>();
 	
 	private static boolean verbose = true;
 	
@@ -121,6 +124,9 @@ public class SampleManager {
 			if (!group.contains(sampleList[i]))
 				group.add(sampleList[i]);
 		}
+		for(SampleGroupListener l : listeners) {
+			l.changed();
+		}
 	}
 
 	/**
@@ -188,6 +194,9 @@ public class SampleManager {
 				//snuff the exception
 			}
 		}
+		for(SampleGroupListener l : listeners) {
+			l.changed();
+		}
 	}
 	
 	/**
@@ -196,6 +205,10 @@ public class SampleManager {
 	 */
 	public static Set<String> groups() {
 		return groups.keySet();
+	}
+	
+	public static List<String> groupsAsList() {
+		return new ArrayList<String>(groups.keySet());
 	}
 
 	/**
@@ -232,6 +245,9 @@ public class SampleManager {
 	 */
 	public static Sample fromGroup(String groupName, int index) {
 		ArrayList<Sample> group = groups.get(groupName);
+		if(group == null || group.size() == 0) {
+			return null;
+		}
 		return group.get(index % group.size());
 	}
 	
@@ -268,6 +284,9 @@ public class SampleManager {
 	 */
 	public static void removeGroup(String groupName) {
 		groups.remove(groupName);
+		for(SampleGroupListener l : listeners) {
+			l.changed();
+		}
 	}
 
 	/**
@@ -284,6 +303,13 @@ public class SampleManager {
 		removeGroup(groupName);
 	}
 
+	public static void addGroupListener(SampleGroupListener l) {
+		listeners.add(l);
+	}
+	
+	public static void removeGroupListener(SampleGroupListener l) {
+		listeners.remove(l);
+	}
 	
 	/**
 	 * Prints a list of all {@link Sample}s to System.out.
@@ -348,6 +374,10 @@ public class SampleManager {
 		FeatureSet set = FeatureSet.forSample(sample);
 		featureSets.put(sample, set);
 		return set;
+	}
+	
+	public static interface SampleGroupListener {
+		public void changed();
 	}
 	
 	

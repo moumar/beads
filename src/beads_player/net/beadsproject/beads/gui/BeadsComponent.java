@@ -11,4 +11,5 @@ public class BeadsComponent extends JComponent {
 	public BeadsComponent() {
 		setFont(new Font("Courier", Font.PLAIN, 10));
 	}
+	
 }

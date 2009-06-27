@@ -1,5 +1,6 @@
 package net.beadsproject.beads.gui;
 
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -42,15 +43,24 @@ public class BeadsGui {
 	
 	private void setup(final Environment env) {
 		environmentFrame = new BeadsWindow("Beads");
-		final JButton audioButton = new JButton("Start");
+		final JButton audioButton = new JButton("Start") {
+			public void paintComponent(Graphics g) {
+				if(env.ac.isRunning()) {
+					setText("Stop");
+				} else {
+					setText("Start");
+				}
+				super.paintComponent(g);
+			}
+		};
 		audioButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(env.ac.isRunning()) {
 					env.ac.stop();
-					audioButton.setText("Start");
+//					audioButton.setText("Start");
 				} else {
 					env.ac.start();
-					audioButton.setText("Stop");
+//					audioButton.setText("Stop");
 				}
 			}
 		});
@@ -78,7 +88,6 @@ public class BeadsGui {
 		clock.setIntervalEnvelope(tempoToInterval);
 		BeadsPanel ci = new BeadsPanel();
 		ci.add(slider.getComponent());
-		environmentFrame.content.add(ci);
 		Slider slider2 = new Slider(env.ac, "gain", 0f, 1f, 1f);
 		((Gain)env.ac.out).setGainEnvelope(slider2);
 		ci.add(slider2.getComponent());
@@ -87,7 +96,12 @@ public class BeadsGui {
 		clock.addMessageListener(tg);
 		tg.getComponent().addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
-				clock.reset();
+				if(clock.isPaused()) {
+					clock.reset();
+					clock.pause(false);
+				} else {
+					clock.pause(true);
+				}
 			}
 		});
 		ci.add(tg.getComponent());
@@ -98,6 +112,11 @@ public class BeadsGui {
 			}
 		});
 		ci.add(r.getComponent());
+		SampleManagerPanel smp = new SampleManagerPanel(100);
+		if(env.elements.containsKey("audioDir")) {
+			smp.setRootDir((String)env.elements.get("audioDir"));
+		}
+		ci.add(smp.getComponent());
 		environmentFrame.content.add(ci);
 		environmentFrame.setResizable(true);
 		environmentFrame.setVisible(true);

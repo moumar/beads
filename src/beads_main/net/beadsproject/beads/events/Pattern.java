@@ -85,7 +85,17 @@ public class Pattern extends Bead implements Serializable {
     	listeners.remove(listener);
     }
     
-    /**
+    
+    
+    public ContinuousPlayMode getContinuousPlayMode() {
+		return continuousPlayMode;
+	}
+
+	public void setContinuousPlayMode(ContinuousPlayMode continuousPlayMode) {
+		this.continuousPlayMode = continuousPlayMode;
+	}
+
+	/**
      * Adds an event consisting of a integer key and an integer value.
      * 
      * @param key the key.
