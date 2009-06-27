@@ -70,20 +70,36 @@ public class SampleView implements InterfaceElement {
 		player = sp;
 	}
 	
-	public int getSelectionStart() {
+	public int getSelectionStartPixels() {
 		return selectionStart;
 	}
 	
-	public void setSelectionStart(int selectionStart) {
+	public void setSelectionStartPixels(int selectionStart) {
 		this.selectionStart = selectionStart;
 	}
 	
-	public int getSelectionEnd() {
+	public int getSelectionEndPixels() {
 		return selectionEnd;
 	}
 	
-	public void setSelectionEnd(int selectionEnd) {
+	public void setSelectionEndPixels(int selectionEnd) {
 		this.selectionEnd = selectionEnd;
+	}
+	
+	public double getSelectionStartMS() {
+		return pixelsToMS(selectionStart);
+	}
+	
+	public void setSelectionStartMS(double selectionStart) {
+		this.selectionStart = msToPixels(selectionStart);
+	}
+	
+	public double getSelectionEndMS() {
+		return pixelsToMS(selectionEnd);
+	}
+	
+	public void setSelectionEndMS(double selectionEnd) {
+		this.selectionEnd = msToPixels(selectionEnd);
 	}
 	
 	public SelectMode getSelectionMode() {

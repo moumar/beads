@@ -57,8 +57,11 @@ public abstract class UGen extends Bead {
 	private long lastTimeStep;
 	
 	/** Used to determine how a UGen sets its outputs up before calculateBuffer() is called. */
-	protected enum OutputInitializationRegime {ZERO, NULL, JUNK};
+	protected enum OutputInitializationRegime {ZERO, NULL, JUNK, RETAIN};
 	protected OutputInitializationRegime outputInitializationRegime;
+	
+	protected enum OutputPauseRegime {ZERO, RETAIN};
+	protected OutputPauseRegime outputPauseRegime;
 
 	/**
 	 * Create a new UGen from the given AudioContext but with no inputs or
@@ -94,6 +97,7 @@ public abstract class UGen extends Bead {
 		noInputs = true;
 		lastTimeStep = -1;
 		outputInitializationRegime = OutputInitializationRegime.JUNK;
+		outputPauseRegime = OutputPauseRegime.ZERO;
 		setIns(ins);
 		setOuts(outs);
 		setContext(context);
@@ -201,6 +205,20 @@ public abstract class UGen extends Bead {
 		}
 	}
 	
+	protected void setOutsToPause() {
+		switch(outputPauseRegime) {
+		case ZERO:
+			for(int i = 0; i < outs; i++) {
+				bufOut[i] = context.getZeroBuf();
+			}
+			break;
+		case RETAIN:
+			break;
+		default:
+			break;
+		}
+	}
+	
 	protected void initializeOuts() {
 		switch (outputInitializationRegime) {
 		case JUNK:
@@ -217,6 +235,8 @@ public abstract class UGen extends Bead {
 			for(int i = 0; i < outs; i++) {
 				bufOut[i] = null;
 			}
+			break;
+		case RETAIN:
 			break;
 		default:
 			for(int i = 0; i < outs; i++) {
@@ -313,6 +333,9 @@ public abstract class UGen extends Bead {
 				initializeOuts();
 				calculateBuffer();
 			} 
+			//by the time we get here, we might have been paused. If so then initialize outs
+			//problem: at the moment we're zeroing outs, but this is not always ideal
+			if(isPaused()) setOutsToPause();
 		} 
 	}
 
@@ -562,7 +585,7 @@ public abstract class UGen extends Bead {
 	 */
 	public void pause(boolean paused) {
 		if(!isPaused() && paused) {
-			zeroOuts();
+			setOutsToPause();
 		}
 		super.pause(paused);
 	}

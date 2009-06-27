@@ -477,9 +477,6 @@ public class SamplePlayer extends UGen {
 		if (killOnEnd) {
 			kill();
 		}
-		else {
-			pause(true);
-		}
 	}
 
 	/**
