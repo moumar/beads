@@ -28,7 +28,8 @@ public class Static extends UGen {
 		super(context, 1);
 		this.x = x;
 		pause(true); //might as well be muted
-		outputInitializationRegime = OutputInitializationRegime.NULL;
+		outputInitializationRegime = OutputInitializationRegime.RETAIN;
+		outputPauseRegime = OutputPauseRegime.RETAIN;
 	}
 
 	/* (non-Javadoc)

@@ -202,7 +202,7 @@ public class SampleView implements InterfaceElement {
 		waveForm = null;
 	}
 	
-	public void recalculateBackgroundImage() {
+	private void recalculateBackgroundImage() {
 		//now draw to the buffered image
 		waveForm = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		Graphics g = waveForm.getGraphics();
@@ -287,7 +287,6 @@ public class SampleView implements InterfaceElement {
 								int max = (int)Math.max(tempSelectionMarker, e.getX());
 								selectionStart = (int)(width / sample.getLength() * getSnapPointBefore((float)min / width * sample.getLength()));
 								selectionEnd = (int)(width / sample.getLength() * getSnapPointAfter((float)max / width * sample.getLength()));
-								
 							}
 							break;
 						case POSITION:

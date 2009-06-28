@@ -155,7 +155,7 @@ public class Clock extends UGen implements IntegerBead {
     }
     
     public float getTempo() {
-    	return 60000f / intervalEnvelope.getValue();
+    	return 60000f / Math.abs(intervalEnvelope.getValue());
     }
     
     /* (non-Javadoc)
@@ -164,12 +164,13 @@ public class Clock extends UGen implements IntegerBead {
     @Override
     public void calculateBuffer() {
     	intervalEnvelope.update();
-    	for(int i = 0; i < bufferSize; i++) {   
-    		float value = Math.max(1.0f, intervalEnvelope.getValue(0, i) / (float)ticksPerBeat);
+    	for(int i = 0; i < bufferSize; i++) {  
+    		float interval = intervalEnvelope.getValue(0, i);
+    		float value = Math.max(1.0f, Math.abs(interval) / (float)ticksPerBeat);
     		point += 1.0f / context.msToSamples(value);
     		if(point >= 1.0f) {
     			tick();
-    			count++;
+    			count += Math.signum(interval);
     			while(point >= 1.0f) point -= 1.0f;
     		}
     	}

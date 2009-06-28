@@ -14,7 +14,7 @@ public class FMExample {
 		Envelope gainEnv = new Envelope(ac, 0.1f);
 		Gain g = new Gain(ac, 1, gainEnv);
 		final Envelope lfoEnv =new Envelope(ac, 10f);
-		lfoEnv.addSegment(100f, 1000f);
+		lfoEnv.addSegment(100f, 10000f);
 		WavePlayer lfo = new WavePlayer(ac, lfoEnv, new SineBuffer().getDefault());
 		WavePlayer wp = new WavePlayer(ac, new Function(new UGen[] {freqEnv, lfo}) {
 			@Override

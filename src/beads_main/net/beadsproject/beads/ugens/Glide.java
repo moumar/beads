@@ -18,7 +18,6 @@ public class Glide extends UGen {
 	private int countSinceGlide;
 	private boolean gliding;
 	private boolean nothingChanged;
-	private float[] bufOut;
 	
 	public Glide(AudioContext context, float currentValue) {
 		super(context, 1);
@@ -27,8 +26,9 @@ public class Glide extends UGen {
 		countSinceGlide = 0;
 		gliding = false;
 		nothingChanged = false;
-		outputInitializationRegime = OutputInitializationRegime.NULL;
-		bufOut = new float[bufferSize];
+		outputInitializationRegime = OutputInitializationRegime.RETAIN;
+		outputPauseRegime = OutputPauseRegime.RETAIN;
+		bufOut[0] = new float[bufferSize];
 	}
 	
 	public Glide(AudioContext context) {
@@ -59,22 +59,18 @@ public class Glide extends UGen {
 				if(gliding) {
 					if(countSinceGlide >= glideTime) {
 						gliding = false;
-						bufOut[i] = previousValue = targetValue;
+						bufOut[0][i] = previousValue = targetValue;
 					} else {
 						float offset = ((float)countSinceGlide / glideTime);
-						bufOut[i] = currentValue = offset * targetValue + (1f - offset) * previousValue;
+						bufOut[0][i] = currentValue = offset * targetValue + (1f - offset) * previousValue;
 						nothingChanged = false;
 					}
 					countSinceGlide++;
 				} else {
-					bufOut[i] = currentValue;
+					bufOut[0][i] = currentValue;
 				}
 			}
 		}
-	}
-	
-	public float getValue(int i, int j) {
-		return bufOut[j];
 	}
 
 	public static void main(String args[]) {

@@ -105,8 +105,10 @@ public class Envelope extends UGen {
         currentSegment = null;
         lock = false;
         unchanged = false;
-        outputInitializationRegime = OutputInitializationRegime.NULL;
+        outputInitializationRegime = OutputInitializationRegime.RETAIN;
+        outputPauseRegime = OutputPauseRegime.RETAIN;
         myBufOut = new float[bufferSize];
+        bufOut[0] = myBufOut;
     }
     
     /**

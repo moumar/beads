@@ -23,9 +23,9 @@ public class HowManySamplePlayers {
 		final Gain g = new Gain(ac, 2, 1f / NUM_OSCS);
 		for(int i = 0; i < NUM_OSCS; i++) {
 			SamplePlayer wp = new SamplePlayer(ac, s);
-//			wp.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
-//			wp.setKillOnEnd(false);
-//			wp.getRateEnvelope().setValue((float)Math.random() + 0.5f);
+			wp.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
+			wp.setKillOnEnd(false);
+			wp.getRateEnvelope().setValue((float)Math.random() + 0.5f);
 			g.addInput(wp);
 		}
 		ac.out.addInput(g);

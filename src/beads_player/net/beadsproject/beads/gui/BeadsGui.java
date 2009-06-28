@@ -57,10 +57,8 @@ public class BeadsGui {
 			public void actionPerformed(ActionEvent e) {
 				if(env.ac.isRunning()) {
 					env.ac.stop();
-//					audioButton.setText("Start");
 				} else {
 					env.ac.start();
-//					audioButton.setText("Stop");
 				}
 			}
 		});
@@ -72,10 +70,11 @@ public class BeadsGui {
 		songGrid.titledBorder("Song Parts");
 		environmentFrame.content.add(songGrid);
 		final Clock clock = (Clock)env.elements.get("master clock");
-		final Slider slider = new Slider(env.ac, "tempo", 1, 1000, 175);
+		final Slider slider = new Slider(env.ac, "tempo", -200, 1000, 175);
 		slider.storeValue(175f);
 		slider.storeValue(87.5f);
 		slider.storeValue(116.66666f);
+		slider.storeValue(-175f);
 		UGen tempoToInterval = new UGen(clock.getContext(), 1, 1) {
 			@Override
 			public void calculateBuffer() {

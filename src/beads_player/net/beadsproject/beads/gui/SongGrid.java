@@ -53,15 +53,17 @@ public class SongGrid extends BeadsPanel {
 		partPanel = new JComponent() {
 			private static final long serialVersionUID = 1L;
 			public void paintComponent(Graphics g) {
-				Graphics2D g2d = ((Graphics2D)g);
-				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-				g2d.setColor(Color.white);
-				g2d.fillRect(0, 0, getWidth(), getHeight());
-				g2d.setColor(Color.black);
+				g.setColor(Color.white);
+				g.fillRect(0, 0, getWidth(), getHeight());
 				int i = 1;
 				ArrayList<SongPart> partsCopy = (ArrayList<SongPart>)parts.clone();
 				for(SongPart sp : partsCopy) {
-					g2d.drawString(sp.getName(), 5, groupTextHeight + i++ * boxWidth - 4);
+					if(player.getCurrentGroup() != null && player.getCurrentGroup().contains(sp)) {
+						g.setColor(Color.black);
+					} else {
+						g.setColor(Color.gray);
+					}
+					g.drawString(sp.getName(), 5, groupTextHeight + i++ * boxWidth - 4);
 				}
 			}
 		};
@@ -84,7 +86,6 @@ public class SongGrid extends BeadsPanel {
 						}
 					} else {
 						if((e.getModifiers() & MouseEvent.CTRL_MASK) != 0) {
-							//TODO connect this SongPart to the element in the environment panel
 							//build a popup
 							JPopupMenu m = environmentPanel.getChannelsPathwaysPopupMenu(sp);
 							m.show(partPanel, e.getX(), e.getY());
@@ -156,6 +157,11 @@ public class SongGrid extends BeadsPanel {
 				ArrayList<SongGroup> groupsCopy = (ArrayList<SongGroup>)groups.clone();
 				for(SongGroup sg : groupsCopy) {
 					int j = 0;
+					if(sg == player.getCurrentGroup()) {
+						g.setColor(Color.lightGray);
+						g.fillRect(i * boxWidth, 0, boxWidth, getHeight());
+						g.setColor(Color.gray);
+					}
 					ArrayList<SongPart> partsCopy = (ArrayList<SongPart>)parts.clone();
 					for(SongPart sp : partsCopy) {
 						//draw a dot

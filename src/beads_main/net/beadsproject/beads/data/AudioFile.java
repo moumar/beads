@@ -304,8 +304,9 @@ public class AudioFile {
 //			System.out.println("length " + length);
 			if (length<0)
 			{
-				System.out.println("Beads cannot determine the duration of the file -- is it missing the duration tag?\n");
-				System.exit(1);
+				System.out.println("AudioFile cannot determine the duration of the file. Is it missing the duration tag?");
+//				System.exit(1); //Ollie -- anything but sysexit! Not good for gigs.
+				throw new UnsupportedAudioFileException("AudioFile cannot determine the duration of the file.");
 			}
 			else
 			{

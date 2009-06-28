@@ -33,6 +33,9 @@ public class GranularSamplePlayer extends SamplePlayer {
 
 	/** The randomness envelope. */
 	private UGen randomnessEnvelope;
+	
+	/** The random pan envelope. */
+	private UGen randomPanEnvelope;
 
 	/** The time in milliseconds since the last grain was activated. */
 	private float timeSinceLastGrain;
@@ -77,6 +80,9 @@ public class GranularSamplePlayer extends SamplePlayer {
 
 		/** The grain size of the grain. Fixed at instantiation. */
 		double grainSize;
+		
+		/** The pan level for each channel. Currently only 2 channel is supported. */
+		float[] pan;
 	}
 
 	/**
@@ -94,6 +100,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 		setGrainIntervalEnvelope(new Static(context, 70.0f));
 		setGrainSizeEnvelope(new Static(context, 100.0f));
 		setRandomnessEnvelope(new Static(context, 0.0f));
+		setRandomPanEnvelope(new Static(context, 0.0f));
 		setWindow(new CosineWindow().getDefault());
 		msPerSample = context.samplesToMs(1f);
 		loopInsideGrains = false;
@@ -195,6 +202,14 @@ public class GranularSamplePlayer extends SamplePlayer {
 		this.randomnessEnvelope = randomnessEnvelope;
 	}
 	
+	public UGen getRandomPanEnvelope() {
+		return randomPanEnvelope;
+	}
+
+	public void setRandomPanEnvelope(UGen randomPanEnvelope) {
+		this.randomPanEnvelope = randomPanEnvelope;
+	}
+
 	public synchronized void setBuffer(Sample buffer) {
 		super.setBuffer(buffer);
 		grains.clear();
@@ -224,6 +239,20 @@ public class GranularSamplePlayer extends SamplePlayer {
 		g.age = 0f;
 		g.grainSize = grainSizeEnvelope.getValue(0, time);
 	}   
+	
+	private void setGrainPan(Grain g, float panRandomness) {
+		g.pan = new float[outs];
+		if(outs == 2) {
+			float pan = (float)Math.random() * Math.min(1, Math.max(0, panRandomness)) * 0.5f;
+			pan = Math.random() < 0.5f ? 0.5f + pan : 0.5f - pan;
+			g.pan[0] = pan;
+			g.pan[1] = 1 - pan; //TODO proper pan eqution
+		} else {
+			for(int i = 0; i < outs; i++) {
+				g.pan[i] = 1f;
+			}
+		}
+	}
 
 	/** Flag to indicate special case for the first grain. */
 	private boolean firstGrain = true;
@@ -235,9 +264,11 @@ public class GranularSamplePlayer extends SamplePlayer {
 			g.startTime = -position / 2f;
 			g.position = position;
 			g.age = grainSizeEnvelope.getValue() / 2f;
+			
 			grains.add(g);
 			firstGrain = false;
 			timeSinceLastGrain = grainIntervalEnvelope.getValue() / 2f;
+			setGrainPan(g, randomPanEnvelope.getValue(0, 0));
 		}
 	}
 
@@ -259,21 +290,22 @@ public class GranularSamplePlayer extends SamplePlayer {
 			grainIntervalEnvelope.update();
 			grainSizeEnvelope.update();
 			randomnessEnvelope.update();
+			randomPanEnvelope.update();
 			firstGrain();
 			//now loop through the buffer
 			for (int i = 0; i < bufferSize; i++) {
 				//determine if we need a new grain
 				if (timeSinceLastGrain > grainIntervalEnvelope.getValue(0, i)) {
+					Grain g = null;
 					if(freeGrains.size() > 0) {
-						Grain g = freeGrains.get(0);
+						g = freeGrains.get(0);
 						freeGrains.remove(0);
-						resetGrain(g, i);
-						grains.add(g);
 					} else {
-						Grain g = new Grain();
-						resetGrain(g, i);
-						grains.add(g);
+						g = new Grain();
 					}
+					resetGrain(g, i);
+					setGrainPan(g, randomPanEnvelope.getValue(0, i));
+					grains.add(g);
 					timeSinceLastGrain = 0f;
 				}
 				//for each channel, start by resetting current output frame
@@ -309,7 +341,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 					}
 					//add it to the current output frame
 					for (int j = 0; j < outs; j++) {
-						bufOut[j][i] += windowScale * frame[j % buffer.getNumChannels()];
+						bufOut[j][i] += g.pan[j] * windowScale * frame[j % buffer.getNumChannels()];
 					}
 				}
 				//increment time and stuff
@@ -319,16 +351,17 @@ public class GranularSamplePlayer extends SamplePlayer {
 					Grain g = grains.get(gi);
 					calculateNextGrainPosition(g);
 				}
-				if (isPaused()) {
-					//make sure to zero the remaining outs
-					while(i < bufferSize) {
-						for (int j = 0; j < outs; j++) {
-							bufOut[j][i] = 0.0f;
-						}
-						i++;
-					}
-					break;
-				}
+				//Ollie - pretty sure we don't need this now that we have outputPauseRegime
+//				if (isPaused()) {
+//					//make sure to zero the remaining outs
+//					while(i < bufferSize) {
+//						for (int j = 0; j < outs; j++) {
+//							bufOut[j][i] = 0.0f;
+//						}
+//						i++;
+//					}
+//					break;
+//				}
 				//increment timeSinceLastGrain
 				timeSinceLastGrain += msPerSample;
 				//finally, see if any grains are dead
