@@ -3,6 +3,8 @@
  */
 package net.beadsproject.beads.data;
 
+import java.util.Hashtable;
+
 /**
  * Abstract base class for factories that generate {@link Buffer}s. Create subclasses of BufferFactory to generate different types of {@link Buffer}.
  * 
@@ -37,6 +39,11 @@ public abstract class BufferFactory {
 	 * @return the default Buffer.
 	 */
 	public final Buffer getDefault() {
+		if (Buffer.staticBufs==null)
+		{
+			Buffer.staticBufs = new Hashtable<String, Buffer>();
+		}
+		
 		String name = getName();
     	if(!Buffer.staticBufs.containsKey(name)) {
         	Buffer.staticBufs.put(name, generateBuffer(DEFAULT_BUFFER_SIZE));

@@ -35,7 +35,7 @@ public class Buffer implements Serializable {
 	/** 
 	 * A static storage area for common buffers, such as a sine wave. Used by {@link BufferFactory} to keep track of common buffers.
 	 */
-	public final static Hashtable<String, Buffer> staticBufs = new Hashtable<String, Buffer>();
+	public static Hashtable<String, Buffer> staticBufs = null; 
 	
 	/** 
 	 * The buffer data. 

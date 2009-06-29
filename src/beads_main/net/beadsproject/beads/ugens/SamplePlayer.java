@@ -3,18 +3,10 @@
  */
 package net.beadsproject.beads.ugens;
 
-import com.sun.tools.javac.code.Attribute.Array;
-
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.AudioUtils;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Sample;
-
-/*
- *  TODO: Sample Player has some redundancy when using using constant (or even linear) rate envelopes. For 
- *  example getFrame() is called twice as much as it should be when the rate is below one.
- *  
- */
 
 /**
  * SamplePlayer plays back a {@link Sample}. Playback rate and loop points can be controlled by {@link UGen}s. The playback point in the {@link Sample} can also be directly controlled from {@link UGen} to perform scrubbing. The player can be set to a number of different loop modes. If constructed with a {@link Sample} argument, the number of outputs of SamplePlayer is determined by the number of channels of the {@link Sample}. {@link Sample} playback can use either linear or cubic interpolation.

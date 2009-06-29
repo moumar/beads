@@ -8,6 +8,11 @@ import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
+/*
+ * Wraps some common audio analysis tasks.
+ * 
+ * @author ben
+ */
 public class AudioAnalyser extends UGen {
 	
 	ShortFrameSegmenter segmenter;
@@ -25,12 +30,12 @@ public class AudioAnalyser extends UGen {
 		
 		FFT fft = new FFT();
 		PowerSpectrum ps = new PowerSpectrum();
+		SpectralDifference sd = new SpectralDifference(ac.getSampleRate());
+		pd = new PeakDetector();
+		
 		segmenter.addListener(fft);
 		fft.addListener(ps);
-		
-		SpectralDifference sd = new SpectralDifference(ac.getSampleRate());
 		ps.addListener(sd);
-		pd = new PeakDetector();
 		sd.addListener(pd);
 	}
 	
