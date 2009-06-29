@@ -62,7 +62,7 @@ public class PeakDetector extends FeatureExtractor<Float, Float> implements Segm
 		valueAtOnset = 0;
 		threshold = 0;
 	}
-
+	
 	public void setThreshold(float thresh) {
 		baseThreshold = thresh;
 	}

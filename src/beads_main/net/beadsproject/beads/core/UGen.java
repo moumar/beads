@@ -653,6 +653,7 @@ public abstract class UGen extends Bead {
 		this.timerMode = timerMode;
 	}
 	
+	/// nanoseconds
 	public long getTimeTakenLastUpdate() {
 		return timeTakenLastUpdate;
 	}
