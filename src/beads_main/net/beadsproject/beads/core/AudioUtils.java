@@ -181,8 +181,6 @@ public final class AudioUtils {
 		}
 	}
 	
-	
-	
 	/**
 	 * De-interleave an interleaved buffer of floats to form a 2D array of
 	 * floats of size nChannels x nFrames.
@@ -344,7 +342,7 @@ public final class AudioUtils {
 		double realA = Math.max(0, Math.min(1, a));
 		final int x = (int) (Double.doubleToLongBits(realA) >> 32);  
 		final int y = (int) (b * (x - 1072632447) + 1072632447);  
-		return Double.longBitsToDouble(((long) y) << 32);  
+		return Math.max(0, Math.min(1, Double.longBitsToDouble(((long) y) << 32)));  
 	}  
 	
 	/**

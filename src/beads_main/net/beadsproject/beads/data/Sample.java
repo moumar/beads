@@ -683,8 +683,6 @@ public class Sample implements Runnable {
 							// copy all channels...
 							for(int i=0;i<nChannels;i++)
 							{
-								//System.out.printf("ch %d, region %d, numfloatstocopy %d, fdi %d\n", i, whichregion, numfloatstocopy, floatdataindex);
-								//System.out.printf("len(regionData[i])==%d, 0, len(frameData[i])==%d, floatdataindex==%d, numfloatstocopy==%d);\n",regionData[i].length,frameData[i].length,floatdataindex,numfloatstocopy);
 								System.arraycopy(regionData[i], 0, frameData[i], floatdataindex, numfloatstocopy);
 							}
 						}

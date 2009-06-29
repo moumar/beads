@@ -90,7 +90,6 @@ public class AudioContext {
 	 * default audio format is 44.1Khz, 16 bit, stereo, signed, bigEndian.
 	 */
 	public AudioContext() {
-		// use entirely default settings
 		this(DEFAULT_BUFFER_SIZE);
 	}
 
@@ -115,7 +114,7 @@ public class AudioContext {
 	 */
 	public AudioContext(int bufferSizeInFrames, int systemBufferSizeInFrames) {
 		// use almost entirely default settings
-		this(bufferSizeInFrames, systemBufferSizeInFrames, new AudioFormat(44100, 16, 2, true, true));
+		this(bufferSizeInFrames, systemBufferSizeInFrames, defaultAudioFormat(2));
 	}
 
 	/**
@@ -335,8 +334,9 @@ public class AudioContext {
 	}
 	
 	/**
-	 * Gets a buffer from the buffer reserve. This buffer will be owned by you until the next time step.
-	 * @return
+	 * Gets a buffer from the buffer reserve. This buffer will be owned by you until the next time step, and you shouldn't attempt to use it outside of the current time step. 
+	 * The length of the buffer is bufferSize, but there is no guarantee as to its contents. 
+	 * @return buffer of size bufSize, unknown contents.
 	 */
 	public float[] getBuf() {
 		if(bufStoreIndex < bufferStore.size()) {
@@ -349,12 +349,21 @@ public class AudioContext {
 		}
 	}
 	
+	/**
+	 * Gets a zero initialised buffer from the buffer reserve. This buffer will be owned by you until the next time step, and you shouldn't attempt to use it outside of the current time step. 
+	 * The length of the buffer is bufferSize, and the buffer is full of zeros. 
+	 * @return buffer of size bufSize, all zeros.
+	 */
 	public float[] getCleanBuf() {
 		float[] buf = getBuf();
 		Arrays.fill(buf, 0f);
 		return buf;
 	}
-	
+	/**
+	 * Gets a pointer to a buffer of length bufferSize, full of zeros. Changing the contents of this buffer would be completely disastrous. If you want a buffer of zeros that you can
+	 * actually do something with, use {@link getCleanBuf()}.
+	 * @return buffer of size bufSize, all zeros.
+	 */
 	public float[] getZeroBuf() {
 		return zeroBuf;
 	}
@@ -402,10 +411,13 @@ public class AudioContext {
 		}
 	}
 	
-	public void runForNSecondsNonRealTime(float n)
-	{
+	/**
+	 * Runs the AudioContext in non-realtime for n milliseconds (that's n non-realtime milliseconds).
+	 * @param n number of milliseconds.
+	 */
+	public void runForNMillisecondsNonRealTime(float n) {
 		//time the playback to n seconds
-		DelayTrigger dt = new DelayTrigger(this, n*1000f, new AudioContextStopTrigger(this));
+		DelayTrigger dt = new DelayTrigger(this, n, new AudioContextStopTrigger(this));
 		out.addDependent(dt);
 		runNonRealTime();		
 	}
@@ -491,6 +503,12 @@ public class AudioContext {
 		return newFormat;
 	}
 	
+	/**
+	 * Generates the default {@link AudioFormat} for AudioContext, with the given number of channels. The default values are: sampleRate=44100, 
+	 * sampleSizeInBits=16, signed=true, bigEndian=true.
+	 * @param numChannels the number of channels to use.
+	 * @return the generated AudioFormat.
+	 */
 	public static AudioFormat defaultAudioFormat(int numChannels) {
 		return new AudioFormat(44100, 16, numChannels, true, true);
 	}
@@ -569,9 +587,9 @@ public class AudioContext {
 	}
 	
 	/**
-	 * Get the runtime (in ms) since start() 
+	 * Get the runtime (in ms) since starting.
 	 */
-	public double getTime(){
+	public double getTime() {
 		return samplesToMs(getTimeStep()*getBufferSize());
 	}
 

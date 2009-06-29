@@ -12,7 +12,8 @@ import net.beadsproject.beads.data.buffers.SineBuffer;
 import net.beadsproject.beads.data.buffers.SquareBuffer;
 
 /**
- * A Buffer stores a one-dimensional buffer of floats for use as a wavetable or a window.
+ * A Buffer stores a one-dimensional buffer of floats for use as a wavetable or a window. Buffer does not perform any interpolation in this version, you should just make sure your buffer 
+ * is high-res enough for what you need. Could add interpolation easily if needed. 
  * 
  * @beads.category data
  * @see Sample BufferFactory
@@ -20,11 +21,16 @@ import net.beadsproject.beads.data.buffers.SquareBuffer;
  */
 public class Buffer implements Serializable {
 	
-	//TODO add linear and cubic interpolation
 	/**
 	 * Default serialVersionUID.
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	// A collection of default buffers, initialised for your convenience.
+	public static final Buffer SINE = new SineBuffer().getDefault();
+	public static final Buffer SAW = new SawBuffer().getDefault();
+	public static final Buffer SQUARE = new SquareBuffer().getDefault();
+	public static final Buffer NOISE = new NoiseBuffer().getDefault();
 
 	/** 
 	 * A static storage area for common buffers, such as a sine wave. Used by {@link BufferFactory} to keep track of common buffers.
@@ -57,7 +63,7 @@ public class Buffer implements Serializable {
 	}
 
 	/**
-	 * Returns the value of the buffer at a specific index.
+	 * Returns the value of the buffer at a specific index. If index is outside the range, then it is clipped to the ends.
 	 * 
 	 * @param index the index to inspect.
 	 * 
@@ -66,14 +72,7 @@ public class Buffer implements Serializable {
 	public float getValueIndex(int index) {
 		if(index < 0) index = 0;
 		if(index >= buf.length) index = buf.length - 1;
-//	       if(index < buf.length && index >= 0) 
-	        	return buf[index];
-//	        else return 0.0f;
+    	return buf[index];
 	}
 
-	// A collection of default buffers, initialised for your convenience.
-	public static final Buffer SINE = new SineBuffer().getDefault();
-	public static final Buffer SAW = new SawBuffer().getDefault();
-	public static final Buffer SQUARE = new SquareBuffer().getDefault();
-	public static final Buffer NOISE = new NoiseBuffer().getDefault();
 }

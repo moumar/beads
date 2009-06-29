@@ -25,11 +25,6 @@ import net.beadsproject.beads.analysis.FeatureSet;
  * @beads.category data
  */
 public class SampleManager {
-
-	/*
-	 * TODO perhaps SampleManager should run the thread that takes care of the data removal that is currently
-	 * running in Sample.
-	 */
 	
 	/** List of all Samples, indexed by name. */
 	private final static Map<String, Sample> samples = new TreeMap<String, Sample>();
@@ -192,6 +187,14 @@ public class SampleManager {
 		group(groupName, folderName, Integer.MAX_VALUE);
 	}
 	
+	/**
+	 * Generates a new group with the given group name and a string that
+	 * specifies where to load samples to be added to the group, and also limits the number of items loaded from the folder to maxItems. The string is interpreted firstly as a URL, and if that fails, as a folder path.
+	 * 
+	 * @param groupName the group name.
+	 * @param folderName the folder address (URL or file path).
+	 * @param maxItems number of items to limit to.
+	 */
 	public static void group(String groupName, String folderName, int maxItems) {
 		//first try interpreting the folderName as a system resource
 		File theDirectory = null;
@@ -226,6 +229,14 @@ public class SampleManager {
 		group(groupName, fileNameList, Integer.MAX_VALUE);
 	}
 	
+	/**
+	 * Generates a new group with the given group name and a list of file names
+	 * to be added to the group, with number of elements loaded limited to maxItems.
+	 * 
+	 * @param groupName the group name.
+	 * @param fileNameList the file name list.
+	 * @param maxItems number of items to limit to.
+	 */
 	public static void group(String groupName, String[] fileNameList, int maxItems) {
 		ArrayList<Sample> group;
 		if (!groups.keySet().contains(groupName)) {
