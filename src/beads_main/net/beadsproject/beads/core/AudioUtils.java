@@ -249,6 +249,86 @@ public final class AudioUtils {
 			}
 		}
 	}
+	
+	/**
+	 * "Stretches" source into dest. Linearly interpolates.
+	 * 
+	 * @param source
+	 * @param dest
+	 */
+	static final public void stretchBuffer(float[][] source, float[][] dest)
+	{
+		int numChannels = Math.min(source.length, dest.length);
+		// this many steps in source for one step in dest
+		double segStep = (source[0].length-1.0) / (dest[0].length-1.0);
+		
+		for (int ch=0; ch<numChannels; ch++)
+		{
+			float[] src = source[ch];
+			float[] dst = dest[ch];
+			
+			// trivial case
+			if (src.length==1 || dst.length==1)
+			{
+				dst[0] = src[0];
+				continue;
+			}			
+			
+			// each segment of src is considered a linear region that is interpolated to map onto dst,
+			// for each segment, only need to calculate the gradient once
+			// the first and last elements of src are mapped into the first and last elements of dst
+			dst[0] = src[0];
+			dst[dst.length-1] = src[src.length-1];
+			
+			/* algorithm:
+			 * step in dst
+			 * foreach element of dst figure out whether we are in a new segment of src
+			 * if so, recalculate the lerp data for that segment
+			 */
+			
+			// current segment data
+			int segment = -1; // current segment, initialised to nothing
+			double segstart = 0, segend = 0, seggrad = 0; // start, end, and gradient of current segment
+			
+			double fractionalSegment = 0;
+			
+			for(int i=1;i<dst.length-1;i++)		
+			{
+				// compute segment		
+				fractionalSegment += segStep;
+				int currentSegment = (int)Math.floor(fractionalSegment); 
+				if (currentSegment!=segment)
+				{
+					// new segment, so calculate lerp data
+					segment = currentSegment;
+					segstart = src[segment];
+					segend = src[segment+1];
+					seggrad = segend - segstart;
+				}
+				
+				// compute value from segstart, end, and grad
+				dst[i] = (float) (segstart + seggrad*(fractionalSegment - currentSegment));				
+			}						
+		}
+	}
+	
+	/**
+	 * Reverse the data in each channel.
+	 * @param buffer
+	 */
+	static final public void reverseBuffer(float[][] buffer)
+	{
+		for (float[] b: buffer)
+		{
+			for (int left=0, right=b.length-1; left<right; left++, right--) {
+			    // exchange the first and last
+			    float temp = b[left]; 
+			    b[left]  = b[right]; 
+			    b[right] = temp;
+			}
+		}
+	}
+	
 
 	/**
 	 * Does a freaky shortcut for calculating pow (limited to base with range 0-1), faster but less accurate than regular Math.pow(). 

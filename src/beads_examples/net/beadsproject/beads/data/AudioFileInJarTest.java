@@ -9,7 +9,6 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.ugens.SamplePlayer;
 
-
 public class AudioFileInJarTest {
 
 	public static void main(String[] args) throws Exception {

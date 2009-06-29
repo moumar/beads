@@ -3,11 +3,12 @@
  */
 package net.beadsproject.beads.ugens;
 
+import com.sun.tools.javac.code.Attribute.Array;
+
 import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.core.Bead;
+import net.beadsproject.beads.core.AudioUtils;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Sample;
-import net.beadsproject.beads.data.SampleManager;
 
 /*
  *  TODO: Sample Player has some redundancy when using using constant (or even linear) rate envelopes. For 
@@ -68,9 +69,17 @@ public class SamplePlayer extends UGen {
 		LOOP_ALTERNATING
 
 	};
+	
+	public static enum EnvelopeType {
+		/** Sample the controlling envelopes every buffer. Faster but only approximate. */
+		COARSE,
+	
+		/** Sample the controlling envelopes every frame. Better for more accurate work. */		
+		FINE		
+	}
 
 	/** The Sample. */
-	protected Sample buffer;            
+	protected Sample sample;            
 
 	/** The sample rate, determined by the Sample. */
 	protected float sampleRate;                 
@@ -89,6 +98,8 @@ public class SamplePlayer extends UGen {
 
 	/** Flag for alternating loop mode to determine if playback is in forward or reverse phase. */
 	protected boolean forwards;
+	
+	protected EnvelopeType envelopeType;
 
 	/** The interpolation type. */
 	protected InterpolationType interpolationType;
@@ -133,6 +144,7 @@ public class SamplePlayer extends UGen {
 		super(context, outs);
 		rateEnvelope = new Static(context, 1.0f);
 		positionEnvelope = null;
+		envelopeType = EnvelopeType.FINE;
 		interpolationType = InterpolationType.ADAPTIVE;
 		loopType = LoopType.NO_LOOP_FORWARDS;
 		forwards = true;
@@ -149,20 +161,26 @@ public class SamplePlayer extends UGen {
 	 */
 	public SamplePlayer(AudioContext context, Sample buffer) {
 		this(context, buffer.getNumChannels());
-		setBuffer(buffer);
+		setSample(buffer);
 		loopEndEnvelope.setValue(buffer.getLength());
 	}
 
 	/**
 	 * Sets the Sample.
-	 * 
-	 * @param buffer the new Sample.
 	 */
-	public void setBuffer(Sample buffer) {
-		this.buffer = buffer;
-		sampleRate = buffer.getSampleRate();
+	public void setSample(Sample sample) {
+		this.sample = sample;
+		sampleRate = sample.getSampleRate();
 		updatePositionIncrement();
-		frame = new float[buffer.getNumChannels()];
+		frame = new float[sample.getNumChannels()];
+	}
+	
+	/** 
+	 * @deprecated
+	 */
+	public void setBuffer(Sample s)
+	{
+		setSample(s);
 	}
 
 	/**
@@ -170,15 +188,22 @@ public class SamplePlayer extends UGen {
 	 * 
 	 * @return the Sample.
 	 */
+	public Sample getSample() {
+		return sample;		
+	}
+	
+	/** 
+	 * @deprecated
+	 */
 	public Sample getBuffer() {
-		return buffer;
+		return sample;
 	}
 
 	/**
 	 * Sets the playback position to the end of the Sample.
 	 */
 	public void setToEnd() {
-		position = buffer.getLength();
+		position = sample.getLength();
 	}
 
 	/**
@@ -276,6 +301,16 @@ public class SamplePlayer extends UGen {
 		positionIncrement = context.samplesToMs(sampleRate / context.getSampleRate());
 	}
 
+	public EnvelopeType getEnvelopeType()
+	{
+		return envelopeType;
+	}
+	
+	public void setEnvelopeType(EnvelopeType et)
+	{
+		envelopeType = et;
+	}	
+	
 	/**
 	 * Gets the interpolation type.
 	 * 
@@ -355,8 +390,8 @@ public class SamplePlayer extends UGen {
 	 * @param end the end value, as fraction of the Sample length.
 	 */
 	public void setLoopPointsFraction(float start, float end) {
-		loopStartEnvelope = new Static(context, start * (float)buffer.getLength());
-		loopEndEnvelope = new Static(context, end * (float)buffer.getLength());
+		loopStartEnvelope = new Static(context, start * (float)sample.getLength());
+		loopEndEnvelope = new Static(context, end * (float)sample.getLength());
 	}
 
 	/**
@@ -397,8 +432,8 @@ public class SamplePlayer extends UGen {
 	 * @see com.olliebown.beads.core.UGen#calculateBuffer()
 	 */
 	@Override
-	public void calculateBuffer() {
-		if(buffer != null) {
+	public void calculateBuffer(){
+		if(sample != null) {
 			if(positionEnvelope != null) {
 				positionEnvelope.update();
 			} else {
@@ -410,45 +445,145 @@ public class SamplePlayer extends UGen {
 				loopStartEnvelope.update();
 				loopEndEnvelope.update();
 			}
-			for (int i = 0; i < bufferSize; i++) {
-				//calculate the samples		
-				switch (interpolationType) {
-				case ADAPTIVE: 
-					if(rate > ADAPTIVE_INTERP_HIGH_THRESH) {
-						buffer.getFrameNoInterp(position, frame);
-					} else if(rate > ADAPTIVE_INTERP_LOW_THRESH) {
-						buffer.getFrameLinear(position, frame);
-					} else {
-						buffer.getFrameCubic(position, frame);
+			
+			// depending on the envelope type, we either copy whole chunks of data (COARSE), or step per frame (FINE)
+			if (envelopeType==EnvelopeType.COARSE)
+			{
+				// from the envelopes (if they exist)
+				// compute the position and rate
+				// and number of frames to get from Sample
+				
+				if (positionEnvelope != null)					
+				{
+					// use the first and last values in the current envelope
+					// and provide a linear interpolation between them
+					float startPosition = positionEnvelope.getValue(0,0);
+					float endPosition = positionEnvelope.getValue(0,bufferSize-1);
+					
+					long startPosInSamples = (long)(sample.msToSamples((float)startPosition));
+					long endPosInSamples = (long)(sample.msToSamples((float)endPosition));
+					
+					long numSamples = 1 + Math.abs(endPosInSamples - startPosInSamples);
+					
+					if (endPosInSamples >= startPosInSamples)
+					{
+						float[][] samples = new float[getOuts()][(int) numSamples];
+						sample.getFrames((int)startPosInSamples, samples);
+						AudioUtils.stretchBuffer(samples,bufOut);						
 					}
-					break;
-				case LINEAR:
-					buffer.getFrameLinear(position, frame);
-					break;
-				case CUBIC:
-					buffer.getFrameCubic(position, frame);
-					break;
-				case NONE:
-					buffer.getFrameNoInterp(position, frame);
-					break;
+					else // endPosInSamples < startPosInSamples (i.e., rate is negative)
+					{
+						float[][] samples = new float[getOuts()][(int) numSamples];
+						sample.getFrames((int)endPosInSamples, samples);
+						AudioUtils.reverseBuffer(samples);											
+						AudioUtils.stretchBuffer(samples,bufOut);						
+					}
+					
+					position = endPosition;					
+				}		
+				else // use the position variable and rate envelopes
+				{
+					// coarsely sample the rate envelope
+					rate = rateEnvelope.getValue(0, 0);
+					
+					switch(loopType) {
+						case NO_LOOP_FORWARDS:						
+						case NO_LOOP_BACKWARDS:
+						{
+							double normalisedRate = (loopType==LoopType.NO_LOOP_FORWARDS)?rate:-rate;
+							long numSamples = (long) (Math.abs(rate)*bufferSize);
+							double numMs = sample.samplesToMs(numSamples);
+							
+							boolean isPlayingForwards;
+							if (normalisedRate >= 0) // we are playing forwards
+							{
+								isPlayingForwards = true;
+								if (numMs+position > sample.getLength())
+								{	
+									numSamples = (long) sample.msToSamples(sample.getLength() - position);							
+								}	
+							}
+							else // playing backwards
+							{
+								isPlayingForwards = false;
+								if (position-numMs < 0)
+								{	
+									numSamples = (long) sample.msToSamples(position);							
+								}
+							}							
+							
+							if (numSamples<=0)
+								return;
+							float[][] frames = new float[outs][(int) numSamples];
+							
+							if (isPlayingForwards)
+							{							
+								sample.getFrames((int)sample.msToSamples(position), frames);
+								position += numMs;
+							}
+							else
+							{
+								sample.getFrames((int)(sample.msToSamples(position)-numSamples), frames);
+								AudioUtils.reverseBuffer(frames);
+								position -= numMs;
+							}
+							
+							AudioUtils.stretchBuffer(frames,bufOut);
+													
+							if(position > sample.getLength() || position < 0) atEnd();
+							break;
+						}		
+						default:
+						{
+							System.out.println("COARSE looping is not implemented yet. Killing SamplePlayer...");
+							kill();
+						}
+					}
+										
+				}				
+			}
+			else  // envelopeType==EnvelopeType.FINE
+			{			
+				for (int i = 0; i < bufferSize; i++) {
+					//calculate the samples		
+					switch (interpolationType) {
+					case ADAPTIVE: 
+						if(rate > ADAPTIVE_INTERP_HIGH_THRESH) {
+							sample.getFrameNoInterp(position, frame);
+						} else if(rate > ADAPTIVE_INTERP_LOW_THRESH) {
+							sample.getFrameLinear(position, frame);
+						} else {
+							sample.getFrameCubic(position, frame);
+						}
+						break;
+					case LINEAR:
+						sample.getFrameLinear(position, frame);
+						break;
+					case CUBIC:
+						sample.getFrameCubic(position, frame);
+						break;
+					case NONE:
+						sample.getFrameNoInterp(position, frame);
+						break;
+					}
+					for (int j = 0; j < outs; j++) {
+						bufOut[j][i] = frame[j % sample.getNumChannels()];
+					}
+					//update the position, loop state, direction
+					calculateNextPosition(i);
+					//if the SamplePlayer gets paused or deleted, zero the remaining outs and quit the loop
+					//Ollie - pretty sure we don't need this now that we have outputPauseRegime
+	//				if(isPaused() || isDeleted()) {
+	//					//make sure to zero the remaining outs
+	//					while(i < bufferSize) {
+	//						for (int j = 0; j < outs; j++) {
+	//							bufOut[j][i] = 0.0f;
+	//						}
+	//						i++;
+	//					}
+	//					break;
+	//				}
 				}
-				for (int j = 0; j < outs; j++) {
-					bufOut[j][i] = frame[j % buffer.getNumChannels()];
-				}
-				//update the position, loop state, direction
-				calculateNextPosition(i);
-				//if the SamplePlayer gets paused or deleted, zero the remaining outs and quit the loop
-				//Ollie - pretty sure we don't need this now that we have outputPauseRegime
-//				if(isPaused() || isDeleted()) {
-//					//make sure to zero the remaining outs
-//					while(i < bufferSize) {
-//						for (int j = 0; j < outs; j++) {
-//							bufOut[j][i] = 0.0f;
-//						}
-//						i++;
-//					}
-//					break;
-//				}
 			}
 		}
 	}
@@ -501,11 +636,11 @@ public class SamplePlayer extends UGen {
 			switch(loopType) {
 			case NO_LOOP_FORWARDS:
 				position += positionIncrement * rate;
-				if(position > buffer.getLength() || position < 0) atEnd();
+				if(position > sample.getLength() || position < 0) atEnd();
 				break;
 			case NO_LOOP_BACKWARDS:
 				position -= positionIncrement * rate;
-				if(position > buffer.getLength() || position < 0) atEnd();
+				if(position > sample.getLength() || position < 0) atEnd();
 				break;
 			case LOOP_FORWARDS:
 				loopStart = loopStartEnvelope.getValue(0, i);

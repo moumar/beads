@@ -3,10 +3,12 @@ package net.beadsproject.beads.data;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -366,6 +368,18 @@ public class Sample implements Runnable {
 		this();
 		setFile(filename);
 	}
+	
+	/**
+	 * Create a sample from an input stream. This constructor immediately loads the entire audio file into memory.
+	 * 
+	 * @throws UnsupportedAudioFileException 
+	 * @throws IOException 
+	 */
+	public Sample(InputStream is) throws IOException, UnsupportedAudioFileException
+	{    	
+		this();
+		setFile(is);
+	}
 
 	/**
 	 * Create a sample from an Audio File, using the default buffering scheme. 
@@ -403,6 +417,19 @@ public class Sample implements Runnable {
 		this();
 		setBufferingRegime(r);
 		setFile(filename);
+	}
+	
+	/**
+	 * Create a sample from a file, using the buffering scheme suggested.
+	 * 
+	 * @throws UnsupportedAudioFileException 
+	 * @throws IOException 
+	 */
+	public Sample(InputStream is, Regime r) throws IOException, UnsupportedAudioFileException
+	{    	
+		this();
+		setBufferingRegime(r);
+		setFile(is);
 	}
 
 	/**
@@ -584,7 +611,7 @@ public class Sample implements Runnable {
 	 * 
 	 * If the data is not readily available this function blocks until it is.
 	 * 
-	 * @param frame
+	 * @param frame The frame number (NOTE: This parameter is in frames, not in ms!)
 	 * @param frameData
 	 */
 	public void getFrames(int frame, float[][] frameData)
@@ -620,16 +647,16 @@ public class Sample implements Runnable {
 				return;
 			}	
 			
-			int numFloats = Math.min(frameData[0].length,(int)(nFrames-frame))*nChannels;
+			int numFloats = Math.min(frameData[0].length,(int)(nFrames-frame));			
 
 			float[] floatdata = null;
 			if (bufferingRegime.storeInNativeBitDepth)
-				floatdata = new float[numFloats];
+				floatdata = new float[numFloats*nChannels];
 
 			// fill floatdata with successive regions of byte data
-			int floatdataindex = 0;			
+			int floatdataindex = 0;
 			int regionindex = frame % r_regionSize;
-			int numfloatstocopy = Math.min(r_regionSize - regionindex,numFloats - floatdataindex);
+			int numfloatstocopy = Math.min(r_regionSize - regionindex, numFloats - floatdataindex);
 
 			while (numfloatstocopy>0)
 			{
@@ -656,6 +683,8 @@ public class Sample implements Runnable {
 							// copy all channels...
 							for(int i=0;i<nChannels;i++)
 							{
+								//System.out.printf("ch %d, region %d, numfloatstocopy %d, fdi %d\n", i, whichregion, numfloatstocopy, floatdataindex);
+								//System.out.printf("len(regionData[i])==%d, 0, len(frameData[i])==%d, floatdataindex==%d, numfloatstocopy==%d);\n",regionData[i].length,frameData[i].length,floatdataindex,numfloatstocopy);
 								System.arraycopy(regionData[i], 0, frameData[i], floatdataindex, numfloatstocopy);
 							}
 						}
@@ -666,12 +695,16 @@ public class Sample implements Runnable {
 				}
 				floatdataindex += numfloatstocopy;
 				regionindex = 0;				
-				numfloatstocopy = Math.min(r_regionSize,numFloats - floatdataindex);				
+				numfloatstocopy = Math.min(r_regionSize, numFloats - floatdataindex);				
 				whichregion++;
 			}
 
-			// deinterleave the whole thing			
-			AudioUtils.deinterleave(floatdata,nChannels,frameData[0].length,frameData);
+			if (bufferingRegime.storeInNativeBitDepth)
+			{
+				// deinterleave the whole thing			
+				AudioUtils.deinterleave(floatdata,nChannels,frameData[0].length,frameData);
+			}
+		
 		}
 	}	
 	
@@ -979,7 +1012,7 @@ public class Sample implements Runnable {
 	 * @return the file path.
 	 */
 	public String getFileName() {
-		return audioFile.file.getAbsolutePath();
+		return audioFile.getName();
 	}
 
 
@@ -989,7 +1022,8 @@ public class Sample implements Runnable {
 	 * @return the file name.
 	 */
 	public String getSimpleFileName() {
-		return audioFile.file.getName();
+		return getFileName();
+		//return audioFile.file.getName();
 	}
 
 	public AudioFile getAudioFile() {
@@ -1069,6 +1103,18 @@ public class Sample implements Runnable {
 	private void setFile(String file) throws IOException, UnsupportedAudioFileException
 	{
 		audioFile = new AudioFile(file);
+		setFile(audioFile);
+	}
+	
+	/**
+	 * Specify an audio file that the Sample reads from.
+	 * 
+	 * If BufferedRegime is TOTAL, this will block until the sample is loaded.
+	 * 
+	 */
+	private void setFile(InputStream is) throws IOException, UnsupportedAudioFileException
+	{
+		audioFile = new AudioFile(is);
 		setFile(audioFile);
 	}
 
@@ -1190,7 +1236,7 @@ public class Sample implements Runnable {
 			isScheduled = false;
 			
 			if (regionMaster==null)
-				regionMaster = Executors.newFixedThreadPool(1);
+				regionMaster = Executors.newFixedThreadPool(1, new ThreadFactory(){public Thread newThread(Runnable r){Thread t = new Thread(r); t.setDaemon(true); return t;}});
 		}
 	}
 

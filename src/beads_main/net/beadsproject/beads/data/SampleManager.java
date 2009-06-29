@@ -5,6 +5,7 @@ package net.beadsproject.beads.data;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -72,6 +73,34 @@ public class SampleManager {
 		}
 		return sample;
 	}
+	
+	/**
+	 * Returns a new Sample from the given filename. If the Sample has already
+	 * been loaded, it will not be loaded again, but will simply be retrieved
+	 * from the static repository.
+	 * 
+	 * @param fn the file path.
+	 * 
+	 * @return the sample.
+	 */
+	public static Sample sample(InputStream is) {
+		Sample sample = samples.get(is.toString());
+		if (sample == null) {
+			try {
+				if (nextBufferingRegime!=null)
+					sample = new Sample(is,nextBufferingRegime);
+				else
+					sample = new Sample(is);
+				samples.put(is.toString(), sample);
+				if(verbose) System.out.println("Loaded " + is.toString());
+			} catch (UnsupportedAudioFileException e) {
+				 e.printStackTrace();
+			} catch (IOException e) {
+				 e.printStackTrace();
+			}
+		}
+		return sample;
+	}
 
 	/**
 	 * Adds a sample by name to the sample list. This lets you load samples with a different buffering regime.
@@ -82,7 +111,7 @@ public class SampleManager {
 		if (samples.get(name) == null) {
 			samples.put(name, sample);
 		}
-	}
+	}	
 	
 	/**
 	 * Like {@link SampleManager#sample(String)} but with the option to specify the name with which this {@link Sample} is indexed.
@@ -103,6 +132,29 @@ public class SampleManager {
 				sample = new Sample(fn);
 			samples.put(ref, sample);
 			if(verbose) System.out.println("Loaded " + fn);
+		}
+		return sample;
+	}
+	
+	/**
+	 * Like {@link SampleManager#sample(String)} but with the option to specify the name with which this {@link Sample} is indexed.
+	 * 
+	 * @param ref the name with which to index this Sample.
+	 * @param fn the file path.
+	 * 
+	 * @return the sample.
+	 * @throws IOException 
+	 * @throws UnsupportedAudioFileException 
+	 */
+	public static Sample sample(String ref, InputStream is) throws UnsupportedAudioFileException, IOException {
+		Sample sample = samples.get(ref);
+		if (sample == null) {
+			if (nextBufferingRegime!=null)
+				sample = new Sample(is,nextBufferingRegime);
+			else
+				sample = new Sample(is);
+			samples.put(ref, sample);
+			if(verbose) System.out.println("Loaded " + ref);
 		}
 		return sample;
 	}

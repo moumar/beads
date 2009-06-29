@@ -279,7 +279,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 	public synchronized void calculateBuffer() {
 		//special condition for first grain
 		//update the various envelopes
-		if(buffer != null) {
+		if(sample != null) {
 			rateEnvelope.update();
 			if(positionEnvelope != null) {
 				positionEnvelope.update();
@@ -322,26 +322,26 @@ public class GranularSamplePlayer extends SamplePlayer {
 					switch (interpolationType) {
 					case ADAPTIVE: 
 						if(pitch > ADAPTIVE_INTERP_HIGH_THRESH) {
-							buffer.getFrameNoInterp(g.position, frame);
+							sample.getFrameNoInterp(g.position, frame);
 						} else if(pitch > ADAPTIVE_INTERP_LOW_THRESH) {
-							buffer.getFrameLinear(g.position, frame);
+							sample.getFrameLinear(g.position, frame);
 						} else {
-							buffer.getFrameCubic(g.position, frame);
+							sample.getFrameCubic(g.position, frame);
 						}
 						break;
 					case LINEAR:
-						buffer.getFrameLinear(g.position, frame);
+						sample.getFrameLinear(g.position, frame);
 						break;
 					case CUBIC:
-						buffer.getFrameCubic(g.position, frame);
+						sample.getFrameCubic(g.position, frame);
 						break;
 					case NONE:
-						buffer.getFrameNoInterp(g.position, frame);
+						sample.getFrameNoInterp(g.position, frame);
 						break;
 					}
 					//add it to the current output frame
 					for (int j = 0; j < outs; j++) {
-						bufOut[j][i] += g.pan[j] * windowScale * frame[j % buffer.getNumChannels()];
+						bufOut[j][i] += g.pan[j] * windowScale * frame[j % sample.getNumChannels()];
 					}
 				}
 				//increment time and stuff
