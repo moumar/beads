@@ -8,7 +8,8 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.buffers.HanningWindow;
 
 /**
- * An AudioSegmenter that sends slices of audio in response to messages from a SegmentMaker.
+ * An AudioSegmenter that sends slices of audio in response to messages from a SegmentMaker. EXPERIMENTAL.
+ * 
  * @author ollie
  *
  */

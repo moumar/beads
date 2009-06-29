@@ -268,7 +268,7 @@ public class AudioContext {
 				System.out.println(samplesToMs(timeStep * bufferSizeInFrames) / 1000f + " (seconds)");
 			}
 		}
-//		//do this to clear the buffer (should get rid of buzz)
+//		//try this to clear the buffer (should get rid of buzz)
 //		Arrays.fill(interleavedOutput, 0f);
 //		AudioUtils.floatToByte(bbuf, interleavedOutput,
 //				audioFormat.isBigEndian());
@@ -323,6 +323,9 @@ public class AudioContext {
 	}
 	*/
 	
+	/**
+	 * Sets up the reserve of buffers. 
+	 */
 	private void setupBufs() {
 		bufferStore = new ArrayList<float[]>();
 		while(bufferStore.size() < maxReserveBufs) {
@@ -331,6 +334,10 @@ public class AudioContext {
 		zeroBuf = new float[bufferSizeInFrames];
 	}
 	
+	/**
+	 * Gets a buffer from the buffer reserve. This buffer will be owned by you until the next time step.
+	 * @return
+	 */
 	public float[] getBuf() {
 		if(bufStoreIndex < bufferStore.size()) {
 			return bufferStore.get(bufStoreIndex++);

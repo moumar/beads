@@ -56,6 +56,10 @@ public abstract class UGen extends Bead {
 	/** Counter to track of whether this UGen has been updated at this timeStep (determined by {@link AudioContext}). */
 	private long lastTimeStep;
 	
+	private boolean timerMode;
+	private long timeTakenLastUpdate;
+	private long timeTemp;
+	
 	/** Used to determine how a UGen sets its outputs up before calculateBuffer() is called. */
 	protected enum OutputInitializationRegime {ZERO, NULL, JUNK, RETAIN};
 	protected OutputInitializationRegime outputInitializationRegime;
@@ -98,6 +102,8 @@ public abstract class UGen extends Bead {
 		lastTimeStep = -1;
 		outputInitializationRegime = OutputInitializationRegime.JUNK;
 		outputPauseRegime = OutputPauseRegime.ZERO;
+		timerMode = false;
+		timeTemp = 0;
 		setIns(ins);
 		setOuts(outs);
 		setContext(context);
@@ -326,12 +332,18 @@ public abstract class UGen extends Bead {
 	public void update() {
 		if(!isPaused()) {
 			if (!isUpdated()) {
+				if(timerMode) {
+					timeTemp = System.currentTimeMillis();
+				}
 				lastTimeStep = context.getTimeStep(); // do this first to break call chain loops
 				pullInputs();
 				//this sets up the output buffers - default behaviour is to use dirty buffers from the AudioContexts
 				//buffer reserve. Override this function to get another behaviour.
 				initializeOuts();
 				calculateBuffer();
+				if(timerMode) {
+					timeTakenLastUpdate = System.currentTimeMillis() - timeTemp;
+				}
 			} 
 			//by the time we get here, we might have been paused. If so then initialize outs
 			//problem: at the moment we're zeroing outs, but this is not always ideal
@@ -588,6 +600,18 @@ public abstract class UGen extends Bead {
 			setOutsToPause();
 		}
 		super.pause(paused);
+	}
+	
+	public boolean isTimerMode() {
+		return timerMode;
+	}
+	
+	public void setTimerMode(boolean timerMode) {
+		this.timerMode = timerMode;
+	}
+	
+	public long getTimeTakenLastUpdate() {
+		return timeTakenLastUpdate;
 	}
 
 	/**

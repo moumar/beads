@@ -6,11 +6,16 @@ package net.beadsproject.beads.analysis;
 import java.util.ArrayList;
 import java.util.List;
 import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.core.Bead;
-import net.beadsproject.beads.core.BeadArray;
 import net.beadsproject.beads.core.TimeStamp;
 import net.beadsproject.beads.core.UGen;
 
+/**
+ * An AudioSegmenter slices incoming audio data into chunks, as implemented by subclasses, usually in their calculateBuffer method, and then notifies any FeatureExtractors or
+ * other SegmentListeners that are listening. 
+ * 
+ * @author ollie
+ *
+ */
 public abstract class AudioSegmenter extends UGen implements SegmentMaker {
 	
 	/** The set of FeatureExtractors that respond to this Segmenter. */

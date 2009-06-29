@@ -138,6 +138,13 @@ public class FeatureFrame implements Serializable, Comparable<FeatureFrame> {
 		return result;
 	}
 
+	/**
+	 * Returns -1, 0 or 1 as required by Java's {@link Comparator} interface, using the frame's start time as the thing to compare.
+	 *
+	 * @param other the FeatureFrame to compare to.
+	 * 
+	 * @return -1 if this FeatureFrame starts before the other, 1 if other starts before this, or 0 if they have the same start time.
+	 */
 	public int compareTo(FeatureFrame other) {
 		if(startTimeMS < other.startTimeMS) return -1;
 		if(startTimeMS > other.startTimeMS) return 1;

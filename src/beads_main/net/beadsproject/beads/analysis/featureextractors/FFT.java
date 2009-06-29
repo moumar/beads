@@ -75,7 +75,9 @@ public class FFT extends FeatureExtractor<float[][], float[]>  {
 		return blockSize*freq/samplingFrequency;
 	}
 	
-	/** The nyquist frequency of this samplingFrequency 
+	/** The nyquist frequency for this samplingFrequency 
+	 * 
+	 * @params samplingFrequency the sample
 	 */
 	public static float nyquist(float samplingFrequency)
 	{

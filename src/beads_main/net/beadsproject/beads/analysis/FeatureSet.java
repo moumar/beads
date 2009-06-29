@@ -6,15 +6,28 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Hashtable;
-
 import net.beadsproject.beads.data.Sample;
 
-
+/**
+ * FeatureSet is a set of named {@link FeatureTrack}s associated with some audio data. FeatureSet provides methods for
+ * reading and writing feature data to/from files.
+ */
 public class FeatureSet {
 
+	/** The tracks. */
 	private Hashtable<String, FeatureTrack> tracks;
+	
+	/** The file. */
 	private File file;
 
+	/**
+	 * Tries to locate the FeatureSet for the given {@link Sample}. Assumes that the features are stored in a file next to the Sample's file
+	 * but with the ending ".features". 
+	 * 
+	 * @param s the Sample
+	 * 
+	 * @return the FeatureSet or null if unsuccessful.
+	 */
 	public static FeatureSet forSample(Sample s) {
 		String sampleFilePath = s.getFileName();
 		FeatureSet fs = null;
@@ -30,24 +43,58 @@ public class FeatureSet {
 		}
 		return fs;
 	}
+
+	/**
+	 * Instantiates a new empty FeatureSet.
+	 */
+	public FeatureSet() {
+		tracks = new Hashtable<String, FeatureTrack>();
+	}
 	
+	/**
+	 * Instantiates a new FeatureSet from the given file.
+	 * 
+	 * @param file the File.
+	 */
 	public FeatureSet(File file) {
 		this();
 		read(file);
 	}
 	
-	public FeatureSet() {
-		tracks = new Hashtable<String, FeatureTrack>();
-	}
-	
+	/**
+	 * Gets the {@link FeatureTrack} with the given name.
+	 * 
+	 * @param trackName the track name.
+	 * 
+	 * @return the FeatureTrack, or null if unsuccessful.
+	 */
 	public FeatureTrack get(String trackName) {
 		return tracks.get(trackName);
 	}
 	
+	/**
+	 * Adds the given {@link FeatureTrack} with the given name, writing over a previously stored {@link FeatureTrack} with the same name.
+	 * 
+	 * @param trackName the track name.
+	 * @param track the track.
+	 */
 	public void add(String trackName, FeatureTrack track) {
 		tracks.put(trackName, track);
 	}
 	
+	/**
+	 * Returns true if this FeatureSet stores a track with the given name.
+	 * 
+	 * @param trackName name to check.
+	 * @return true if track name is found.
+	 */
+	public boolean contains(String trackName) {
+		return tracks.containsKey(trackName);
+	}
+	
+	/**
+	 * Writes to a file. Assumes file has already been specified by {@link write(File)} or {@link new FeatureSet(File)}.
+	 */
 	public void write() {
 		try {
 			FileOutputStream fos = new FileOutputStream(file);
@@ -60,11 +107,19 @@ public class FeatureSet {
 		}
 	}
 	
+	/**
+	 * Reads data from the given file. Retains file ref for future use.
+	 * 
+	 * @param file the file
+	 */
 	private void read(File file) {
 		this.file = file;
 		read();
 	}
 	
+	/**
+	 * Reads data from given file. Assumes file ref already exists.
+	 */
 	@SuppressWarnings("unchecked")
 	private void read() {
 		if(file.exists()) {
@@ -80,15 +135,28 @@ public class FeatureSet {
 		}
 	}
 	
+	/**
+	 * Rereads the data from the stored file. Assumes the file has been specified in the constructor.
+	 */
 	public void refresh() {
 		read();
 	}
 	
+	/**
+	 * Writes the data to the given {@link File} and keeps the file ref for future use.
+	 * 
+	 * @param file the file.
+	 */
 	public void write(File file) {
 		this.file = file;
 		write();
 	}
 	
+	/**
+	 * Writes the data to the named file, and keeps a file ref for future use.
+	 * 
+	 * @param fn the file name.
+	 */
 	public void write(String fn) {
 		write(new File(fn));
 	}

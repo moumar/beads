@@ -24,7 +24,7 @@ public class Clock extends UGen implements IntegerBead {
     private double point;
     
     /** The current tick count of the clock. */
-    private int count;
+    private long count;
 
     /** The number of ticks per beat of the clock. */
     private int ticksPerBeat;
@@ -123,7 +123,7 @@ public class Clock extends UGen implements IntegerBead {
      * 
      * @return the tick count.
      */
-    public int getCount() {
+    public long getCount() {
         return count;
     }
 
@@ -188,7 +188,7 @@ public class Clock extends UGen implements IntegerBead {
 	 * @see com.olliebown.beads.events.IntegerBead#getInt()
 	 */
 	public int getInt() {
-		return getCount();
+		return (int)getCount();
 	}
 
 	/**
@@ -235,7 +235,7 @@ public class Clock extends UGen implements IntegerBead {
 	 * @return the current beat count.
 	 */
 	public int getBeatCount() {
-		return count / ticksPerBeat;
+		return (int)(count / ticksPerBeat);
 	}
 
 }

@@ -122,7 +122,7 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	public FeatureFrame getFrameBefore(double timeMS) {
 		FeatureFrame ff = getFrameAt(timeMS);
 		if(ff == null) ff = frames.last();
-		return ff;	//TODO testme
+		return ff;
 	}
 	
 	/**
@@ -135,7 +135,8 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	}
 	
 	/**
-	 * Adds a new FeatureExtractor.
+	 * Adds a new {@link FeatureExtractor}. When {@link newSegment()} is called, the FeatureTrack creates a new {@link FeatureFrame}
+	 * with the given start and end times and adds the data from all of its {@link FeatureExtractor}s to the {@link FeatureFrame}.
 	 * 
 	 * @param e the FeatureExtractor.
 	 */
@@ -153,8 +154,8 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	}
 	
 	/**
-	 * Tells this FeatureTrack to log a new FeatureFrame with the given startTime and endTime. The FeatureTrack
-	 * will gather features from its various feature extractors at this point.
+	 * Tells this FeatureTrack to log a new {@link FeatureFrame}, with the given startTime and endTime. The FeatureTrack
+	 * will gather features from its various {@link FeatureExtractor}s at this point.
 	 */
 	public void newSegment(TimeStamp startTime, TimeStamp endTime) {
 		FeatureFrame ff = new FeatureFrame(startTime.getTimeMS(), endTime.getTimeMS());
@@ -189,15 +190,15 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 		add(ff);
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Iterable#iterator()
+	/**
+	 * Returns an iterator over the {@link FeatureFrame}s.
 	 */
 	public Iterator<FeatureFrame> iterator() {
 		return frames.iterator();
 	}
 
 	/**
-	 * Returns the number of FeatureFrames stored in this FeatureTrack.
+	 * Returns the number of {@link FeatureFrame}s stored in this FeatureTrack.
 	 * 
 	 * @return number of FeatureFrames.
 	 */
