@@ -623,7 +623,7 @@ public class AudioContext {
 	 * @see Sample sample
 	 **/
 	public void record(double timeMS, String filename) throws IOException {
-		Sample s = new Sample(getAudioFormat(), (int)msToSamples(timeMS));
+		Sample s = new Sample(getAudioFormat(), (int)timeMS);
 		Recorder r;
 		try {
 			r = new Recorder(this, s);
