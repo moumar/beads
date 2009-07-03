@@ -362,8 +362,7 @@ public abstract class UGen extends Bead {
 					timeTakenLastUpdate = System.nanoTime() - timeTemp;
 				}
 			} 
-			//by the time we get here, we might have been paused. If so then initialize outs
-			//problem: at the moment we're zeroing outs, but this is not always ideal
+			//by the time we get here, we might have been paused. If so then initialize outs using the pause regime.
 			if(isPaused()) setOutsToPause();
 		} 
 	}

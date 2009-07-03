@@ -163,10 +163,12 @@ public class SampleManager {
 	 */
 	public static void group(String groupName, Sample[] sampleList) {
 		ArrayList<Sample> group;
-		if (!groups.keySet().contains(groupName))
+		if (!groups.keySet().contains(groupName)) {
 			group = new ArrayList<Sample>();
-		else
+			groups.put(groupName, group);
+		} else {
 			group = groups.get(groupName);
+		}
 		for (int i = 0; i < sampleList.length; i++) {
 			if (!group.contains(sampleList[i]))
 				group.add(sampleList[i]);

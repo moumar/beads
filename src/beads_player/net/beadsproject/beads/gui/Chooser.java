@@ -17,6 +17,8 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+
+import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.SampleManager;
 import net.beadsproject.beads.play.InterfaceElement;
 
@@ -188,10 +190,23 @@ public class Chooser implements InterfaceElement {
 		return label;
 	}
 	
-	public void setChoice(int choice) {
-		this.choice = choice;
-		if(listener != null) listener.choice(elements.get(choice));
+	public void setChoice(int c) {
+		choice = c;
+		if(choice >= elements.size()) {
+			choice = elements.size() - 1;
+		}
+		if(listener != null && choice != -1) listener.choice(elements.get(choice));
 		if(component != null) component.repaint();
+	}
+	
+	public void setChoice(String group) {
+		if(elements.contains(group)) {
+			int i = 0;
+			for(; i < elements.size(); i++) {
+				if(elements.get(i).equals(group)) break;
+			}
+			setChoice(i);
+		}
 	}
 	
 	public String getChoice() {
@@ -239,6 +254,29 @@ public class Chooser implements InterfaceElement {
 		c.refreshList();
 		c.setChoice(0);
 		return c;
+	}
+	
+	public static Chooser sampleChooserFromGroupChooser(final Chooser groupChooser) {
+		final Chooser fileChooser = new Chooser("file") {
+			public void refreshList() {
+				clear();
+				String groupName = groupChooser.getChoice();
+				ArrayList<Sample> samples = SampleManager.getGroup(groupName);
+				for(Sample s : samples) {
+					add(s.getSimpleFileName());
+				}
+				repaint();
+			}
+		};
+		groupChooser.setListener(new Chooser.ChooserListener() {
+			public void choice(String s) {
+				fileChooser.refreshList();
+				fileChooser.setChoice(fileChooser.choice);
+			}
+		});
+		fileChooser.refreshList();
+		fileChooser.setChoice(0);
+		return fileChooser;
 	}
 
 }

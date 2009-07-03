@@ -84,7 +84,7 @@ public class Slider extends Envelope implements InterfaceElement {
 	 *            the value
 	 */
 	public Slider(AudioContext context, String nam, float min, float max, float val) {
-		this(context, nam, min, max, val, true);
+		this(context, nam, min, max, val, false);
 	}
 	
 	public Slider(AudioContext context, String nam, float min, float max, float val, boolean log) {

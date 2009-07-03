@@ -14,7 +14,8 @@ public class SamplePlayerExample {
     	// SampleManager.setBufferingRegime(reg);
     	//reg = new Sample.TimedRegime(100,0,0,-1, Sample.TimedRegime.Order.ORDERED);
     	
-    	Sample s1 = SampleManager.sample("audio/1234.aif");
+//    	Sample s1 = SampleManager.sample("audio/1234.aif");
+    	Sample s1 = SampleManager.sample("/Users/ollie/Music/Audio/Albert Breaks/rud208 1.aiff");
     	s1.getAudioFile().trace = true;
     	// Sample s1 = SampleManager.sample("../BeadsTests/audio/gammaBrosTheme.mp3");
     	System.out.println(s1.getLength());
@@ -24,12 +25,12 @@ public class SamplePlayerExample {
     	sp.setKillListener(new AudioContextStopTrigger(ac));
     	
     	//sp.setInterpolationType(SamplePlayer.InterpolationType.CUBIC);
-    	sp.setInterpolationType(SamplePlayer.InterpolationType.LINEAR);
-    	sp.setEnvelopeType(SamplePlayer.EnvelopeType.COARSE);
+    	sp.setInterpolationType(SamplePlayer.InterpolationType.CUBIC);
+//    	sp.setEnvelopeType(SamplePlayer.EnvelopeType.COARSE);
     	
     	// sp.setPosition(s1.getLength() - 10);    	
     	// sp.setLoopType(SamplePlayer.LoopType.LOOP_BACKWARDS);
-    	sp.getRateEnvelope().setValue(.898f);
+//    	sp.getRateEnvelope().setValue(.898f);
     	
     	/*
     	Envelope rateEnv = new Envelope(ac, 0.25f);

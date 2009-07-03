@@ -22,8 +22,9 @@ import net.beadsproject.beads.ugens.Gain;
 
 public class BeadsGui {
 	
-	SongGrid songGrid;
-	BeadsWindow environmentFrame;
+	private SongGrid songGrid;
+	private BeadsWindow environmentFrame;
+	private float temporaryTempo;
 	
 	public BeadsGui() {
 		Environment env = null;
@@ -70,11 +71,11 @@ public class BeadsGui {
 		songGrid.titledBorder("Song Parts");
 		environmentFrame.content.add(songGrid);
 		final Clock clock = (Clock)env.elements.get("master clock");
-		final Slider slider = new Slider(env.ac, "tempo", -200, 1000, 175);
-		slider.storeValue(175f);
-		slider.storeValue(87.5f);
-		slider.storeValue(116.66666f);
-		slider.storeValue(-175f);
+		final Slider tempoSlider = new Slider(env.ac, "tempo", -200, 1000, 175);
+		tempoSlider.storeValue(175f);
+		tempoSlider.storeValue(87.5f);
+		tempoSlider.storeValue(116.66666f);
+		tempoSlider.storeValue(-175f);
 		UGen tempoToInterval = new UGen(clock.getContext(), 1, 1) {
 			@Override
 			public void calculateBuffer() {
@@ -83,11 +84,11 @@ public class BeadsGui {
 				}
 			}
 		};
-		tempoToInterval.addInput(slider);
+		tempoToInterval.addInput(tempoSlider);
 		clock.setIntervalEnvelope(tempoToInterval);
 		BeadsPanel ci = new BeadsPanel();
-		ci.add(slider.getComponent());
-		Slider slider2 = new Slider(env.ac, "gain", 0f, 1f, 1f);
+		ci.add(tempoSlider.getComponent());
+		Slider slider2 = new Slider(env.ac, "gain", 0f, 2f, 1f);
 		((Gain)env.ac.out).setGainEnvelope(slider2);
 		ci.add(slider2.getComponent());
 		ci.titledBorder("Master Controls");
@@ -98,8 +99,11 @@ public class BeadsGui {
 				if(clock.isPaused()) {
 					clock.reset();
 					clock.pause(false);
+					tempoSlider.setValue(temporaryTempo);
 				} else {
 					clock.pause(true);
+					temporaryTempo = tempoSlider.getCurrentValue();
+					tempoSlider.setValue(0f);
 				}
 			}
 		});
