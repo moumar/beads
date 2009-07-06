@@ -36,7 +36,7 @@ public class SongGrid extends BeadsPanel {
 	private ArrayList<SongGroup> groups;
 	private Map<SongPart, BeadsWindow> partWindows;
 	private int boxWidth = 15;
-	private int partTextWidth = 100;
+	private int partTextWidth = 150;
 	private int groupTextHeight = 50;
 	private Player player;
 	private EnvironmentPanel environmentPanel;
@@ -55,18 +55,23 @@ public class SongGrid extends BeadsPanel {
 			public void paintComponent(Graphics g) {
 				g.setColor(Color.white);
 				g.fillRect(0, 0, getWidth(), getHeight());
-				int i = 1;
+				int i = 0;
 				ArrayList<SongPart> partsCopy = (ArrayList<SongPart>)parts.clone();
 				for(SongPart sp : partsCopy) {
+					Color c = sp.getColor();
+					if(c == null) c = Color.white;
+					g.setColor(c);
+					g.fillRect(2, groupTextHeight + i * boxWidth, 10, boxWidth);
 					if(player.getCurrentGroup() != null && player.getCurrentGroup().contains(sp)) {
 						g.setColor(Color.black);
 					} else {
 						g.setColor(Color.gray);
 					}
-					g.drawString(sp.getName(), 5, groupTextHeight + i++ * boxWidth - 4);
+					g.drawString(sp.getName(), 14, groupTextHeight + (i + 1) * boxWidth - 4);
 					if(partWindows.containsKey(sp)) {
-						partWindows.get(sp).setName(sp.getName());
+						partWindows.get(sp).setTitle(sp.getName());
 					}
+					i++;
 				}
 			}
 		};
@@ -158,7 +163,7 @@ public class SongGrid extends BeadsPanel {
 					} else {
 						player.stop();
 					}
-					repaint();
+					SongGrid.this.repaint();
 				}
 			}
 		});
@@ -209,7 +214,7 @@ public class SongGrid extends BeadsPanel {
 					//this is super-inefficient, but self-evidently dependable
 					player.notifyCurrentGroupUpdated();
 				}
-				grid.getTopLevelAncestor().repaint();
+				SongGrid.this.repaint();
 			}
 		});
 		vPanel.add(grid);
@@ -228,7 +233,7 @@ public class SongGrid extends BeadsPanel {
 							} else {
 								player.playGroup(groups.get(i));
 							}
-							repaint();
+							SongGrid.this.repaint();
 						}
 					}
 				} else if(keyCode == KeyEvent.VK_LEFT) {
@@ -242,7 +247,7 @@ public class SongGrid extends BeadsPanel {
 							} else {
 								player.playGroup(groups.get(i-2));
 							}
-							groupPanel.repaint();
+							SongGrid.this.repaint();
 						}
 					}
 				} else if(keyCode == KeyEvent.VK_DOWN) {
@@ -252,7 +257,7 @@ public class SongGrid extends BeadsPanel {
 					} else {
 						player.playGroup(groups.get(0));
 					}
-					groupPanel.repaint();
+					SongGrid.this.repaint();
 				} else if(keyCode == KeyEvent.VK_UP) {
 					//move to last group
 					if(BeadsKeys.keysDown[KeyEvent.VK_CONTROL]) {
@@ -260,11 +265,12 @@ public class SongGrid extends BeadsPanel {
 					} else {
 						player.playGroup(groups.get(groups.size() - 1));
 					}
-					groupPanel.repaint();
+					SongGrid.this.repaint();
 				}
 			}
 			public void keyReleased(int keyCode) {}
 		});
+		runUpdateThread();
 	}
 	
 	private JPopupMenu groupsPopupMenu() {
@@ -324,6 +330,22 @@ public class SongGrid extends BeadsPanel {
 		partPanel.revalidate();
 		//ugh! I like Swing when I'm not fucking around with resizing and redrawing!
 		//ahh, back to something enjoyable.
+	}
+	
+	private void runUpdateThread() {
+		Thread t = new Thread() {
+			public void run() {
+				while(true) {
+					SongGrid.this.repaint();
+					try {
+						sleep(100);
+					} catch(Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		};
+		t.start();
 	}
 	
 	public int getBoxWidth() {

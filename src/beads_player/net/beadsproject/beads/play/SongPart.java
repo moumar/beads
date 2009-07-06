@@ -1,11 +1,14 @@
 package net.beadsproject.beads.play;
 
+import java.awt.Color;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import javax.swing.JComponent;
+
 import net.beadsproject.beads.events.PauseTrigger;
 import net.beadsproject.beads.gui.BeadsPanel;
 import net.beadsproject.beads.gui.LevelMeter;
+import net.beadsproject.beads.gui.BeadsColors;
 import net.beadsproject.beads.gui.Slider;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.Envelope;
@@ -29,6 +32,8 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 	protected Gain controllableGain;
 	
 	protected Environment environment;
+	
+	private Color color;
 	
 	public SongPart(String name, Environment environment) {
 		this(name, environment, 2);
@@ -56,6 +61,7 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 		addInput(controllableGain);
 		interfaceElements.add(s);
 		setGainEnvelope(new Envelope(context, 0f));
+		color = BeadsColors.nextColor();
 	}
 	
 	public void setState(int state) {
@@ -67,6 +73,7 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 	 */
 	private void setupPanel() {
 		panel = new BeadsPanel();
+		((BeadsPanel)panel).coloredLineBorder(getColor(), 5);
 		for(InterfaceElement p : interfaceElements) {
 			panel.add(p.getComponent());
 		}
@@ -109,6 +116,13 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 	public void setClock(Clock clock) {
 		this.clock = clock;
 	}
-	
+
+	public Color getColor() {
+		return color;
+	}
+
+	public void setColor(Color color) {
+		this.color = color;
+	}
 	
 }

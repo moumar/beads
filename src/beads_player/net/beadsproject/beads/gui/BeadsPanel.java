@@ -57,6 +57,11 @@ public class BeadsPanel extends JPanel implements InterfaceElement {
 		setBorder(BorderFactory.createLineBorder(Color.black, 1));
 	}
 	
+	public void coloredLineBorder(Color c, int thickness) {
+		if(c == null) c = Color.white;
+		setBorder(BorderFactory.createLineBorder(c, thickness));
+	}
+	
 	public void emptyBorder() {
 		setBorder(BorderFactory.createEmptyBorder(spacing, spacing, spacing, spacing));
 	}
