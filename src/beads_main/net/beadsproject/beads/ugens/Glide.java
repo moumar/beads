@@ -6,6 +6,8 @@ import net.beadsproject.beads.data.buffers.SineBuffer;
 
 /**
  * 
+ * Simple UGen that ramps between given values over a given duration (e.g., for portamento).
+ * 
  * @author ben
  * @beads.category control
  */
@@ -18,6 +20,11 @@ public class Glide extends UGen {
 	private int countSinceGlide;
 	private boolean gliding;
 	private boolean nothingChanged;
+	
+	public Glide(AudioContext context, float currentValue, float glideTimeMS) {
+		this(context, currentValue);
+		setGlideTime(glideTimeMS);
+	}
 	
 	public Glide(AudioContext context, float currentValue) {
 		super(context, 1);
@@ -73,31 +80,4 @@ public class Glide extends UGen {
 		}
 	}
 
-	public static void main(String args[]) {
-		AudioContext ac = new AudioContext();
-		final Glide g = new Glide(ac, 500) {
-			public void calculateBuffer() {
-				super.calculateBuffer();
-//				setValue((float)Math.random() * 10000 + 100);
-//				setValue(1000f);
-				System.out.println(getValue());
-			}
-		};
-		WavePlayer wp = new WavePlayer(ac, g, new SineBuffer().getDefault());
-		ac.out.addInput(wp);
-		ac.start();
-		Thread t = new Thread() {
-			public void run() {
-				while(true) {
-					g.setValue((float)Math.random() * 10000 + 100);
-					try {
-						sleep(50);
-					} catch(Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		};
-		t.start();
-	}
 }
