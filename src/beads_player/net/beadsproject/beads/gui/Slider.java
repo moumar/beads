@@ -226,7 +226,9 @@ public class Slider extends Envelope implements InterfaceElement {
 			component.addMouseMotionListener(new MouseMotionListener() {
 				public void mouseDragged(MouseEvent e) {
 					if(!isLocked()) {
-						setValueFract(1f - (float)e.getY() / (float)component.getHeight());
+						float valueFract = 1f - (float)e.getY() / (float)component.getHeight();
+						valueFract = Math.min(Math.max(valueFract, 0), 1);
+						setValueFract(valueFract);
 					}
 				}
 				public void mouseMoved(MouseEvent e) {

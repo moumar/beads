@@ -285,6 +285,26 @@ public class SamplePlayer extends UGen {
 	public void setRateEnvelope(UGen rateEnvelope) {
 		this.rateEnvelope = rateEnvelope;
 	}
+	
+	/**
+	 * Gets the rate envelope (this method is provided so that SamplePlayer and GranularSamplePlayer can 
+	 * be used interchangeably).
+	 * 
+	 * @return the rate envelope.
+	 */
+	public UGen getPitchEnvelope() {
+		return rateEnvelope;
+	}
+
+	/**
+	 * Sets the rate envelope (this method is provided so that SamplePlayer and GranularSamplePlayer can 
+	 * be used interchangeably).
+	 * 
+	 * @param rateEnvelope the new rate envelope.
+	 */
+	public void setPitchEnvelope(UGen rateEnvelope) {
+		this.rateEnvelope = rateEnvelope;
+	}
 
 	/**
 	 * Updates the position increment. Called whenever the {@link Sample}'s sample rate or the {@link AudioContext}'s sample rate is modified.

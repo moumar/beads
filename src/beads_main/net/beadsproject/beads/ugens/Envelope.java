@@ -5,6 +5,8 @@ package net.beadsproject.beads.ugens;
 
 
 import java.util.ArrayList;
+import java.util.List;
+
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.AudioUtils;
 import net.beadsproject.beads.core.Bead;
@@ -185,6 +187,21 @@ public class Envelope extends UGen {
 	 */
     public void addSegment(float endValue, float duration, Bead trigger) {
     	addSegment(endValue, duration, 1.0f, trigger);        
+    }
+    
+    /**
+     * Adds the specified List of Segments.
+     * @param segments the Segments.
+     */
+    public void addSegments(List<Segment> segments) {
+		if(!lock) {
+			for(Segment s : segments) {
+            	if(!Float.isNaN(s.endValue) && !Float.isInfinite(s.endValue)) {
+            		segments.add(s);
+                    unchanged = false;
+            	}
+            }
+    	}
     }
     
     /**

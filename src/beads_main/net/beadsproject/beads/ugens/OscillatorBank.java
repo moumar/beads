@@ -6,7 +6,6 @@ package net.beadsproject.beads.ugens;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
-import net.beadsproject.beads.data.buffers.SineBuffer;
 
 /**
  * An OscillatorBank sums the output of a set of oscillators with assignable frequencies and amplitudes. The frequencies and amplitudes of the set of oscillators can be assigned using arrays.
@@ -45,7 +44,7 @@ public class OscillatorBank extends UGen {
      * @param numOscillators the number of oscillators.
      */
     public OscillatorBank(AudioContext context, Buffer buffer, int numOscillators) {
-        super(context, 1, 1);
+        super(context, 1);
         this.buffer = buffer;
         sr = context.getSampleRate();
         setNumOscillators(numOscillators);
@@ -152,6 +151,9 @@ public class OscillatorBank extends UGen {
         }
     }   
 
+    public static void main(String[] args) {
+    	
+    }
     
 }
 

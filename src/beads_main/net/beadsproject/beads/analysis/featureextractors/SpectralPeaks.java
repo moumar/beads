@@ -77,6 +77,7 @@ public class SpectralPeaks extends FeatureExtractor<float[], float[]>  {
 			if(Float.isNaN(features[i]) || features[i] < 0f) features[i] = 0f;	//hack
 			linSpec[maxbin] = -1f;
 		}
+		forward(startTime, endTime);
 	}
 
 	/* (non-Javadoc)

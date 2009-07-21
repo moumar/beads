@@ -53,4 +53,30 @@ public class TimeStamp {
 		timeSamples = timeStep * context.getBufferSize() + index;
 		return timeSamples;
 	}
+
+	public double since(TimeStamp oldest) {
+		return getTimeMS() - oldest.getTimeMS();
+	}
+
+	public boolean isBefore(TimeStamp other) {
+		if(timeStep < other.timeStep) {
+			return true;
+		} else {
+			if(timeStep == other.timeStep && timeSamples < other.timeSamples) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isAfter(TimeStamp other) {
+		if(timeStep > other.timeStep) {
+			return true;
+		} else {
+			if(timeStep == other.timeStep && timeSamples > other.timeSamples) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

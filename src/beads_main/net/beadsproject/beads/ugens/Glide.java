@@ -50,6 +50,13 @@ public class Glide extends UGen {
 		previousValue = currentValue;
 	}
 	
+	public void setValueImmediately(float targetValue) {
+		currentValue = targetValue;
+		gliding = false;
+		nothingChanged = false;
+		countSinceGlide = 0;
+	}
+	
 	public void setGlideTime(float msTime) {
 		glideTime = (int)context.msToSamples(msTime);
 	}
