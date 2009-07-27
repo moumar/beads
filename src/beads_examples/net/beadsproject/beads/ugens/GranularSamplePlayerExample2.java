@@ -25,6 +25,7 @@ public class GranularSamplePlayerExample2 {
 		gsp.setLoopType(LoopType.LOOP_ALTERNATING);
 		gsp.getLoopStartEnvelope().setValue(0f);
 		gsp.getLoopEndEnvelope().setValue(1000f);
+		gsp.getRandomPanEnvelope().setValue(1f);
 		ac.out.addInput(gsp);
 		gsp.pause(true);
 		

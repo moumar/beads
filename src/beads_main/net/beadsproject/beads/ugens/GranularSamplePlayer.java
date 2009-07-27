@@ -8,9 +8,7 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Sample;
-import net.beadsproject.beads.data.SampleManager;
 import net.beadsproject.beads.data.buffers.CosineWindow;
-import net.beadsproject.beads.data.buffers.HanningWindow;
 
 /**
  * GranularSamplePlayer plays back a {@link Sample} using granular synthesis. GranularSamplePlayer inherits its main behaviour from {@link SamplePlayer} but replaces the direct {@link Sample} lookup with a granular process. 
@@ -211,7 +209,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 	}
 
 	public synchronized void setBuffer(Sample buffer) {
-		super.setBuffer(buffer);
+		super.setSample(buffer);
 		grains.clear();
 		timeSinceLastGrain = 0f;
 	}
@@ -245,8 +243,8 @@ public class GranularSamplePlayer extends SamplePlayer {
 		if(outs == 2) {
 			float pan = (float)Math.random() * Math.min(1, Math.max(0, panRandomness)) * 0.5f;
 			pan = Math.random() < 0.5f ? 0.5f + pan : 0.5f - pan;
-			g.pan[0] = pan;
-			g.pan[1] = 1 - pan; //TODO proper pan eqution
+			g.pan[0] = pan > 0.5f ? 1f : 2f * pan;
+			g.pan[1] = pan < 0.5f ? 1f : 2f * (1 - pan);
 		} else {
 			for(int i = 0; i < outs; i++) {
 				g.pan[i] = 1f;
@@ -351,17 +349,6 @@ public class GranularSamplePlayer extends SamplePlayer {
 					Grain g = grains.get(gi);
 					calculateNextGrainPosition(g);
 				}
-				//Ollie - pretty sure we don't need this now that we have outputPauseRegime
-//				if (isPaused()) {
-//					//make sure to zero the remaining outs
-//					while(i < bufferSize) {
-//						for (int j = 0; j < outs; j++) {
-//							bufOut[j][i] = 0.0f;
-//						}
-//						i++;
-//					}
-//					break;
-//				}
 				//increment timeSinceLastGrain
 				timeSinceLastGrain += msPerSample;
 				//finally, see if any grains are dead

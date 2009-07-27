@@ -104,7 +104,7 @@ public class AudioFile {
 		} catch(Exception e) {
 			file = new File(filename);
 			url = null;
-			name = file.getName();
+			name = file.getPath();
 		}
 		audioInputStream = null;
 		
