@@ -230,8 +230,10 @@ public class SongGrid extends BeadsPanel {
 						if(i < groups.size()) {
 							if(BeadsKeys.keysDown[KeyEvent.VK_CONTROL]) {
 								player.playGroupNoFadeOut(groups.get(i));
+								System.out.println("no fade");
 							} else {
 								player.playGroup(groups.get(i));
+								System.out.println("fade");
 							}
 							SongGrid.this.repaint();
 						}

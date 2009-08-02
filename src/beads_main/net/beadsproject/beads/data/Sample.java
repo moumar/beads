@@ -1020,8 +1020,8 @@ public class Sample implements Runnable {
 	 * @return the file name.
 	 */
 	public String getSimpleFileName() {
-		return getFileName();
-		//return audioFile.file.getName();
+		String[] nameParts = getFileName().split("/");
+		return nameParts[nameParts.length - 1];
 	}
 
 	public AudioFile getAudioFile() {
