@@ -3,40 +3,39 @@ package net.beadsproject.beads.ugens;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.UGen;
+import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.buffers.SineBuffer;
 
 public class FMExample {
 	
 	public static void main(String[] args) {
-		
-		AudioContext ac = new AudioContext(512, 5000);
-		final Envelope freqEnv = new Envelope(ac, 500f);
-		Envelope gainEnv = new Envelope(ac, 0.1f);
-		Gain g = new Gain(ac, 1, gainEnv);
-		final Envelope lfoEnv =new Envelope(ac, 10f);
-		lfoEnv.addSegment(100f, 10000f);
-		WavePlayer lfo = new WavePlayer(ac, lfoEnv, new SineBuffer().getDefault());
-		WavePlayer wp = new WavePlayer(ac, new Function(new UGen[] {freqEnv, lfo}) {
+		AudioContext ac = new AudioContext();
+		//an envelope that defines the base frequency of the sound
+		final Envelope baseFreqEnv = new Envelope(ac, 500f);
+		//and an envelope to control the ratio of the modulator frequency
+		final Envelope modFreqRatioEnv = new Envelope(ac, 1f);
+		//and an envelope to control the ratio of the modulator frequency
+		final Envelope modGainEnv = new Envelope(ac, 1000f);
+		//create the modulator using the product of these two
+		WavePlayer modulator = new WavePlayer(ac, new Function(baseFreqEnv, modFreqRatioEnv) {
+			public float calculate() {
+				return x[0] * x[1];
+			}
+		}, Buffer.SINE);
+		//create the carrier using the base frequency, the mod gain and the modulator
+		WavePlayer wp = new WavePlayer(ac, new Function(new UGen[] {baseFreqEnv, modGainEnv, modulator}) {
 			@Override
 			public float calculate() {
-				return x[0] + 40f * x[1];
+				return x[0] + x[1] * x[2];
 			}
-		}, new SineBuffer().getDefault());
-		freqEnv.addSegment(1000f, 1000f);
-		freqEnv.addSegment(1000f, 1000f);
-		freqEnv.addSegment(500f, 1000f);
-		Clock c = new Clock(ac, 1000f);
-		ac.out.addDependent(c);
-		c.addMessageListener(new Bead() {
-			public void messageReceived(Bead message) {
-				Clock c = (Clock)message;
-				if(c.isBeat()) {
-					System.out.println("tick");
-					freqEnv.clear();
-					freqEnv.addSegment((float)Math.random() * 4000f + 10f, c.getIntervalEnvelope().getValue());
-				}
-			}
-		});
+		}, Buffer.SINE);
+		//do some stuff to the mod freq ratio
+		modFreqRatioEnv.addSegment(2f, 10000f);
+		modFreqRatioEnv.addSegment(3f, 1000f);
+		modFreqRatioEnv.addSegment(1.5f, 1000f);
+		modFreqRatioEnv.addSegment(0.5f, 1000f);
+		//create a gain object
+		Gain g = new Gain(ac, 1, 0.1f);
 		g.addInput(wp);
 		ac.out.addInput(g);
 		ac.start();

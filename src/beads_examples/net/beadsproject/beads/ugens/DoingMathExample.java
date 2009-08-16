@@ -21,9 +21,15 @@ public class DoingMathExample {
 				}
 			}
 		};
+		//to make this a wee bit easier, use the Function UGen instead
+		Function f = new Function(g) {
+			public float calculate() {
+				return x[0] * 2f;
+			}
+		};
 		g.addInput(0, x, 0);
 		g.addInput(1, y, 0);
-		ac.out.addInput(g);
+		ac.out.addInput(f);
 		ac.start();
 	}
 

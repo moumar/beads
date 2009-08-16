@@ -13,27 +13,22 @@ public class EnvelopeExample {
 	
 	public static void main(String[] args) {
 		System.out.println("Testing: " + Envelope.class);
-		Random rng = new Random();
 		AudioContext ac = new AudioContext(512, 5000);
-		WavePlayer wp = new WavePlayer(ac, 500f + rng.nextFloat() * 500f, new SineBuffer().getDefault());
+		WavePlayer wp = new WavePlayer(ac, 500f + 500f, new SineBuffer().getDefault());
+		//create an envelope
 		final Envelope e = new Envelope(ac, 500f);
+		//give the envelope some tasks to do
 		e.addSegment(100f, 1000f, 2f, null);
-		e.addSegment(500f + rng.nextFloat() * 500f, 2000f, 0.5f, null);
+		e.addSegment(500f, 2000f, 0.5f, null);
+		e.addSegment(20f, 3000f);
+		e.addSegment(50f, 0f);
+		e.addSegment(50f, 500f);
+		e.addSegment(440f, 0f);
+		e.addSegment(880f, 1000f);
+		//now use the envelope to control the WavePlayer
 		wp.setFrequencyEnvelope(e);
 		ac.out.addInput(wp);
 		ac.start();
-		//then some more
-		DelayTrigger dt = new DelayTrigger(ac, 10000f, new Bead() {
-			public void messageReceived(Bead message) {
-				System.out.println("message");
-				e.addSegment(20f, 3000f);
-				e.addSegment(50f, 0f);
-				e.addSegment(50f, 500f);
-				e.addSegment(440f, 0f);
-				e.addSegment(880f, 1000f);
-			}
-		});
-		ac.out.addDependent(dt);
 	}
 	
 }

@@ -6,6 +6,8 @@ import net.beadsproject.beads.core.BeadArray;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.RTInput;
+import net.beadsproject.beads.ugens.TapIn;
+import net.beadsproject.beads.ugens.TapOut;
 
 public class DefaultEnvironmentFactory extends EnvironmentFactory {
 
@@ -26,6 +28,13 @@ public class DefaultEnvironmentFactory extends EnvironmentFactory {
 //		Gain in = new Gain(e.ac, 2);
 		e.elements.put("in", in);
 		//set up in and main out as object in channels
+
+		//try with delay
+//		TapIn tin = new TapIn(e.ac, 10000);
+//		TapOut tout = new TapOut(e.ac, tin, 50f);
+//		e.ac.out.addInput(tout);
+//		e.channels.put("out", tin);
+
 		e.channels.put("out", e.ac.out);
 		return e;
 	}

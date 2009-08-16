@@ -12,14 +12,15 @@ public class GranularSamplePlayerExample {
 
     public static void main(String[] args) throws Exception {
     	System.out.println("Testing: " + GranularSamplePlayer.class);
-    	AudioContext ac = new AudioContext(512);
+    	//create the AudioContext
+    	AudioContext ac = new AudioContext();
+    	//create a Sample using SampleManager to handle loading
     	Sample s1 = SampleManager.sample("audio/1234.aif");	
-    	System.out.println(s1.getLength());
+    	System.out.println("Sample Length: " + s1.getLength());
+    	//create the GranularSamplePlayer using this Sample to initialize it
     	GranularSamplePlayer gsp = new GranularSamplePlayer(ac, s1); 
-    	
-    	//could choose a different grain window
+    	//play with the settings of the GranularSamplePlayer
     	gsp.setWindow(new CosineWindow().getDefault());
-    	
     	gsp.getGrainIntervalEnvelope().setValue(20f);
     	gsp.getGrainSizeEnvelope().setValue(50f);
     	Envelope rateEnv = new Envelope(ac, 1f);
@@ -30,7 +31,8 @@ public class GranularSamplePlayerExample {
     	gsp.setPitchEnvelope(pitchEnv);
     	gsp.setLoopType(SamplePlayer.LoopType.LOOP_ALTERNATING); 
     	gsp.getLoopEndEnvelope().setValue(1000f);
-    	gsp.getLoopStartEnvelope().setValue(500f);  	
+    	gsp.getLoopStartEnvelope().setValue(500f);
+    	//connect and go
     	ac.out.addInput(gsp);
     	ac.start();
     }
