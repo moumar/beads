@@ -1,5 +1,6 @@
-package net.beadsproject.beads.analysis;
+package net.beadsproject.beads.miscexperiments;
 
+import net.beadsproject.beads.analysis.AudioAnalyser;
 import net.beadsproject.beads.analysis.featureextractors.PeakDetector;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;

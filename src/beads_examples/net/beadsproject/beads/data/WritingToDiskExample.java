@@ -18,7 +18,7 @@ import net.beadsproject.beads.ugens.WavePlayer;
  * 
  * @author ben
  */
-public class WritingToDisk {
+public class WritingToDiskExample {
 
 	public static void main(String[] args) throws Exception {
 		final AudioContext ac = new AudioContext();

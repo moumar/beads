@@ -183,7 +183,7 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 				}  else if(features instanceof boolean[]) {
 					ff.add(e.getName(), ((boolean[])features).clone());
 				} else {
-					e1.printStackTrace();
+					ff.add(e.getName(), features);
 				}
 			} 
 		}

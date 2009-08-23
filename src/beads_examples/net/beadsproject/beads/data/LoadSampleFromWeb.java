@@ -13,8 +13,8 @@ public class LoadSampleFromWeb {
 
 	public static void main(String[] args) throws Exception {
 		
-//		String prefix = "http://www.olliebown.com/files/music/Roland909";
-		String prefix = "/Users/ollie/Music/Audio/crash test audio/chopped live sounds/Drum machines/Roland 909";
+		String prefix = "http://www.olliebown.com/files/music/Roland909";
+//		String prefix = "/Users/ollie/Music/Audio/crash test audio/chopped live sounds/Drum machines/Roland 909";
 		
 		Sample kik = SampleManager.sample(prefix + "/BT0A0A7.WAV");
 		Sample hh = SampleManager.sample(prefix + "/HHCD8.WAV");
@@ -35,7 +35,7 @@ public class LoadSampleFromWeb {
 					SamplePlayer sp = new SamplePlayer(ac, kit[rng.nextInt(3)]);
 					if(rng.nextFloat() < 0.1f) {
 						sp.getRateEnvelope().setValue(-1f);
-						sp.setPosition(sp.getBuffer().getLength());
+						sp.setPosition(sp.getSample().getLength());
 					}
 					ac.out.addInput(sp);
 				} else if(c.isBeat()) {

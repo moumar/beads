@@ -1,8 +1,11 @@
-package net.beadsproject.beads.data;
+package net.beadsproject.beads.miscexperiments;
 
 import java.io.File;
 import java.util.Hashtable;
 import net.beadsproject.beads.analysis.FeatureTrack;
+import net.beadsproject.beads.data.Sample;
+import net.beadsproject.beads.data.Sample.TimedRegime;
+import net.beadsproject.beads.data.Sample.TimedRegime.Order;
 
 /*
  * A lengthly example that goes through a folder of mp3s, does some basic analysis, and produces a pretty random mashup.

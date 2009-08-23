@@ -1,15 +1,11 @@
-package net.beadsproject.beads.data;
+package net.beadsproject.beads.miscexperiments;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.UnsupportedAudioFileException;
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.data.AudioFile;
+import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.ugens.SamplePlayer;
 
-public class AudioFileInJarTest {
+public class AudioFileInJarExample {
 
 	public static void main(String[] args) throws Exception {
 		AudioFile af = new AudioFile(ClassLoader.getSystemResourceAsStream("audio/1234.aif"));
