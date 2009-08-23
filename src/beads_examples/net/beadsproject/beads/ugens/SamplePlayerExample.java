@@ -15,7 +15,8 @@ public class SamplePlayerExample {
     	//reg = new Sample.TimedRegime(100,0,0,-1, Sample.TimedRegime.Order.ORDERED);
     	
 //    	Sample s1 = SampleManager.sample("audio/1234.aif");
-    	Sample s1 = SampleManager.sample("/Users/ollie/Music/Audio/Albert Breaks/rud208 1.aiff");
+//    	Sample s1 = SampleManager.sample("/Users/ollie/Music/Audio/Albert Breaks/rud208 1.aiff");
+    	Sample s1 = SampleManager.sample("/Users/ollie/Desktop/16475__Jlew__Dialup.mp3");
     	s1.getAudioFile().trace = true;
     	// Sample s1 = SampleManager.sample("../BeadsTests/audio/gammaBrosTheme.mp3");
     	System.out.println(s1.getLength());
