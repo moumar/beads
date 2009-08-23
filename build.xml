@@ -86,7 +86,7 @@
 		<copy file="${packages}/Beads/.classpath" toDir="${beadsdir}/" />
 				
 		<!-- BUILD THE PROCESSING PACKAGE -->
-		<!-- Following the guidelines here: http://dev.processing.org/libraries/basics.html -->
+		<!-- Following the guidelines here: http://dev.processing.org/libraries/basics.html  -->
 		<property name="processing" location="${build}/processing" />
 		<property name="proclib" location="${processing}/Beads/library" />
 		<mkdir dir="${proclib}" />
