@@ -7,9 +7,6 @@
 	<description>
     	Beads - a computer music and sound art library for Java.
     </description>
-
-	<!-- Requires svn ant (retrieve from: http://subclipse.tigris.org/svnant.html ) (on OSX put this in /Applications/eclipse/plugins/org.apache.ant_1.7.0.v200803061910/lib) -->
-	<typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpath="svnant.jar" /> 
 	
 	<!-- directory from which to copy package related data (such as readmes, etc.) -->
 	<property name="packages" value="packages" />
@@ -20,8 +17,6 @@
 	<!-- stuff that lasts a very short time (a tmp build folder) -->
 
 	<property name="exportdir" value="${tmp}/export">
-	</property>
-	<property name="svn" value="/usr/local/bin/svn">
 	</property>
 
 	<!-- compile for 1.5 jvm, as osx has limited 1.6 support. -->
@@ -68,9 +63,14 @@
 		<copy file="dependencies/tritonus_share.jar" toFile="${libdir}/tritonus_share.jar" />
 
 		<!-- copy examples and audio files -->
-		<svn><export destPath="${beadsdir}/examples" srcPath="src/beads_examples" force="true" /></svn>
-		<svn><export destPath="${beadsdir}/audio" srcPath="audio" force="true" /></svn>
-
+		<copy todir="${beadsdir}/examples">
+			<fileset dir="src/beads_examples" />
+		</copy>
+		<delete dir="${beadsdir}/examples/.svn" />
+		<copy todir="${beadsdir}/audio">
+			<fileset dir="audio" />
+		</copy>				
+		<delete dir="${beadsdir}/audio/.svn" />
 		<!-- copy documentation -->
 		<mkdir dir="${beadsdir}/doc" />
 		<copy todir="${beadsdir}/doc">
@@ -79,7 +79,10 @@
 
 		<!-- copy readmes -->
 		<copy file="${packages}/Beads/README.txt" toDir="${beadsdir}/" />
-		<svn><export destPath="${beadsdir}/readme" srcPath="readme" force="true" /></svn>
+		<copy todir="${beadsdir}/readme">
+			<fileset dir="readme" />
+		</copy>	
+		<delete dir="${beadsdir}/readme/.svn" />
 		
 		<!-- copy eclipse project files -->
 		<copy file="${packages}/Beads/.project" toDir="${beadsdir}/" />
@@ -101,7 +104,10 @@
 		<copy file="dependencies/tritonus_share.jar" toFile="${proclib}/tritonus_share.jar" />
 
 		<!-- copy tutorials into an "examples" directory -->
-		<svn><export destPath="${processing}/Beads/examples" srcPath="${packages}/Processing/examples" force="true" /></svn>
+		<copy todir="${processing}/Beads/examples">
+			<fileset dir="${packages}/Processing/examples" />
+		</copy>	
+		<delete dir="${processing}/Beads/examples/.svn" />
 		
 		<!-- copy documentation -->
 		<mkdir dir="${processing}/Beads/doc" />
@@ -111,13 +117,25 @@
 
 		<!-- copy readmes -->
 		<copy file="${packages}/Processing/README.txt" toDir="${processing}/" />
-		<svn><export destPath="${processing}/readme" srcPath="readme" force="true" /></svn>
+		<copy todir="${processing}/readme">
+			<fileset dir="readme" />
+		</copy>	
+		<delete dir="${processing}/readme/.svn" />
 		
-		<!-- CLEAN UP -->
-		<delete dir="${buildmain}" />
-		<delete dir="${tmp}" />
 	</target>
 
+
+	<!-- ================================= 
+          target: clean              
+         ================================= -->
+	<target name="clean" description="clean up">
+		<delete dir="${build}/Beads" />
+		<delete dir="${build}/doc" />
+		<delete dir="${build}/processing" />
+		<delete dir="${build}/ref" />
+		<delete dir="${build}/tmp" />
+	</target>
+	
 	<!-- ================================= 
           target: compile play              
          ================================= -->
@@ -131,7 +149,7 @@
 	<!-- ================================= 
           target: doc main              
          ================================= -->
-	<target name="doc main" description="generate docs for main">
+	<target name="doc main" description="generate docs for main" depends="clean">
 		<javadoc sourcepath="src/beads_main" destdir="${build}/doc">
 			<tag name="beads.category" enabled="False" />
 			<classpath>
@@ -143,7 +161,11 @@
 		<mkdir dir="${tmp}" />
 		<javac srcdir="src/beads_doc" destdir="${tmp}" />
 		<mkdir dir="${build}/ref" />
-		<svn><export destPath="${build}/ref" srcPath="${packages}/ref" force="true" /></svn>
+		<!--svn><export destPath="${build}/ref" srcPath="${packages}/ref" force="true" /></svn-->
+		<copy todir="${build}/ref">
+			<fileset dir="${packages}/ref" />
+		</copy>
+		<delete dir="${build}/ref/.svn" />
 		<javadoc doclet="BeadsDoclet" docletpath="${tmp}" sourcepath="src/beads_main" destdir="${build}/ref">
 			<classpath>
 				<pathelement location="dependencies/tritonus_share.jar" />

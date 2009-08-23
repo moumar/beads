@@ -222,8 +222,8 @@ public class AudioFile {
 			{
 				if (!audioInfo.containsKey("mp3.vbr") || (Boolean)audioInfo.get("mp3.vbr"))
 				{
-					System.out.println("Beads does not currently support seeking on variable bit rate mp3s.");
-					System.exit(1);					
+					System.out.println("Beads does not currently support seeking on variable bit rate mp3s.");			
+					//TODO throw an error here rather than System.exit();
 				}							
 				
 				/* test method, _read_ n frames */
