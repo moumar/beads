@@ -247,7 +247,7 @@ public class Slider extends Envelope implements InterfaceElement {
 		x[0] = x[1] = 0;
 		final int[] y = new int[2];
 		y[0] = y[1] = (int)((1f - getValueFract()) * component.getHeight());
-		final JPanel drawPanel = new JPanel() {
+		final JPanel drawPanel = new BeadsPanel() {
 			private static final long serialVersionUID = 1L;
 			public void paintComponent(Graphics g) {
 				Graphics2D g2d = (Graphics2D)g;
@@ -258,7 +258,7 @@ public class Slider extends Envelope implements InterfaceElement {
 				g.drawLine(x[0], y[0], x[1], y[1]);
 			}
 		};
-		final JDialog drawWindow = new JDialog((Frame)component.getTopLevelAncestor());
+		final BeadsDialog drawWindow = new BeadsDialog((Frame)component.getTopLevelAncestor());
 		drawWindow.addMouseMotionListener(new MouseMotionListener() {
 			public void mouseDragged(MouseEvent e) {
 			}
@@ -296,8 +296,8 @@ public class Slider extends Envelope implements InterfaceElement {
 	}
 	
 	public void runTextSelectPanel() {
-		final JDialog drawWindow = new JDialog((Frame)component.getTopLevelAncestor());
-		final JPanel drawPanel = new JPanel();
+		final BeadsDialog drawWindow = new BeadsDialog((Frame)component.getTopLevelAncestor());
+		final JPanel drawPanel = new BeadsPanel();
 		final JComboBox selector = new JComboBox(storedValues);
 		selector.setEditable(true);
 		selector.addActionListener(new ActionListener() {

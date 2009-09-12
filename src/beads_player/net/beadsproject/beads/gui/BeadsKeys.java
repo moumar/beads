@@ -18,6 +18,7 @@ public class BeadsKeys implements KeyListener {
 		for(KeyboardListener listener: listeners) {
 			listener.keyPressed(keyCode);
 		}
+		System.out.println("key pressed, code = " + keyCode);
 	}
 
 	public void keyReleased(KeyEvent e) {
@@ -26,6 +27,7 @@ public class BeadsKeys implements KeyListener {
 		for(KeyboardListener listener: listeners) {
 			listener.keyReleased(keyCode);
 		}
+		System.out.println("key released, code = " + keyCode);
 	}
 
 	public void keyTyped(KeyEvent e) {/*Do nothing.*/}

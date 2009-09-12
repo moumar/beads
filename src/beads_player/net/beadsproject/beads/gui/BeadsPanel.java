@@ -36,7 +36,8 @@ public class BeadsPanel extends JPanel implements InterfaceElement {
 	}
 	
 	private void defocusAndAddKeys(Component c) {
-		c.setFocusable(false);
+//		c.setFocusable(false);
+		c.addKeyListener(BeadsKeys.singleton);
 		if(c instanceof Container) {
 			Container cont = (Container)c;
 			for(Component next : cont.getComponents()) {
