@@ -63,10 +63,10 @@ public class Chooser implements InterfaceElement {
 		valueComponent.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
 				refreshList();
-				final JDialog popup = new JDialog((Frame)component.getTopLevelAncestor());
+				final BeadsDialog popup = new BeadsDialog((Frame)component.getTopLevelAncestor());
 				popup.setUndecorated(true);
 				tempChoice = choice;
-				final JComponent list = new JComponent() {
+				final BeadsPanel list = new BeadsPanel() {
 					private static final long serialVersionUID = 1L;
 					public void paintComponent(Graphics g) {
 						Graphics2D g2d = (Graphics2D)g;

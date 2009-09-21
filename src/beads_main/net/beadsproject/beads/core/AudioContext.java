@@ -244,6 +244,7 @@ public class AudioContext {
 		while (!stop) {
 			if (!skipFrame) {
 				bufStoreIndex = 0;
+				Arrays.fill(zeroBuf, 0f);
 				out.update(); // this will propagate all of the updates
 				interleave(out.bufOut, interleavedOutput);
 				AudioUtils.floatToByte(bbuf, interleavedOutput,
@@ -401,6 +402,7 @@ public class AudioContext {
 			stop = false;
 			while (out != null && !stop) {
 				bufStoreIndex = 0;
+				Arrays.fill(zeroBuf, 0f);
 				if (!out.isPaused()) 
 					out.update();
 				timeStep++;
