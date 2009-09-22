@@ -275,6 +275,11 @@ public class Sample implements Runnable {
 		{
 			super();
 		}
+		
+		public TotalRegime(boolean storeInNativeBitDepth)
+		{
+			super(storeInNativeBitDepth);
+		}
 	};
 
 	// Sample stuff
@@ -329,6 +334,25 @@ public class Sample implements Runnable {
 	 */
 	public Sample(AudioFormat audioFormat, double length) {
 		this();
+		this.audioFormat = audioFormat;
+		nChannels = audioFormat.getChannels();
+		current = new float[nChannels];
+		next = new float[nChannels];
+		nFrames = (long) msToSamples(length);
+		if (bufferingRegime.storeInNativeBitDepth)
+		{
+			sampleData = new byte[2*nChannels*(int)nFrames]; //16-bit			
+		}
+		else
+		{
+			f_sampleData = new float[nChannels][(int)nFrames];			
+		}
+		this.length = 1000f * nFrames / audioFormat.getSampleRate();
+	}
+	
+	public Sample(AudioFormat audioFormat, double length, Regime br) {
+		this();
+		bufferingRegime = br;
 		this.audioFormat = audioFormat;
 		nChannels = audioFormat.getChannels();
 		current = new float[nChannels];
@@ -822,13 +846,26 @@ public class Sample implements Runnable {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public void write(String fn) throws IOException {
+		write(fn, AudioFileFormat.Type.AIFF);
+	}
+	
+	/**
+	 * This records the sample to a file with the specified AudioFileFormat.Type.
+	 * It is BLOCKING.
+	 * 
+	 * @param fn The filename.
+	 * @param type The type (AIFF, WAVE, etc.)
+	 * 
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
+	public void write(String fn, AudioFileFormat.Type type) throws IOException {
 		if (isTotal())
 		{
 			if (bufferingRegime.storeInNativeBitDepth)
 			{			
 				ByteArrayInputStream bais = new ByteArrayInputStream(sampleData);
 				AudioInputStream aos = new AudioInputStream(bais, audioFormat, nFrames);
-				AudioSystem.write(aos, AudioFileFormat.Type.AIFF, new File(fn));
+				AudioSystem.write(aos, type, new File(fn));
 			}
 			else
 			{
@@ -842,7 +879,7 @@ public class Sample implements Runnable {
 				byte bytes[] = new byte[(int) (getNumChannels()*getNumFrames()*2)];
 				AudioUtils.floatToByte(bytes, interleaved, isBigEndian);
 				
-				AudioSystem.write(new AudioInputStream(new ByteArrayInputStream(bytes),audioFormat,nFrames), AudioFileFormat.Type.AIFF, new File(fn));
+				AudioSystem.write(new AudioInputStream(new ByteArrayInputStream(bytes),audioFormat,nFrames), type, new File(fn));
 			}
 		}
 		else // bufferingRegime==BufferingRegime.TIMED
@@ -912,7 +949,8 @@ public class Sample implements Runnable {
 					System.arraycopy(olddata[i],0,f_sampleData[i],0,framesToCopy);					
 			}
 			
-			nFrames = frames;			
+			nFrames = frames;		
+			length = (float) samplesToMs(nFrames);
 		}
 	}
 	
@@ -951,6 +989,7 @@ public class Sample implements Runnable {
 			}
 			
 			nFrames = frames;
+			length = (float) samplesToMs(nFrames);
 		}		
 	}
 	

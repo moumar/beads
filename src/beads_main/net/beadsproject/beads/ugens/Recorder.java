@@ -154,11 +154,12 @@ public class Recorder extends UGen {
     /**
 	 * Sets the position to record to in milliseconds.
 	 * 
-	 * @param position
+	 * @param positionMs
 	 *            the new position in milliseconds.
 	 */
-    public void setPosition(double position) {
-        position = sample.msToSamples(position);
+    public void setPosition(double positionMs) {
+        position = (long) sample.msToSamples(positionMs);
+        framesWritten = position;
     }
     
     /* (non-Javadoc)
