@@ -50,7 +50,9 @@ public class MusicRemixer {
 		{
 			String[] newfiles = allFilesInDir(dirs[i]);
 			int oldlength = files.length;			
-			files = Arrays.copyOf(files,newfiles.length+files.length);
+			String[] tempFiles = new String[newfiles.length+files.length];
+			System.arraycopy(files, 0, tempFiles, 0, files.length);
+			files = tempFiles;
 			System.arraycopy(newfiles, 0, files, oldlength, newfiles.length);
 		}
 		
