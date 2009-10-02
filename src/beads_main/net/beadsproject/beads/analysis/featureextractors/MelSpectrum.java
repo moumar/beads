@@ -155,5 +155,21 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 			return Double.NaN;
 		}
 	}
+	
+	public int getBinForFreq(double freq) {
+		if(melCenter != null) {
+			double mel = lin2mel(freq);
+			int i;
+			for(i = 0; i < melCenter.length; i++) {
+				if(mel <= melCenter[i]) {
+					break;
+				}
+			}
+			if(i >= numFeatures) return numFeatures - 1;
+			return i;
+		} else {
+			return 0;
+		}
+	}
 
 }
