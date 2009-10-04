@@ -74,7 +74,7 @@ public class SamplePlayer extends UGen {
 	protected Sample sample;            
 
 	/** The sample rate, determined by the Sample. */
-	protected float sampleRate;                 
+//	protected float sampleRate;                 
 
 	/** The position in milliseconds. */
 	protected double position;                
@@ -153,6 +153,7 @@ public class SamplePlayer extends UGen {
 	 */
 	public SamplePlayer(AudioContext context, Sample buffer) {
 		this(context, buffer.getNumChannels());
+		updatePositionIncrement();
 		setSample(buffer);
 		loopEndEnvelope.setValue(buffer.getLength());
 	}
@@ -162,8 +163,7 @@ public class SamplePlayer extends UGen {
 	 */
 	public void setSample(Sample sample) {
 		this.sample = sample;
-		sampleRate = sample.getSampleRate();
-		updatePositionIncrement();
+//		sampleRate = sample.getSampleRate();
 		frame = new float[sample.getNumChannels()];
 	}
 	
@@ -307,10 +307,11 @@ public class SamplePlayer extends UGen {
 	}
 
 	/**
-	 * Updates the position increment. Called whenever the {@link Sample}'s sample rate or the {@link AudioContext}'s sample rate is modified.
+	 * Updates the position increment, which only changes when the context sample rate changes.
 	 */
 	private void updatePositionIncrement() {
-		positionIncrement = context.samplesToMs(sampleRate / context.getSampleRate());
+//		positionIncrement = context.samplesToMs(sample.getSampleRate() / context.getSampleRate());
+		positionIncrement = context.samplesToMs(1);
 	}
 
 	public EnvelopeType getEnvelopeType()
@@ -437,7 +438,7 @@ public class SamplePlayer extends UGen {
 	 * @return the sample rate, in samples per second.
 	 */
 	public float getSampleRate() {
-		return sampleRate;
+		return sample.getSampleRate();
 	}
 
 	/* (non-Javadoc)
