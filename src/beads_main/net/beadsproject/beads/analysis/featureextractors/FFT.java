@@ -56,7 +56,7 @@ public class FFT extends FeatureExtractor<float[][], float[]>  {
 	 * @param blockSize The size of the block analysed
 	 * @param binNumber 
 	 */
-	public static float binFrequency(float samplingFrequency, int blockSize, int binNumber)
+	public static float binFrequency(float samplingFrequency, int blockSize, float binNumber)
 	{		
 		return binNumber*samplingFrequency/blockSize;
 	}

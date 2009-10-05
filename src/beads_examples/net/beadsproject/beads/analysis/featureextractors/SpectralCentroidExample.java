@@ -1,10 +1,10 @@
 package net.beadsproject.beads.analysis.featureextractors;
 
 import java.util.Random;
-import net.beadsproject.beads.analysis.featureextractors.PowerSpectrum;
-import net.beadsproject.beads.analysis.featureextractors.SpectralCentroid;
+
 import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.TimeStamp;
 import net.beadsproject.beads.data.buffers.SineBuffer;
 import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.OscillatorBank;
@@ -42,7 +42,8 @@ public class SpectralCentroidExample {
 		sfs.addListener(fft);
 		//set up spectral centroid
 		final SpectralCentroid sc = new SpectralCentroid(ac.getSampleRate()) {
-			public void process(float[] f) {
+			public void process(TimeStamp a, TimeStamp b, float[] f) {
+				super.process(a,b,f);
 				System.out.println(getFeatures());
 			}
 		};

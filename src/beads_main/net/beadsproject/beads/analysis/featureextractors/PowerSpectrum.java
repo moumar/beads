@@ -7,7 +7,8 @@ import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.core.TimeStamp;
 
 /**
- * PowerSpectrum calculates the power spectrum from the output of {@link FFT}. PowerSpectrum forwards the full power spectrum data to its listeners.
+ * PowerSpectrum calculates the power spectrum from the output of {@link FFT}. 
+ * PowerSpectrum forwards the full power spectrum data to its listeners.
  * 
  * @beads.category analysis
  */

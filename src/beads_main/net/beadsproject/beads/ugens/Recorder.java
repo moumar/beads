@@ -130,6 +130,7 @@ public class Recorder extends UGen {
         	throw (new Exception("Recorder can only write to a writeable sample."));
         }
         framesWritten = 0;
+        position = 0;
         doubleUpFrame = (long) sample.msToSamples(doubleUpTime);
         constantResizeLengthInFrames = (long) sample.msToSamples(constantResizeLength); 
     }

@@ -21,7 +21,7 @@ import net.beadsproject.beads.ugens.SamplePlayer;
  * @author ben
  */
 public class MusicRemixer {
-
+	
 	// length of segments
 	static float wantedLength = 500; // desired length
 	static float deviation = 200; // gaussian deviation allowed
