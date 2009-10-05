@@ -73,7 +73,7 @@ public class Glide extends UGen {
 				if(gliding) {
 					if(glideTime <= 0f) {
 						gliding = false;
-						bufOut[0][i] = previousValue = targetValue;
+						bufOut[0][i] = previousValue = currentValue = targetValue;
 						nothingChanged = false;
 					} else if(countSinceGlide >= glideTime) {
 						gliding = false;
