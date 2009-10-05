@@ -143,6 +143,7 @@ public class SamplePlayer extends UGen {
 		killOnEnd = true;
 		loopStartEnvelope = new Static(context, 0.0f);
 		loopEndEnvelope = new Static(context, 0.0f);
+		positionIncrement = context.samplesToMs(1);
 	}
 
 	/**
@@ -153,7 +154,6 @@ public class SamplePlayer extends UGen {
 	 */
 	public SamplePlayer(AudioContext context, Sample buffer) {
 		this(context, buffer.getNumChannels());
-		updatePositionIncrement();
 		setSample(buffer);
 		loopEndEnvelope.setValue(buffer.getLength());
 	}
@@ -304,14 +304,6 @@ public class SamplePlayer extends UGen {
 	 */
 	public void setPitchEnvelope(UGen rateEnvelope) {
 		this.rateEnvelope = rateEnvelope;
-	}
-
-	/**
-	 * Updates the position increment, which only changes when the context sample rate changes.
-	 */
-	private void updatePositionIncrement() {
-//		positionIncrement = context.samplesToMs(sample.getSampleRate() / context.getSampleRate());
-		positionIncrement = context.samplesToMs(1);
 	}
 
 	public EnvelopeType getEnvelopeType()

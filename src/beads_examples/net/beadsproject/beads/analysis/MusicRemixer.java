@@ -12,6 +12,9 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.TimeStamp;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
+import net.beadsproject.beads.ugens.Envelope;
+import net.beadsproject.beads.ugens.Gain;
+import net.beadsproject.beads.ugens.GranularSamplePlayer;
 import net.beadsproject.beads.ugens.Recorder;
 import net.beadsproject.beads.ugens.SamplePlayer;
 
@@ -23,20 +26,25 @@ import net.beadsproject.beads.ugens.SamplePlayer;
 public class MusicRemixer {
 	
 	// length of segments
-	static float wantedLength = 500; // desired length
-	static float deviation = 200; // gaussian deviation allowed
+	static float wantedLength = 200; // desired length
+	static float deviation = 1000; // gaussian deviation allowed
 	
 	// length of final file
-	static final float lengthMs = 10000;
+	static final float lengthMs = 300000;
+	
+	final static String musicHome = "/Users/ollie/Music/iTunes/iTunes Music/";
 	
 	// list of directories from which to find the music files
 	final static String[] dirs = {
 		//"D:/Music/Mozart Discography (5 CDs) 320kbps/Mozart - Horn Concerto No.1-3 - Oboe Concerto in C major",
 		//"D:/Music/8-bit/sabrepulse", 
-		"D:/Music/Burnt Friedman & The Nu Dub Players/Just Landed",
-		"D:/Music/Tom Arthurs' Subtopia/Live At Kings Place, 18.10.08_",
+		musicHome + "/Burnt Friedman & The Nu Dub Players/Just Landed",
+		musicHome + "/Tom Arthurs' Subtopia/Live At Kings Place, 18.10.08_",
+//		musicHome + "/Deerhoof/Offend Maggie",
+		musicHome + "/icarus/Sylt Remixes",
+		musicHome + "/Podcasts/NewsPod"
 		};	
-	final static String outputFile = "D:/tmp/remix.wav";	
+	final static String outputFile = "/Users/ollie/Desktop/remix_big.wav";	
 	
 	public static void main(String[] args) throws Exception {
 		Sample outputSample = null;		
@@ -76,12 +84,23 @@ public class MusicRemixer {
 						AudioContext ac = new AudioContext();
 						Recorder r = new Recorder(ac,outputSample,Recorder.Mode.INFINITE);
 						r.setPosition(outputSample.getLength());
-						SamplePlayer sp = new SamplePlayer(ac,segment);							
-						sp.setKillOnEnd(true);
-						sp.setKillListener(new AudioContextStopTrigger(ac));
-						r.addInput(sp);
+						SamplePlayer sp = Math.random() < 0.8f ? new GranularSamplePlayer(ac,segment) : new SamplePlayer(ac,segment);		
+//						sp.setKillOnEnd(true);
+						float rate = (float)Math.random() * 0.2f + 0.9f;
+						sp.getRateEnvelope().setValue(rate);
+						Envelope gainEnv = new Envelope(ac, 0f);
+						Gain g = new Gain(ac, 2, gainEnv);
+//						sp.setKillListener(new AudioContextStopTrigger(ac));
+						g.addInput(sp);
+						
+						gainEnv.addSegment(1f, 10f);
+						gainEnv.addSegment(1f, segment.getLength() / rate - 40f);
+						gainEnv.addSegment(0f, 10f, new AudioContextStopTrigger(ac));
+						
+						r.addInput(g);
 						ac.out.addDependent(r);
-						ac.out.addDependent(sp);
+//						ac.out.addDependent(sp); 
+						
 						ac.runNonRealTime();
 						r.clip();
 					}
@@ -127,7 +146,7 @@ public class MusicRemixer {
 				// depending on the size of the segment, we may or may not choose it
 				double f = Math.abs(r.nextGaussian()); // f defines an acceptable band for length to fall into
 				double upper = f*deviation + wantedLength;
-				double lower = wantedLength - f*deviation;
+				double lower = Math.min(wantedLength - f*deviation, 10f);
 								
 				if (length < upper && length > lower)
 				{
