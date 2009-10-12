@@ -123,7 +123,7 @@ public class MusicRemixer {
 	public static class SegmentExtractor implements SegmentListener
 	{	
 		float waited;
-		final float WAIT_TIME = 10;
+		final float WAIT_TIME = 100;
 		final float STOP_TIME = 100000;		
 				
 		AudioContext ac;

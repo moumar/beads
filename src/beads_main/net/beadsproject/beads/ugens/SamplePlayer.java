@@ -230,6 +230,7 @@ public class SamplePlayer extends UGen {
 	 */
 	public void reset() {
 		position = 0f;
+		forwards = true;
 	}
 
 	/**
