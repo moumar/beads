@@ -9,7 +9,10 @@ import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.core.TimeStamp;
 
 /**
- * MFCC generates mel-frequency cepstral coefficients, an important feature type in music and speech processing. MFCC receives feature data from a {@link MelSpectrum}, and must be set as a listener to a {@link MelSpectrum}, not a pure audio stream, in order to work properly.
+ * MFCC generates mel-frequency spectral coefficients, an important feature type in 
+ * music and speech processing. MFCC receives feature data from a {@link MelSpectrum}, 
+ * and must be set as a listener to a {@link MelSpectrum}, not a pure audio stream, 
+ * in order to work properly.
  * 
  * @beads.category analysis
  */

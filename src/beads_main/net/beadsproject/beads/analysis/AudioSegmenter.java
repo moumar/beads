@@ -10,7 +10,8 @@ import net.beadsproject.beads.core.TimeStamp;
 import net.beadsproject.beads.core.UGen;
 
 /**
- * An AudioSegmenter slices incoming audio data into chunks, as implemented by subclasses, usually in their calculateBuffer method, and then notifies any FeatureExtractors or
+ * An AudioSegmenter slices incoming audio data into chunks, as implemented by subclasses, 
+ * usually in their calculateBuffer method, and then notifies any FeatureExtractors or
  * other SegmentListeners that are listening. 
  * 
  * @author ollie

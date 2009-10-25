@@ -62,6 +62,8 @@ public class Frequency extends FeatureExtractor<Float, float[]> {
 		double k = (yp + ym) / 2 - yz;
 		double x0 = (ym - yp) / (4 * k);
 		features = (float)(bin2hz * (maxbin + x0));
+		
+		forward(startTime,endTime);
 	}
 
 	/* (non-Javadoc)

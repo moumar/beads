@@ -57,6 +57,6 @@ public class FeatureSetExample {
 		FeatureFrame ff = myTrack.getFrameAt(testTimeMS);
 		System.out.println(ff);
 		
-		featureFile.delete();
+		//featureFile.delete();
 	}
 }

@@ -45,6 +45,7 @@ public class SpectralCentroid extends FeatureExtractor<Float, float[]>  {
 			den += p;
 		}
 		features = (float) (num / den);
+		forward(startTime,endTime);
 	}
 	
 	/* (non-Javadoc)

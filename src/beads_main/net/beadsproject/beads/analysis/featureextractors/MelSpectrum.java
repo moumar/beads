@@ -8,7 +8,9 @@ import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.core.TimeStamp;
 
 /**
- * MelSpectrum receives spectral data from a {@link PowerSpectrum} object and converts it to the mel frequency spectrum. To use MelSpectrum, make sure it is set as a listener to a {@link PowerSpectrum} object, not directly from an audio stream.
+ * MelSpectrum receives spectral data from a {@link PowerSpectrum} object and 
+ * converts it to the mel frequency spectrum. To use MelSpectrum, make sure it 
+ * is set as a listener to a {@link PowerSpectrum} object, not directly from an audio stream.
  * 
  * @beads.category analysis
  */

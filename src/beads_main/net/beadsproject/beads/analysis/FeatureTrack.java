@@ -17,7 +17,8 @@ import net.beadsproject.beads.core.TimeStamp;
 /**
  * Stores a set of features associated with a continuous period of audio data.
  * 
- * A FeatureTrack can hold different views on the data. Time-based features are stored in lists mapping segments to features.
+ * A FeatureTrack can hold different views on the data. Time-based features are stored 
+ * in lists mapping segments to features.
  * 
  * @author ollie
  */
@@ -31,6 +32,7 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 
 	/** An alternative list which blocks together the feature frames. */
 	private Map<Integer, SortedSet<FeatureFrame>> framesInBlocks;
+	
 	/** Interval in ms between regions of framesInBlocks. */
 	private int skipMS;
 	
@@ -166,6 +168,7 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 				ff.add(e.getName(), cloneMethod.invoke(features, new Object[] {}));
 			} catch (Exception e1) {
 				//is this ugly or what? Any better ideas?
+				//how about ff.add(..., features.getClass().cast(features).clone())? - ben
 				if(features instanceof float[]) {
 					ff.add(e.getName(), ((float[])features).clone());
 				} else if(features instanceof int[]) {

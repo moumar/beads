@@ -26,12 +26,7 @@ import net.beadsproject.beads.data.buffers.MeanFilter;
  */
 
 public class PeakDetector extends FeatureExtractor<Float, Float> implements SegmentMaker {
-
-	/*
-	 * thresholdListeners receive the filtered threshold value TODO: DISABLE
-	 * AFTER DEBUG, BP170309
-	 */
-
+	
 	private BeadArray listeners;
 	private List<SegmentListener> segmentListeners;
 	private TimeStamp lastStartTime;
