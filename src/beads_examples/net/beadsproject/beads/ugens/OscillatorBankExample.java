@@ -19,7 +19,7 @@ public class OscillatorBankExample {
 		System.out.println("Testing: " + OscillatorBank.class);
 		Random rng = new Random();
 		AudioContext ac = new AudioContext();
-		int numOscs = 10;
+		int numOscs = 1500;
 		float[] freqs = new float[numOscs];
 		for(int i = 0; i < numOscs; i++) {
 			freqs[i] = rng.nextFloat() * 5000f + 100f;

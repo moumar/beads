@@ -5,7 +5,7 @@
 	<classpathentry kind="src" path="src/beads_player"/>
 	<classpathentry kind="src" path="src/beads_experimental"/>
 	<classpathentry kind="src" path="src/beads_doc"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.launching.macosx.MacOSXType/JVM 1.6"/>
 	<classpathentry kind="lib" path="dependencies/mp3spi1.9.4.jar"/>
 	<classpathentry kind="lib" path="dependencies/tritonus_share.jar"/>
 	<classpathentry kind="lib" path="dependencies/jl1.0.1.jar"/>
