@@ -83,7 +83,10 @@ public class AudioContext {
 	private ArrayList<float[]> bufferStore;
 	private int bufStoreIndex;
 	private float[] zeroBuf;
-
+	
+	/** The priority of the audio thread. */
+	private int threadPriority; 
+	
 	/**
 	 * Creates a new AudioContext with default settings. The default buffer size
 	 * is 512 and the default system buffer size is 5000. The
@@ -133,6 +136,8 @@ public class AudioContext {
 		checkForDroppedFrames = true;
 		logTime = false;
 		maxReserveBufs = 50;
+		threadPriority = Thread.MAX_PRIORITY;
+		
 		// set audio format
 		this.audioFormat = audioFormat;
 		// set buffer size
@@ -219,6 +224,26 @@ public class AudioContext {
 			}
 		}
 	}
+	
+	/**
+	 * Sets the priority of the audio thread.
+	 * Default priority is Thread.MAX_PRIORITY.
+	 *  
+	 * @param priority 
+	 */
+	public void setThreadPriority(int priority)
+	{
+		this.threadPriority = priority;
+	}
+	
+	/**
+	 * @return The priority of the audio thread.
+	 */
+	public int getThreadPriority()
+	{
+		return this.threadPriority;
+	}
+	
 	
 	/**
 	 * Runs the system in realtime.
@@ -389,7 +414,7 @@ public class AudioContext {
 					AudioContext.this.run();
 				}
 			});
-			audioThread.setPriority(Thread.MAX_PRIORITY);
+			audioThread.setPriority(threadPriority);
 			audioThread.start();
 		}
 	}
