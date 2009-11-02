@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Hashtable;
+import java.util.Map;
 import net.beadsproject.beads.data.Sample;
 
 /**
@@ -159,6 +160,10 @@ public class FeatureSet {
 	 */
 	public void write(String fn) {
 		write(new File(fn));
+	}
+
+	public Map<String, FeatureTrack> tracks() {
+		return (Map<String, FeatureTrack>)tracks.clone();
 	}
 	
 }

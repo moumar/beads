@@ -4,6 +4,7 @@
 package net.beadsproject.beads.analysis;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -158,6 +159,7 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	/**
 	 * Tells this FeatureTrack to log a new {@link FeatureFrame}, with the given startTime and endTime. The FeatureTrack
 	 * will gather features from its various {@link FeatureExtractor}s at this point.
+	 * @throws CloneNotSupportedException 
 	 */
 	public void newSegment(TimeStamp startTime, TimeStamp endTime) {
 		FeatureFrame ff = new FeatureFrame(startTime.getTimeMS(), endTime.getTimeMS());
@@ -168,7 +170,6 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 				ff.add(e.getName(), cloneMethod.invoke(features, new Object[] {}));
 			} catch (Exception e1) {
 				//is this ugly or what? Any better ideas?
-				//how about ff.add(..., features.getClass().cast(features).clone())? - ben
 				if(features instanceof float[]) {
 					ff.add(e.getName(), ((float[])features).clone());
 				} else if(features instanceof int[]) {
@@ -186,8 +187,13 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 				}  else if(features instanceof boolean[]) {
 					ff.add(e.getName(), ((boolean[])features).clone());
 				} else {
-					ff.add(e.getName(), features);
+					//TODO ultimately - get rid of primitives in the whole feature extraction system
+//					new CloneNotSupportedException("Must implement clone handling in FeatureTrack for Class " + features.getClass()).printStackTrace();
 				}
+				
+				
+				//how about ff.add(..., features.getClass().cast(features).clone())? - ben
+				//doesn't work, since clone is not an available method - ollie
 			} 
 		}
 		add(ff);

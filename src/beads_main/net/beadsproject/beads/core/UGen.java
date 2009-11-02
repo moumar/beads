@@ -265,14 +265,15 @@ public abstract class UGen extends Bead {
 		synchronized(dependents)
 		{
 			dependentsClone = (ArrayList<UGen>) dependents.clone(); //this may be slow, but avoids concurrent mod exceptions
-		}
-		int size = dependentsClone.size();
-		for (int i = 0; i < size; i++) {
-			UGen dependent = dependentsClone.get(i);
-			if (dependent.isDeleted())
-				removeDependent(dependent);
-			else
-				dependent.update();
+//			dependentsClone = dependents;
+			int size = dependentsClone.size();
+			for (int i = 0; i < size; i++) {
+				UGen dependent = dependentsClone.get(i);
+				if (dependent.isDeleted())
+					removeDependent(dependent);
+				else
+					dependent.update();
+			}
 		}
 		if (!noInputs) {
 			noInputs = true;
@@ -281,50 +282,54 @@ public abstract class UGen extends Bead {
 			 * the loop then the badness will happen.   
 			 */
 			
-			for (int i = 0; i < inputsAtChannel.length; i++) {
-				ArrayList<BufferPointer> inputsAtChannelICopy = null;
-				// sync
-				synchronized(inputsAtChannel[i])
-				{
-					inputsAtChannelICopy = (ArrayList<BufferPointer>) inputsAtChannel[i].clone();
-				}
-				size = inputsAtChannelICopy.size();
-				bufIn[i] = context.getZeroBuf();
-				if(size == 1) {
-					BufferPointer bp = inputsAtChannelICopy.get(0);
-					if (bp.ugen.isDeleted()) {
-						removeInputAtChannel(i,bp);
-					} else {
-						bp.ugen.update();
-						noInputs = false;	//we actually updated something, so we must have inputs
-						//V1
-						bufIn[i] = bp.getBuffer(); //here we're just pointing to the buffer that is the input
-													//this requires that the data in the output buffer is always correct
-													//but we can't do this for Static and Envelope and stuff like that efficiently
-						//so these kinds of UGens can make sure their outputs are null in this case, by setting outputInitializationRegime to NULL.
-						if(bufIn[i] == null) {
-							bufIn[i] = context.getBuf();
-							for (int j = 0; j < bufferSize; j++) {
-								bufIn[i][j] = bp.get(j);
-							}
-						}
+			synchronized(inputsAtChannel) {
+				
+				for (int i = 0; i < inputsAtChannel.length; i++) {
+					ArrayList<BufferPointer> inputsAtChannelICopy = null;
+					// sync
+	//				synchronized(inputsAtChannel[i])
+					{
+						inputsAtChannelICopy = (ArrayList<BufferPointer>) inputsAtChannel[i].clone();
+//						inputsAtChannelICopy = inputsAtChannel[i];
 					}
-				} else if(size != 0) {
-					bufIn[i] = context.getCleanBuf();
-					for (int ip = 0; ip < size; ip++) {
-						BufferPointer bp = inputsAtChannelICopy.get(ip);						
+					int size = inputsAtChannelICopy.size();
+					bufIn[i] = context.getZeroBuf();
+					if(size == 1) {
+						BufferPointer bp = inputsAtChannelICopy.get(0);
 						if (bp.ugen.isDeleted()) {
 							removeInputAtChannel(i,bp);
 						} else {
 							bp.ugen.update();
 							noInputs = false;	//we actually updated something, so we must have inputs
-							for (int j = 0; j < bufferSize; j++) {
-								bufIn[i][j] += bp.get(j);
+							//V1
+							bufIn[i] = bp.getBuffer(); //here we're just pointing to the buffer that is the input
+														//this requires that the data in the output buffer is always correct
+														//but we can't do this for Static and Envelope and stuff like that efficiently
+							//so these kinds of UGens can make sure their outputs are null in this case, by setting outputInitializationRegime to NULL.
+							if(bufIn[i] == null) {
+								bufIn[i] = context.getBuf();
+								for (int j = 0; j < bufferSize; j++) {
+									bufIn[i][j] = bp.get(j);
+								}
+							}
+						}
+					} else if(size != 0) {
+						bufIn[i] = context.getCleanBuf();
+						for (int ip = 0; ip < size; ip++) {
+							BufferPointer bp = inputsAtChannelICopy.get(ip);						
+							if (bp.ugen.isDeleted()) {
+								removeInputAtChannel(i,bp);
+							} else {
+								bp.ugen.update();
+								noInputs = false;	//we actually updated something, so we must have inputs
+								for (int j = 0; j < bufferSize; j++) {
+									bufIn[i][j] += bp.get(j);
+								}
 							}
 						}
 					}
-				}
-			} 
+				} 
+			}
 		} 
 	}
 
@@ -415,9 +420,11 @@ public abstract class UGen extends Bead {
 	 * @param sourceUGen the UGen to connect to this UGen.
 	 */
 	public void addInput(UGen sourceUGen) {
-		if(ins != 0 && sourceUGen.outs != 0) {
-			for (int i = 0; i < ins; i++) {
-				addInput(i, sourceUGen, i % sourceUGen.outs);
+		synchronized(inputsAtChannel) {
+			if(ins != 0 && sourceUGen.outs != 0) {
+				for (int i = 0; i < ins; i++) {
+					addInput(i, sourceUGen, i % sourceUGen.outs);
+				}
 			}
 		}
 	}
@@ -432,7 +439,7 @@ public abstract class UGen extends Bead {
 	 * connection.
 	 */
 	public void addInput(int inputIndex, UGen sourceUGen, int sourceOutputIndex) {
-		synchronized(inputsAtChannel[inputIndex])
+		synchronized(inputsAtChannel)
 		{
 			inputsAtChannel[inputIndex].add(new BufferPointer(sourceUGen, sourceOutputIndex));
 		}
@@ -515,20 +522,22 @@ public abstract class UGen extends Bead {
 	@SuppressWarnings("unchecked")
 	public void removeAllConnections(UGen sourceUGen) {
 		if (!noInputs) {
-			int inputCount = 0;
-			for (int i = 0; i < inputsAtChannel.length; i++) {
-				ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputsAtChannel[i].clone();
-				for (BufferPointer bp : bplist) {
-					if (sourceUGen.equals(bp.ugen)) {
-						removeInputAtChannel(i,bp);
-					} else
-						inputCount++;
+				int inputCount = 0;
+				for (int i = 0; i < inputsAtChannel.length; i++) {
+					synchronized(inputsAtChannel[i]) {	//testing sych
+						ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputsAtChannel[i].clone();
+						for (BufferPointer bp : bplist) {
+							if (sourceUGen.equals(bp.ugen)) {
+								removeInputAtChannel(i,bp);
+							} else
+								inputCount++;
+						}
+					}
 				}
-			}
-			if (inputCount == 0) {
-				noInputs = true;
-				zeroIns();
-			}
+				if (inputCount == 0) {
+					noInputs = true;
+					zeroIns();
+				}
 		}
 	}
 	
@@ -537,13 +546,15 @@ public abstract class UGen extends Bead {
 	 */
 	@SuppressWarnings("unchecked")
 	public void clearInputConnections() {
-		for(int i = 0; i < inputsAtChannel.length; i++) {
-			ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputsAtChannel[i].clone();
-			for (BufferPointer bp : bplist) {
-				inputsAtChannel[i].remove(bp);
+		synchronized (inputsAtChannel) {
+			for(int i = 0; i < inputsAtChannel.length; i++) {
+				ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputsAtChannel[i].clone();
+				for (BufferPointer bp : bplist) {
+					removeInputAtChannel(i, bp);//   inputsAtChannel[i].remove(bp);
+				}
+				noInputs = true;
+				zeroIns();
 			}
-			noInputs = true;
-			zeroIns();
 		}
 	}
 

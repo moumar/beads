@@ -1,6 +1,8 @@
 package net.beadsproject.beads.core;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import net.beadsproject.beads.data.Sample;
@@ -21,7 +23,7 @@ public class TestUGenInputsAtChannel {
 	AudioContext ac;
 	ScalingMixer sm;
 	Sample s;
-	Set<SamplePlayer> sps;
+	List<SamplePlayer> sps;
 	
 	
 	public TestUGenInputsAtChannel()
@@ -33,7 +35,7 @@ public class TestUGenInputsAtChannel {
 			"Test runs indefinitely until you quit or an error is detected.");
 		sm = new ScalingMixer(ac,2);
 		s = SampleManager.sample("audio/1234.aif");
-		sps = new HashSet<SamplePlayer>();
+		sps = new ArrayList<SamplePlayer>();
 		ac.out.addInput(sm);
 	}
 	
@@ -92,8 +94,10 @@ public class TestUGenInputsAtChannel {
 	{
 		System.out.println("Removing sp");
 		
-		SamplePlayer[] spa = sps.toArray(new SamplePlayer[]{});
-		SamplePlayer sp = spa[(int)(Math.random()*spa.length)];
+//		SamplePlayer[] spa = sps.toArray(new SamplePlayer[]{});
+//		SamplePlayer sp = spa[(int)(Math.random()*spa.length)];
+		SamplePlayer sp = sps.get((int)(Math.random()*sps.size()));
+		if(sp == null) System.out.println("NULL");
 		sps.remove(sp);
 		removeSamplePlayer(sp);
 	}

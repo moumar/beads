@@ -131,6 +131,14 @@ public class FeatureFrame implements Serializable, Comparable<FeatureFrame> {
 				for(int i = 0; i < fdata.length; i++) {
 					result += fdata[i] + " ";
 				}
+			} else if(data instanceof float[][]) {
+				float[][] fdata = (float[][])data;
+				for(int i = 0; i < fdata.length; i++) {
+					for(int j = 0; j < fdata[i].length; j++) {
+						result += fdata[i][j] + " ";
+					}
+					result += ", ";
+				}
 			} else {
 				result += data;
 			}

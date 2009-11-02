@@ -70,7 +70,7 @@ public class SpectralPeaks extends FeatureExtractor<float[][], float[]>  {
 			double pmax = -1;
 			int maxbin = 0;
 			for (int band = FIRSTBAND; band < powerSpectrum.length; band++) {
-				// double pwr = pitchWt[band]*linSpec[band];
+				//double pwr = pitchWt[band]*linSpec[band];
 				double pwr = linSpec[band];
 				if (pwr > pmax) {
 					pmax = pwr;
@@ -87,6 +87,7 @@ public class SpectralPeaks extends FeatureExtractor<float[][], float[]>  {
 			
 			features[i][0] = (float)(bin2hz * (maxbin + x0));
 			features[i][1] = (float)(pmax);
+//			features[i][1] = Math.min(features[i][1], 0.2f);
 			
 			if(Float.isNaN(features[i][0]) || features[i][0] < 0f)
 			{
@@ -97,6 +98,17 @@ public class SpectralPeaks extends FeatureExtractor<float[][], float[]>  {
 			linSpec[maxbin] = -1f;
 		}
 		forward(startTime, endTime);
+	}
+	
+	public float[][] getFeatures() {
+		float[][] original = (float[][])features;
+		float[][] copy = new float[original.length][original[0].length];
+		for(int i = 0; i < copy.length; i++) {
+			for(int j = 0; j < copy[i].length; j++) {
+				copy[i][j] = original[i][j];
+			}
+		}
+		return copy;
 	}
 
 	/* (non-Javadoc)
