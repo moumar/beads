@@ -3,7 +3,14 @@
  */
 package net.beadsproject.beads.core;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Set;
 
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
@@ -483,8 +490,60 @@ public abstract class UGen extends Bead {
 		}
 	}
 	
-	private synchronized void removeInputAtChannel(int channel, BufferPointer bp)
-	{
+	/**
+	 * Returns a flat Set (i.e. no copies) of all the UGens connected to the inputs of this one.
+	 * 
+	 * @return set of UGens
+	 */
+	public synchronized Set<UGen> getConnectedInputs() {
+		Set<UGen> connectedInputs = new HashSet<UGen>();
+		for(int i = 0; i < ins; i++) {
+			for(BufferPointer bp : inputsAtChannel[i]) {
+				connectedInputs.add(bp.ugen);
+			}
+		}
+		return connectedInputs;
+	}
+	
+	private static Hashtable<Class, Hashtable<String, Method>> envelopeGetterMethods = new Hashtable<Class, Hashtable<String,Method>>();
+	
+	private void findEnvelopeGetterMethods() {
+		Class c = getClass();
+		if(!envelopeGetterMethods.containsKey(c)) {
+			Hashtable<String, Method> methodTable = new Hashtable<String, Method>();
+			Method[] methods = c.getMethods();
+			for(Method m : methods) {
+				String name = m.getName();
+				if(name.startsWith("get") && name.endsWith("Envelope") && m.getReturnType().equals(UGen.class)) {
+					String envelopeName = name.substring(3, 3).toLowerCase() + name.substring(4, name.length() - 8);
+					methodTable.put(envelopeName, m);
+				}
+			}
+			envelopeGetterMethods.put(c, methodTable);
+		}
+	}
+	
+	/**
+	 * Gets the envelopes controlling this UGen (using Reflection).
+	 * 
+	 * @return Map of envelope names to envelopes.
+	 */
+	public synchronized Map<String, UGen> getEnvelopes() {
+		Hashtable<String, UGen> envelopes = new Hashtable<String, UGen>();
+		findEnvelopeGetterMethods();
+		Hashtable<String, Method> methodTable = envelopeGetterMethods.get(getClass());
+		for(String s : methodTable.keySet()) {
+			Method m = methodTable.get(s);
+			try {
+				envelopes.put(s, (UGen)m.invoke(this, new Object[] {}));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return envelopes;
+	}
+	
+	private synchronized void removeInputAtChannel(int channel, BufferPointer bp) {
 		inputsAtChannel[channel].remove(bp);
 		//System.out.println("input removed, channel=" + channel + " total=" + inputsAtChannel[channel].size());
 	}	

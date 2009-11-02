@@ -113,7 +113,7 @@ public class FeatureFrame implements Serializable, Comparable<FeatureFrame> {
 	 * @return true the frame contains this point in time.
 	 */
 	public boolean containsTime(double timeMS) {
-		return timeMS > startTimeMS && timeMS < endTimeMS;
+		return timeMS >= startTimeMS && timeMS <= endTimeMS;
 	}
 	
 	/* (non-Javadoc)

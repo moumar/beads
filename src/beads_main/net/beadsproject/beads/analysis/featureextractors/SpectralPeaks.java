@@ -87,7 +87,7 @@ public class SpectralPeaks extends FeatureExtractor<float[][], float[]>  {
 			
 			features[i][0] = (float)(bin2hz * (maxbin + x0));
 			features[i][1] = (float)(pmax);
-//			features[i][1] = Math.min(features[i][1], 0.2f);
+			features[i][1] = (float)Math.sqrt(features[i][1] / powerSpectrum.length);
 			
 			if(Float.isNaN(features[i][0]) || features[i][0] < 0f)
 			{

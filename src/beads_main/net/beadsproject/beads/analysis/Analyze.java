@@ -93,7 +93,7 @@ public class Analyze {
 		if(!extractorArrangement.containsKey("SpectralPeaks")) {
 			powerSpectrum(extractorArrangement);
 			AudioContext ac = (AudioContext)extractorArrangement.get("Context");
-			SpectralPeaks sp = new SpectralPeaks(ac, 200);
+			SpectralPeaks sp = new SpectralPeaks(ac, 10);
 			PowerSpectrum ps = (PowerSpectrum)extractorArrangement.get("PowerSpectrum");
 			ps.addListener(sp);
 			extractorArrangement.put("SpectralPeaks", sp);

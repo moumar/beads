@@ -71,7 +71,6 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 			}
 			frameSet.add(ff);
 		}
-		
 	}
 	
 	/**
@@ -111,7 +110,7 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 					return ff;
 				}
 			}
-		}
+		} 
 		return null;
 	}
 	

@@ -24,7 +24,7 @@ public class FeatureSort {
 	public static float distance(float[] a, float[] b) {
 		float result = 0f;
 		for(int i = 0; i < a.length; i++) {
-			result += Math.pow(a[i] - b[i], 2);
+			result += Math.pow(a[i] - b[i], 2f);
 		}
 		result = (float)Math.sqrt(result);
 		return result;
