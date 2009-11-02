@@ -7,6 +7,7 @@ import java.util.Set;
 
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.SampleManager;
+import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.GranularSamplePlayer;
 import net.beadsproject.beads.ugens.SamplePlayer;
 import net.beadsproject.beads.ugens.ScalingMixer;
@@ -21,7 +22,7 @@ import net.beadsproject.beads.ugens.ScalingMixer;
 public class TestUGenInputsAtChannel {
 
 	AudioContext ac;
-	ScalingMixer sm;
+	Gain sm;
 	Sample s;
 	List<SamplePlayer> sps;
 	
@@ -33,7 +34,7 @@ public class TestUGenInputsAtChannel {
 		
 		System.out.println("Testing concurrent modification of UGen.inputsAtChannel. \n" +
 			"Test runs indefinitely until you quit or an error is detected.");
-		sm = new ScalingMixer(ac,2);
+		sm = new Gain(ac,2);
 		s = SampleManager.sample("audio/1234.aif");
 		sps = new ArrayList<SamplePlayer>();
 		ac.out.addInput(sm);
@@ -49,7 +50,7 @@ public class TestUGenInputsAtChannel {
 				try {					
 					while (ac.isRunning())
 					{
-						Thread.sleep(100);
+						Thread.sleep(50);
 							
 						if (sps.isEmpty())
 						{
@@ -66,8 +67,8 @@ public class TestUGenInputsAtChannel {
 								removeRandomPlayer();
 							}
 							
-							verifyInputs();
 						}
+						verifyInputs();
 					}
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -85,6 +86,7 @@ public class TestUGenInputsAtChannel {
 	{
 		System.out.println("Adding sp");
 		SamplePlayer sp = new GranularSamplePlayer(ac, SampleManager.sample("audio/1234.aif"));
+		sp.setLoopType(SamplePlayer.LoopType.LOOP_ALTERNATING); //<--------- hey Ben, without this sample players die automatically, triggering the error
 		sm.addInput(sp);
 		sps.add(sp);
 		return sp;		
@@ -93,9 +95,6 @@ public class TestUGenInputsAtChannel {
 	public void removeRandomPlayer()
 	{
 		System.out.println("Removing sp");
-		
-//		SamplePlayer[] spa = sps.toArray(new SamplePlayer[]{});
-//		SamplePlayer sp = spa[(int)(Math.random()*spa.length)];
 		SamplePlayer sp = sps.get((int)(Math.random()*sps.size()));
 		if(sp == null) System.out.println("NULL");
 		sps.remove(sp);
@@ -110,12 +109,12 @@ public class TestUGenInputsAtChannel {
 	public void verifyInputs()
 	{
 		int numsps = sps.size();
-		System.out.printf("numsps = %d, numinputs = ", numsps);
+		System.out.println("numsps = " + numsps);
 		boolean failed = false;
 		for(int i=0;i<sm.getIns();i++)
 		{
 			int n = sm.getNumberOfConnectedUGens(i);	
-			System.out.printf("%d, ", n);
+			System.out.println(n);
 			
 			if (n!=numsps)
 			{
