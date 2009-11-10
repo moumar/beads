@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Set;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -571,6 +572,21 @@ public class AudioContext {
 						+ (sourceDataLine.getBufferSize() - sourceDataLine
 								.available()));
 		System.out.println("available: " + sourceDataLine.available());
+	}
+	
+	public static void printCallChain(UGen current, int depth) {
+		Set<UGen> children = current.getConnectedInputs();
+		for(int i = 0; i < depth; i++) {
+			System.out.print("  ");
+		}
+		System.out.println("- " + current);
+		for(UGen child : children) {
+			printCallChain(child, depth + 1);
+		}
+	}
+	
+	public void printCallChain() {
+		AudioContext.printCallChain(out, 0);
 	}
 
 	/**
