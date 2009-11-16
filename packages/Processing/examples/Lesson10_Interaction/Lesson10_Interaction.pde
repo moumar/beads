@@ -17,13 +17,13 @@ void setup() {
       return x[0] * x[1];
     }
   };
-  WavePlayer freqModulator = new WavePlayer(ac, modFreq, new SineBuffer().getDefault());
+  WavePlayer freqModulator = new WavePlayer(ac, modFreq, Buffer.SINE);
   Function carrierMod = new Function(freqModulator, carrierFreq) {
     public float calculate() {
       return x[0] * 400.0 + x[1];    
     }
   };
-  WavePlayer wp = new WavePlayer(ac, carrierMod, new SineBuffer().getDefault());
+  WavePlayer wp = new WavePlayer(ac, carrierMod, Buffer.SINE);
   Gain g = new Gain(ac, 1, 0.1);
   g.addInput(wp);
   ac.out.addInput(g);

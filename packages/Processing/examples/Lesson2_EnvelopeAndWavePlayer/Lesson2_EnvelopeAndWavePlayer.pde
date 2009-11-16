@@ -17,7 +17,7 @@ void setup() {
    * the above Envelope, and a SineBuffer. We'll use
    * the Envelope to modify the freqency below.
    */
-  WavePlayer wp = new WavePlayer(ac, freqEnv, new SineBuffer().getDefault());
+  WavePlayer wp = new WavePlayer(ac, freqEnv, Buffer.SINE);
   /*
    * So now that the WavePlayer is set up with the 
    * frequency Envelope, do stuff with the frequency
