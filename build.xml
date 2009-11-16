@@ -52,8 +52,7 @@
 				<pathelement location="dependencies/tritonus_share.jar" />
 			</classpath>
 		</javac>
-
-		<!-- BUILD THE STANDARD JAVA PACKAGE -->
+		<!-- BUILD THE STANDARD JAVA PACKAGE (ALSO ECLIPSE PROJECT) -->
 		<property name="beadsdir" value="${build}/beads" />
 		<property name="libdir" value="${beadsdir}/library" />
 		<mkdir dir="${libdir}" />
@@ -61,12 +60,7 @@
 		<copy file="dependencies/jl1.0.1.jar" toFile="${libdir}/jl1.0.1.jar" />
 		<copy file="dependencies/mp3spi1.9.4.jar" toFile="${libdir}/mp3spi1.9.4.jar" />
 		<copy file="dependencies/tritonus_share.jar" toFile="${libdir}/tritonus_share.jar" />
-
-		<!-- copy examples, tutorial and audio files -->
-		<copy todir="${beadsdir}/examples">
-			<fileset dir="src/beads_examples" />
-		</copy>
-		<delete dir="${beadsdir}/examples/.svn" />
+		<!-- tutorial and audio files -->
 		<copy todir="${beadsdir}/tutorial">
 			<fileset dir="packages/Beads/beads_tutorial" />
 		</copy>
@@ -80,17 +74,14 @@
 		<copy todir="${beadsdir}/doc">
 			<fileset dir="${build}/doc" />
 		</copy>
-
 		<!-- copy readmes -->
 		<copy todir="${beadsdir}/readme">
 			<fileset dir="readme" />
 		</copy>	
 		<delete dir="${beadsdir}/readme/.svn" />
-		
 		<!-- copy eclipse project files -->
 		<copy file="${packages}/Beads/.project" toDir="${beadsdir}/" />
 		<copy file="${packages}/Beads/.classpath" toDir="${beadsdir}/" />
-				
 		<!-- BUILD THE PROCESSING PACKAGE -->
 		<!-- Following the guidelines here: http://dev.processing.org/libraries/basics.html  -->
 		<property name="processing" location="${build}/processing" />
@@ -105,13 +96,11 @@
 		<copy file="dependencies/jl1.0.1.jar" toFile="${proclib}/jl1.0.1.jar" />
 		<copy file="dependencies/mp3spi1.9.4.jar" toFile="${proclib}/mp3spi1.9.4.jar" />
 		<copy file="dependencies/tritonus_share.jar" toFile="${proclib}/tritonus_share.jar" />
-
 		<!-- copy tutorials into an "examples" directory -->
 		<copy todir="${processing}/Beads/examples">
 			<fileset dir="${packages}/Processing/examples" />
 		</copy>	
 		<delete dir="${processing}/Beads/examples/.svn" />
-		
 		<!-- copy documentation -->
 		<mkdir dir="${processing}/Beads/doc" />
 		<copy todir="${processing}/Beads/doc">
@@ -124,9 +113,7 @@
 			<fileset dir="readme" />
 		</copy>	
 		<delete dir="${processing}/readme/.svn" />
-		
 	</target>
-
 
 	<!-- ================================= 
           target: clean              
@@ -164,7 +151,6 @@
 		<mkdir dir="${tmp}" />
 		<javac srcdir="src/beads_doc" destdir="${tmp}" />
 		<mkdir dir="${build}/ref" />
-		<!--svn><export destPath="${build}/ref" srcPath="${packages}/ref" force="true" /></svn-->
 		<copy todir="${build}/ref">
 			<fileset dir="${packages}/ref" />
 		</copy>
@@ -187,13 +173,23 @@
 	</target>
 
 	<!-- ================================= 
-          target: commit packages (project admin only)            
+          target: generate packages       
          ================================= -->
-	<target name="commit packages" description="upload the generated packages" depends="compile main">
+	<target name="make packages" description="generate packages and put in build/tmp" depends="compile main">
 		<mkdir dir="${exportdir}"/>
 		<!-- main Beads dir -->
 		<zip basedir="${build}/beads" destfile="${exportdir}/Beads.zip" />
 		<copy file="${exportdir}/Beads.zip" tofile="${exportdir}/Beads${TODAY}.zip" />
+		<!-- Beads Processing Tutorial -->
+		<zip basedir="${build}/processing" destfile="${exportdir}/Beads_Processing_Tutorial.zip" />
+		<copy file="${exportdir}/Beads_Processing_Tutorial.zip" tofile="${exportdir}/Beads_Processing_Tutorial${TODAY}.zip" />
+	</target>
+	
+	<!-- ================================= 
+          target: commit packages (project admin only)            
+         ================================= -->
+	<target name="commit packages" description="commit generated packages (only possible if you're Ollie)" depends="make packages">
+		<!-- main Beads dir -->
 		<exec executable="scp">
 			<arg line="${exportdir}/Beads.zip orsjb@beadsproject.net:beadsproject.net/downloads/" />
 		</exec>
@@ -201,8 +197,6 @@
 			<arg line="${exportdir}/Beads${TODAY}.zip orsjb@beadsproject.net:beadsproject.net/downloads/" />
 		</exec>
 		<!-- Beads Processing Tutorial -->
-		<zip basedir="${build}/processing" destfile="${exportdir}/Beads_Processing_Tutorial.zip" />
-		<copy file="${exportdir}/Beads_Processing_Tutorial.zip" tofile="${exportdir}/Beads_Processing_Tutorial${TODAY}.zip" />
 		<exec executable="scp">
 			<arg line="${exportdir}/Beads_Processing_Tutorial.zip orsjb@beadsproject.net:beadsproject.net/downloads/" />
 		</exec>
