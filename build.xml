@@ -132,7 +132,6 @@
 				<pathelement location="dependencies/tritonus_share.jar" />
 			</classpath>
 		</javadoc>
-
 		<!-- generate quick reference -->
 		<mkdir dir="${tmp}" />
 		<javac srcdir="src/beads_doc" destdir="${tmp}" />
