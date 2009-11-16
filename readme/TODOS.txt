@@ -2,19 +2,11 @@ TODOS
 
 Suggestions and contributions welcome.
 
-*** General development ***
-
-Develop tutorials. 
-
 *** Main areas identified for development ***
 
 More Filters.
 More Windows / Waves.
-SampleManager functionality.
 More FeatureExtractors / Segmenters.
-Feature data management functionality.
 OscillatorBank functionality.
-MP3 files.
 Streaming audio to/from file.
-Pan algorithms.
 Audio i/o functionality.
