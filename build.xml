@@ -74,11 +74,12 @@
 		<copy todir="${beadsdir}/doc">
 			<fileset dir="${build}/doc" />
 		</copy>
-		<!-- copy readmes -->
-		<copy todir="${beadsdir}/readme">
-			<fileset dir="readme" />
+		<!-- copy readme and notes -->
+		<copy file="${packages}/Beads/README.txt" toDir="${beadsdir}/" />
+		<copy todir="${beadsdir}/notes">
+			<fileset dir="notes" />
 		</copy>	
-		<delete dir="${beadsdir}/readme/.svn" />
+		<delete dir="${beadsdir}/notes/.svn" />
 		<!-- copy eclipse project files -->
 		<copy file="${packages}/Beads/.project" toDir="${beadsdir}/" />
 		<copy file="${packages}/Beads/.classpath" toDir="${beadsdir}/" />
@@ -97,22 +98,22 @@
 		<copy file="dependencies/mp3spi1.9.4.jar" toFile="${proclib}/mp3spi1.9.4.jar" />
 		<copy file="dependencies/tritonus_share.jar" toFile="${proclib}/tritonus_share.jar" />
 		<!-- copy tutorials into an "examples" directory -->
-		<copy todir="${processing}/Beads/examples">
-			<fileset dir="${packages}/Processing/examples" />
+		<copy todir="${processing}/Beads/tutorial">
+			<fileset dir="${packages}/Processing/tutorial" />
 		</copy>	
-		<delete dir="${processing}/Beads/examples/.svn" />
+		<delete dir="${processing}/Beads/tutorial/.svn" />
 		<!-- copy documentation -->
 		<mkdir dir="${processing}/Beads/doc" />
 		<copy todir="${processing}/Beads/doc">
 			<fileset dir="${build}/doc" />
 		</copy>
 
-		<!-- copy readmes -->
+		<!-- copy readme and notes -->
 		<copy file="${packages}/Processing/README.txt" toDir="${processing}/" />
-		<copy todir="${processing}/readme">
-			<fileset dir="readme" />
+		<copy todir="${processing}/notes">
+			<fileset dir="notes" />
 		</copy>	
-		<delete dir="${processing}/readme/.svn" />
+		<delete dir="${processing}/notes/.svn" />
 	</target>
 
 	<!-- ================================= 
