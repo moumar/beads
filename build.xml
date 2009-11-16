@@ -68,7 +68,7 @@
 		</copy>
 		<delete dir="${beadsdir}/examples/.svn" />
 		<copy todir="${beadsdir}/tutorial">
-			<fileset dir="src/beads_tutorial" />
+			<fileset dir="packages/Beads/beads_tutorial" />
 		</copy>
 		<delete dir="${beadsdir}/tutorial/.svn" />
 		<copy todir="${beadsdir}/audio">
