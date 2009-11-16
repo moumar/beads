@@ -7,10 +7,8 @@
 	<description>
     	Beads - a computer music and sound art library for Java.
     </description>
-	
 	<!-- directory from which to copy package related data (such as readmes, etc.) -->
 	<property name="packages" value="packages" />
-
 	<!-- directory to build packages and set up zips and docs for export -->
 	<property name="build" value="build" />
 	<!-- stuff that lasts a very short time (a tmp build folder) -->
@@ -18,11 +16,9 @@
 	<!-- an export folder -->
 	<property name="exportdir" value="${tmp}/export">
 	</property>
-
 	<!-- compile for 1.5 jvm, as osx has limited 1.6 support. -->
 	<property name="ant.build.javac.target" value="1.5">
 	</property>
-
 	<tstamp>
 		<format property="TODAY" pattern="yyyyMMdd" />
 	</tstamp>
@@ -37,7 +33,6 @@
           target: compile main              
          ================================= -->
 	<target name="compile main" description="compiles main beads project to beads.jar" depends="doc main">
-
 		<!-- BUILD ALL CLASS FILES (THEY ARE TEMPORARY) -->
 		<property name="buildmain" value="${tmp}/main" />
 		<mkdir dir="${buildmain}" />
@@ -102,12 +97,12 @@
 			<fileset dir="${packages}/Processing/tutorial" />
 		</copy>	
 		<delete dir="${processing}/Beads/tutorial/.svn" />
+		<delete dir="${processing}/Beads/tutorial/.svn" />
 		<!-- copy documentation -->
 		<mkdir dir="${processing}/Beads/doc" />
 		<copy todir="${processing}/Beads/doc">
 			<fileset dir="${build}/doc" />
 		</copy>
-
 		<!-- copy readme and notes -->
 		<copy file="${packages}/Processing/README.txt" toDir="${processing}/" />
 		<copy todir="${processing}/Beads/notes">
@@ -125,16 +120,6 @@
 		<delete dir="${build}/processing" />
 		<delete dir="${build}/ref" />
 		<delete dir="${build}/tmp" />
-	</target>
-	
-	<!-- ================================= 
-          target: compile play              
-         ================================= -->
-	<target name="compile play" description="compiles beads player project to beads-play.jar" depends="compile main">
-		<mkdir dir="${tmp}/play" />
-		<javac srcdir="src/beads_player" destdir="${tmp}/play" classpath="${build}/beads/library/beads.jar" debug="off" />
-		<jar destfile="${build}/beads/library/beads-play.jar" basedir="${tmp}/play" />
-		<delete dir="${tmp}/play" />
 	</target>
 
 	<!-- ================================= 
@@ -162,15 +147,6 @@
 			</classpath>
 		</javadoc>
 		<delete dir="${tmp}" />
-	</target>
-
-	<!-- ================================= 
-          target: doc play (merges with doc main)             
-         ================================= -->
-	<target name="doc play" description="generate docs for play and main in same location">
-		<javadoc sourcepath="src/beads_main:src/beads_player" destdir="${build}/doc">
-			<tag name="beads.category" enabled="False" />
-		</javadoc>
 	</target>
 
 	<!-- ================================= 
