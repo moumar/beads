@@ -62,11 +62,15 @@
 		<copy file="dependencies/mp3spi1.9.4.jar" toFile="${libdir}/mp3spi1.9.4.jar" />
 		<copy file="dependencies/tritonus_share.jar" toFile="${libdir}/tritonus_share.jar" />
 
-		<!-- copy examples and audio files -->
+		<!-- copy examples, tutorial and audio files -->
 		<copy todir="${beadsdir}/examples">
 			<fileset dir="src/beads_examples" />
 		</copy>
 		<delete dir="${beadsdir}/examples/.svn" />
+		<copy todir="${beadsdir}/tutorial">
+			<fileset dir="src/beads_tutorial" />
+		</copy>
+		<delete dir="${beadsdir}/tutorial/.svn" />
 		<copy todir="${beadsdir}/audio">
 			<fileset dir="audio" />
 		</copy>				
@@ -78,7 +82,6 @@
 		</copy>
 
 		<!-- copy readmes -->
-		<copy file="${packages}/Beads/README.txt" toDir="${beadsdir}/" />
 		<copy todir="${beadsdir}/readme">
 			<fileset dir="readme" />
 		</copy>	
