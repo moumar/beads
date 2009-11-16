@@ -1,4 +1,4 @@
-package net.beadsproject.beads.tutorial;
+
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.ugens.Gain;
