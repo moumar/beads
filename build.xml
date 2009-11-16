@@ -13,9 +13,9 @@
 
 	<!-- directory to build packages and set up zips and docs for export -->
 	<property name="build" value="build" />
-	<property name="tmp" value="${build}/tmp" />
 	<!-- stuff that lasts a very short time (a tmp build folder) -->
-
+	<property name="tmp" value="${build}/tmp" />
+	<!-- an export folder -->
 	<property name="exportdir" value="${tmp}/export">
 	</property>
 
