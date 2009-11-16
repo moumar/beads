@@ -110,7 +110,7 @@
 
 		<!-- copy readme and notes -->
 		<copy file="${packages}/Processing/README.txt" toDir="${processing}/" />
-		<copy todir="${processing}/notes">
+		<copy todir="${processing}/Beads/notes">
 			<fileset dir="notes" />
 		</copy>	
 		<delete dir="${processing}/notes/.svn" />
