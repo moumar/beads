@@ -132,7 +132,7 @@
           target: clean              
          ================================= -->
 	<target name="clean" description="clean up">
-		<delete dir="${build}/Beads" />
+		<delete dir="${build}/beads" />
 		<delete dir="${build}/doc" />
 		<delete dir="${build}/processing" />
 		<delete dir="${build}/ref" />
