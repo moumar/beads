@@ -47,7 +47,9 @@
 				<pathelement location="dependencies/tritonus_share.jar" />
 			</classpath>
 		</javac>
+		
 		<!-- BUILD THE STANDARD JAVA PACKAGE (ALSO ECLIPSE PROJECT) -->
+		
 		<property name="beadsdir" value="${build}/beads" />
 		<property name="libdir" value="${beadsdir}/library" />
 		<mkdir dir="${libdir}" />
@@ -78,7 +80,9 @@
 		<!-- copy eclipse project files -->
 		<copy file="${packages}/Beads/.project" toDir="${beadsdir}/" />
 		<copy file="${packages}/Beads/.classpath" toDir="${beadsdir}/" />
+		
 		<!-- BUILD THE PROCESSING PACKAGE -->
+		
 		<!-- Following the guidelines here: http://dev.processing.org/libraries/basics.html  -->
 		<property name="processing" location="${build}/processing" />
 		<property name="proclib" location="${processing}/Beads/library" />
@@ -96,7 +100,6 @@
 		<copy todir="${processing}/Beads/tutorial">
 			<fileset dir="${packages}/Processing/tutorial" />
 		</copy>	
-		<delete dir="${processing}/Beads/tutorial/.svn" />
 		<delete dir="${processing}/Beads/tutorial/.svn" />
 		<!-- copy documentation -->
 		<mkdir dir="${processing}/Beads/doc" />
