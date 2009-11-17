@@ -291,7 +291,7 @@ public class AudioContext {
 			timeStep++;
 			if(Thread.interrupted()) System.out.println("Thread interrupted");
 			if(logTime && timeStep % 100 == 0) {
-				System.out.println(samplesToMs(timeStep * bufferSizeInFrames) / 1000f + " (seconds)");
+				System.out.println(samplesToMs(timeStep * bufferSizeInFrames) / 1000f + " (seconds), bufferStore.size()=" + bufferStore.size());
 			}
 		}
 		//try this to clear the buffer (should get rid of buzz)

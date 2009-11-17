@@ -438,9 +438,18 @@ public class SampleManager {
 		} 
 		FeatureSet set = FeatureSet.forSample(sample);
 		featureSets.put(sample, set);
+		if(verbose) System.out.println("Loaded features for " + sample.getFileName());
 		return set;
 	}
+
+	public static void featuresForGroup(String groupName) {
+		ArrayList<Sample> theSamples = groups.get(groupName);
+		for(Sample s : theSamples) {
+			featuresForSample(s);
+		}
+	}
 	
+	//TODO not implemented in above yet!
 	public static interface SampleGroupListener {
 		public void changed();
 	}
