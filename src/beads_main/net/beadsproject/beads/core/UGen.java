@@ -3,17 +3,13 @@
  */
 package net.beadsproject.beads.core;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
-
 import net.beadsproject.beads.data.Buffer;
-import net.beadsproject.beads.events.AudioContextStopTrigger;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.DelayTrigger;
 import net.beadsproject.beads.ugens.WavePlayer;
