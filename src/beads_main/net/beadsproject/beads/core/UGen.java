@@ -450,6 +450,10 @@ public abstract class UGen extends Bead {
 	public synchronized void removeDependent(UGen dependent) {
 		dependents.remove(dependent);
 	}
+	
+	public synchronized void clearDependents() {
+		dependents.clear();
+	}
 
 	/**
 	 * Gets the number of UGens connected at the specified input index of
