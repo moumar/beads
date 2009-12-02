@@ -26,16 +26,17 @@ public class Buffer implements Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	// A collection of default buffers, initialised for your convenience.
-	public static final Buffer SINE = new SineBuffer().getDefault();
-	public static final Buffer SAW = new SawBuffer().getDefault();
-	public static final Buffer SQUARE = new SquareBuffer().getDefault();
-	public static final Buffer NOISE = new NoiseBuffer().getDefault();
 
 	/** 
 	 * A static storage area for common buffers, such as a sine wave. Used by {@link BufferFactory} to keep track of common buffers.
 	 */
 	public static Hashtable<String, Buffer> staticBufs = new Hashtable<String, Buffer>(); 
+
+	// A collection of default buffers, initialised for your convenience.
+	public static final Buffer SINE = new SineBuffer().getDefault();
+	public static final Buffer SAW = new SawBuffer().getDefault();
+	public static final Buffer SQUARE = new SquareBuffer().getDefault();
+	public static final Buffer NOISE = new NoiseBuffer().getDefault();
 	
 	/** 
 	 * The buffer data. 
