@@ -104,7 +104,7 @@ public class OctophonicMixer extends UGen {
 		super(context, 8);
 		outputInitializationRegime = OutputInitializationRegime.ZERO;
 		sources = Collections.synchronizedMap(new Hashtable<UGen, Location>());
-		curve = 1.5f;
+		curve = 3f;
 	}
 	
 	public static float distance(float[] a, float[] b) {
@@ -116,7 +116,7 @@ public class OctophonicMixer extends UGen {
 		return distance;
 	}
 	
-	public void addSource(UGen source) {
+	public void addInput(UGen source) {
 		Location location = new Location(source);
 		sources.put(source, location);
 	}
