@@ -10,8 +10,11 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
 import net.beadsproject.beads.data.Buffer;
+import net.beadsproject.beads.events.KillTrigger;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.DelayTrigger;
+import net.beadsproject.beads.ugens.Envelope;
+import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.WavePlayer;
 
 /**
@@ -430,6 +433,33 @@ public abstract class UGen extends Bead {
 		inputsAtChannel[inputIndex].add(new BufferPointer(sourceUGen, sourceOutputIndex));
 		//System.out.println("new input added, channel=" + inputIndex + " total=" + inputsAtChannel[inputIndex].size());
 		noInputs = false;
+	}
+	
+	/**
+	 * Performs a crossfade from one UGen (which must already be connected) to another. Only works if you 
+	 * @param source the UGen to crossfade away from (assumed to already be connected), will be disconnected once cross-fade is over.
+	 * @param destination the UGen to crossfade towards.
+	 * @param crossoverTime the time taken.
+	 */
+	public synchronized void crossfadeInput(UGen source, final UGen destination, float crossoverTime) {
+		removeAllConnections(source);
+		//fade the old one out
+		Envelope fadeOut = new Envelope(context, 1f);
+		Gain gOut = new Gain(context, source.outs, fadeOut);
+		fadeOut.addSegment(0f, crossoverTime, new KillTrigger(gOut));
+		gOut.addInput(source);
+		addInput(gOut);
+		//fade the new one in
+		Envelope fadeIn = new Envelope(context, 0f);
+		final Gain gIn = new Gain(context, destination.outs, fadeIn);
+		fadeIn.addSegment(1f, crossoverTime, new Bead() {
+			public void messageReceived(Bead message) {
+				removeAllConnections(gIn);
+				addInput(destination);
+			}
+		});
+		gIn.addInput(source);
+		addInput(gIn);
 	}
 
 	/**

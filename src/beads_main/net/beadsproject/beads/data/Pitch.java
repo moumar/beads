@@ -73,6 +73,9 @@ public abstract class Pitch {
 		return forceToScale(pitch, scale, 12);
 	}
 	
+	/** Pitch names for scale starting at C. */
+	public static final String[] pitchNames = new String[]{"C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"};
+	
 	/** The dorian scale relative to root. */
 	public static final int[] dorian = {0, 2, 3, 5, 7, 9, 10};
 
