@@ -26,11 +26,11 @@ public class PolyLimit extends UGen {
 			existingInputs.remove(sourceUGen);
 			existingInputs.add(sourceUGen);
 		} else {
-			if(existingInputs.size() > maxInputs) {
+			if(existingInputs.size() >= maxInputs) {
 				UGen deadUGen = existingInputs.poll();
-				removeAllConnections(deadUGen);
-				existingInputs.add(sourceUGen);
+				removeAllConnections(deadUGen);			
 			}
+			existingInputs.add(sourceUGen);
 			super.addInput(sourceUGen);
 		}
 	}

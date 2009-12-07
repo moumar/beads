@@ -13,8 +13,8 @@ import net.beadsproject.beads.ugens.WavePlayer;
 public class SpectralPeaksExample {
 
 	public static void main(String[] args) {
-		final int NUM_OSCILLATORS = 1;
-		final int NUM_PEAKS = 1;
+		final int NUM_OSCILLATORS = 10;
+		final int NUM_PEAKS = 2;
 		final float BASE_FREQ = 100.f;
 		
 		System.out.println("Testing: " + SpectralPeaks.class);
@@ -34,7 +34,7 @@ public class SpectralPeaksExample {
 
 		//set up segmenter
 		ShortFrameSegmenter sfs = new ShortFrameSegmenter(ac);
-		final int CHUNK_SIZE = 2048*32;
+		final int CHUNK_SIZE = 2048*2;
 		sfs.setChunkSize(CHUNK_SIZE);
 		
 		//set up power spectrum
@@ -52,14 +52,14 @@ public class SpectralPeaksExample {
 				{
 					double p = Math.sqrt(getFeatures()[i][1]/CHUNK_SIZE);
 					totalpower += p;
-					System.out.printf("%.0f ",getFeatures()[i][0]);					
+					//System.out.printf("%.0f ",getFeatures()[i][0]);					
 				}
-				System.out.printf("[%.2f]\n", totalpower);
+				//System.out.printf("[%.2f]\n", totalpower);
 			}
 		};
 		ps.addListener(sp);
 
-		//bonus mark - make a sine wave play the spectral peak
+		//bonus mark - make a sine wave play the spectral peak		
 		WavePlayer wp = new WavePlayer(ac, 500f, new SineBuffer().getDefault()) {
 			public void calculateBuffer() {
 				getFrequencyEnvelope().setValue(sp.getFeatures()[0][0]);
@@ -68,12 +68,13 @@ public class SpectralPeaksExample {
 		};
 		Gain wpGain = new Gain(ac, 1, new Static(ac, 0.1f));
 		wpGain.addInput(wp);
+		ac.out.addInput(wpGain);
+		
 		
 		//connect audio
 		sfs.addInput(g);
 		ac.out.addDependent(sfs);	//<-- sfs must be triggered
 		ac.out.addInput(g);
-		ac.out.addInput(wpGain);
 		ac.start();
 	}
 
