@@ -84,8 +84,8 @@
 		<!-- BUILD THE PROCESSING PACKAGE -->
 		
 		<!-- Following the guidelines here: http://dev.processing.org/libraries/basics.html  -->
-		<property name="processing" location="${build}/processing" />
-		<property name="proclib" location="${processing}/Beads/library" />
+		<property name="processing" location="${build}/beads_processing" />
+		<property name="proclib" location="${processing}/beads/library" />
 		<mkdir dir="${proclib}" />
 		<taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask" classpath="dependencies/jarjar-1.0.jar" />
 		<jarjar jarfile="${proclib}/beads.jar">
@@ -97,18 +97,18 @@
 		<copy file="dependencies/mp3spi1.9.4.jar" toFile="${proclib}/mp3spi1.9.4.jar" />
 		<copy file="dependencies/tritonus_share.jar" toFile="${proclib}/tritonus_share.jar" />
 		<!-- copy tutorials into an "examples" directory -->
-		<copy todir="${processing}/Beads/tutorial">
+		<copy todir="${processing}/beads/tutorial">
 			<fileset dir="${packages}/Processing/tutorial" />
 		</copy>	
-		<delete dir="${processing}/Beads/tutorial/.svn" />
+		<delete dir="${processing}/beads/tutorial/.svn" />
 		<!-- copy documentation -->
-		<mkdir dir="${processing}/Beads/doc" />
-		<copy todir="${processing}/Beads/doc">
+		<mkdir dir="${processing}/beads/doc" />
+		<copy todir="${processing}/beads/doc">
 			<fileset dir="${build}/doc" />
 		</copy>
 		<!-- copy readme and notes -->
 		<copy file="${packages}/Processing/README.txt" toDir="${processing}/" />
-		<copy todir="${processing}/Beads/notes">
+		<copy todir="${processing}/beads/notes">
 			<fileset dir="notes" />
 		</copy>	
 		<delete dir="${processing}/notes/.svn" />
@@ -160,7 +160,7 @@
 		<zip basedir="${build}/beads" destfile="${exportdir}/Beads.zip" />
 		<copy file="${exportdir}/Beads.zip" tofile="${exportdir}/Beads${TODAY}.zip" />
 		<!-- Beads Processing Tutorial -->
-		<zip basedir="${build}/processing" destfile="${exportdir}/Beads_Processing_Tutorial.zip" />
+		<zip basedir="${build}/beads_processing" destfile="${exportdir}/Beads_Processing_Tutorial.zip" />
 		<copy file="${exportdir}/Beads_Processing_Tutorial.zip" tofile="${exportdir}/Beads_Processing_Tutorial${TODAY}.zip" />
 	</target>
 	
