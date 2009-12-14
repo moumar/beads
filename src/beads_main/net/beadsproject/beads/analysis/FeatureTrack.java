@@ -188,6 +188,7 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 				} else {
 					//TODO ultimately - get rid of primitives in the whole feature extraction system
 //					new CloneNotSupportedException("Must implement clone handling in FeatureTrack for Class " + features.getClass()).printStackTrace();
+					ff.add(e.getName(), features);
 				}
 				
 				

@@ -7,9 +7,11 @@ import net.beadsproject.beads.analysis.featureextractors.Frequency;
 import net.beadsproject.beads.analysis.featureextractors.MFCC;
 import net.beadsproject.beads.analysis.featureextractors.MelSpectrum;
 import net.beadsproject.beads.analysis.featureextractors.PeakDetector;
+import net.beadsproject.beads.analysis.featureextractors.Power;
 import net.beadsproject.beads.analysis.featureextractors.PowerSpectrum;
 import net.beadsproject.beads.analysis.featureextractors.SpectralDifference;
 import net.beadsproject.beads.analysis.featureextractors.SpectralPeaks;
+import net.beadsproject.beads.analysis.featureextractors.SpectralDifference.DifferenceType;
 import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Sample;
@@ -27,7 +29,7 @@ public class Analyze {
 	private static AnalysisSettings defaultSettings;
 	static {
 		defaultSettings = new AnalysisSettings();
-		defaultSettings.hopSize = 1024;
+		defaultSettings.hopSize = 512;
 		defaultSettings.chunkSize = 2048;
 	}
 	
@@ -55,7 +57,7 @@ public class Analyze {
 		extractorArrangement.put("Segmenter", sfs);
 		if(extractors != null) {
 			for(String extractor : extractors) {
-				if(extractor.equals("Power Spectrum")) {
+				if(extractor.equals("PowerSpectrum")) {
 					powerSpectrum(extractorArrangement);
 				} else if(extractor.equals("FFT")) {
 					fft(extractorArrangement);
@@ -67,6 +69,8 @@ public class Analyze {
 					mfcc(extractorArrangement);
 				} else if(extractor.equals("SpectralPeaks")) {
 					spectralPeaks(extractorArrangement);
+				} else if(extractor.equals("Power")) {
+					power(extractorArrangement);
 				}
 			}
 		}
@@ -74,15 +78,18 @@ public class Analyze {
 		spectralDifference(extractorArrangement);
 		//add low level stuff
 		for(String featureName : extractorArrangement.keySet()) {
-			if(extractorArrangement.get(featureName) instanceof FeatureExtractor<?, ?>) {
-				lowLevel.addFeatureExtractor((FeatureExtractor<?, ?>)extractorArrangement.get(featureName));
+			if(extractorArrangement.get(featureName) instanceof FeatureExtractor) {
+				lowLevel.addFeatureExtractor((FeatureExtractor)extractorArrangement.get(featureName));
 			}
 		}
 		//add beat stuff
 		PeakDetector d = new PeakDetector();
+		d.setThreshold(0.01f);
+		d.setAlpha(0.9f);
 		SpectralDifference sd = (SpectralDifference)extractorArrangement.get("SpectralDifference");
 		sd.addListener(d);
 		d.addSegmentListener(beats);
+		//set up to kill self
 		sp.setKillListener(new AudioContextStopTrigger(ac));
 		ac.runNonRealTime();
 		return results;
@@ -105,6 +112,7 @@ public class Analyze {
 			powerSpectrum(extractorArrangement);
 			AudioContext ac = (AudioContext)extractorArrangement.get("Context");
 			SpectralDifference sd = new SpectralDifference(ac.getSampleRate());
+			sd.setDifferenceType(DifferenceType.POSITIVERMS);
 			PowerSpectrum ps = (PowerSpectrum)extractorArrangement.get("PowerSpectrum");
 			ps.addListener(sd);
 			extractorArrangement.put("SpectralDifference", sd);
@@ -159,6 +167,15 @@ public class Analyze {
 			AudioSegmenter as = (AudioSegmenter)extractorArrangement.get("Segmenter");
 			as.addListener(fft);
 			extractorArrangement.put("FFT", fft);
+		}
+	}
+	
+	private static void power(Hashtable<String, Object> extractorArrangement) {
+		if(!extractorArrangement.containsKey("Power")) {
+			Power p = new Power();
+			AudioSegmenter as = (AudioSegmenter)extractorArrangement.get("Segmenter");
+			as.addListener(p);
+			extractorArrangement.put("Power", p);
 		}
 	}
 	

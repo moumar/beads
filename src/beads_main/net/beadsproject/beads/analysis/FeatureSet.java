@@ -18,6 +18,9 @@ public class FeatureSet {
 	/** The tracks. */
 	private Hashtable<String, FeatureTrack> tracks;
 	
+	/** The list of Global Features. */
+	private Hashtable<String, Object> globalFeatures;
+	
 	/** The file. */
 	private File file;
 
@@ -50,6 +53,7 @@ public class FeatureSet {
 	 */
 	public FeatureSet() {
 		tracks = new Hashtable<String, FeatureTrack>();
+		globalFeatures = new Hashtable<String, Object>();
 	}
 	
 	/**
@@ -91,6 +95,38 @@ public class FeatureSet {
 	 */
 	public boolean contains(String trackName) {
 		return tracks.containsKey(trackName);
+	}
+
+	
+	/**
+	 * Adds a set of features with the given name to the global features.
+	 * 
+	 * @param s the name used to identify the feature set.
+	 * @param f the features.
+	 */
+	public void addGlobal(String s, Object f) {
+		globalFeatures.put(s, f);
+	}
+	
+	/**
+	 * Gets the global features for the given name.
+	 * 
+	 * @param s the name.
+	 * 
+	 * @return the features.
+	 */
+	public Object getGlobal(String s) {
+		return globalFeatures.get(s);
+	}
+	
+	/**
+	 * Returns true if this FeatureSet stores a global feature with the given name.
+	 * 
+	 * @param feature name to check.
+	 * @return true if feature name is found.
+	 */
+	public boolean containsGlobal(String s) {
+		return globalFeatures.contains(s);
 	}
 	
 	/**
