@@ -38,11 +38,11 @@ public class FeatureSet {
 		if(sampleFilePath != null) {
 			File featureFile = new File(sampleFilePath + ".features");
 			if(featureFile.exists()) {
-				try {
+//				try {
 					fs = new FeatureSet(featureFile);
-				} catch(Exception e) {
-					fs = null;
-				}
+//				} catch(Exception e) {
+//					fs = null;
+//				}
 			}
 		}
 		return fs;
@@ -137,6 +137,7 @@ public class FeatureSet {
 			FileOutputStream fos = new FileOutputStream(file);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 			oos.writeObject(tracks);
+			oos.writeObject(globalFeatures);
 			oos.close();
 			fos.close();
 		} catch(Exception e) {
@@ -164,6 +165,7 @@ public class FeatureSet {
 				FileInputStream fis = new FileInputStream(file);
 				ObjectInputStream ois = new ObjectInputStream(fis);
 				tracks = (Hashtable<String, FeatureTrack>)ois.readObject();
+				globalFeatures = (Hashtable<String, Object>)ois.readObject();
 				ois.close();
 				fis.close();
 			} catch(Exception e) {
@@ -197,9 +199,13 @@ public class FeatureSet {
 	public void write(String fn) {
 		write(new File(fn));
 	}
-
+	
+	/**
+	 * Returns the tracks.
+	 * @return A Map<String, FeatureTrack> structure.
+	 */
 	public Map<String, FeatureTrack> tracks() {
-		return (Map<String, FeatureTrack>)tracks.clone();
+		return tracks;
 	}
 	
 }

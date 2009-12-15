@@ -422,6 +422,15 @@ public class SampleManager {
 	public static void setVerbose(boolean verbose) {
 		SampleManager.verbose = verbose;
 	}
+	
+	/**
+	 * Sets the FeatureSet for the given Sample.
+	 * @param s the Sample.
+	 * @param fs the FeatureSet.
+	 */
+	public static void setFeaturesForSample(Sample s, FeatureSet fs) {
+		featureSets.put(s, fs);
+	}
 
 	/**
 	 * Gets the FeatureSet for a given Sample. The method first checks to see if the FeatureSet
@@ -437,8 +446,10 @@ public class SampleManager {
 			return featureSets.get(sample);
 		} 
 		FeatureSet set = FeatureSet.forSample(sample);
-		featureSets.put(sample, set);
-		if(verbose) System.out.println("Loaded features for " + sample.getFileName());
+		if(set != null) {
+			featureSets.put(sample, set);
+			if(verbose) System.out.println("Loaded features for " + sample.getFileName());
+		}
 		return set;
 	}
 
