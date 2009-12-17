@@ -126,7 +126,7 @@ public class FeatureSet {
 	 * @return true if feature name is found.
 	 */
 	public boolean containsGlobal(String s) {
-		return globalFeatures.contains(s);
+		return globalFeatures.containsKey(s);
 	}
 	
 	/**

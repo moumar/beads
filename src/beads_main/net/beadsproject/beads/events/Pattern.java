@@ -111,7 +111,7 @@ public class Pattern extends Bead implements Serializable {
     }
     
     /**
-     * Removes the event with the given integer key.
+     * Removes the event with the given integer key and value.
      * 
      * @param key the key.
      */
@@ -120,6 +120,15 @@ public class Pattern extends Bead implements Serializable {
     	if(eventSet != null) {
     		eventSet.remove(new Integer(value));
     	}
+    }
+    
+    /**
+     * Removes the events at the given integer key (step).
+     * 
+     * @param key the key.
+     */
+    public void clearEventsAtStep(int key) {
+    	events.remove(key);
     }
     
     /**
@@ -163,6 +172,38 @@ public class Pattern extends Bead implements Serializable {
     		}
     	}
         return currentValue;
+    }
+    
+    public ArrayList<Integer> getEventAtStepQuantized(int index, int quantization) {
+    	currentValue = null;
+    	if(continuousPlayMode == ContinuousPlayMode.INTERNAL) {
+	    	if(index % hop == 0) {
+	    		currentValue = getQuantizedEvent(currentIndex, quantization);
+	    		currentIndex++;
+	    		if(currentIndex >= loop) reset();
+	    	}
+    	} else {
+    		if(index % hop == 0) {
+    			currentIndex = index / hop % loop;
+    			currentValue = getQuantizedEvent(currentIndex, quantization);
+    		}
+    	}
+        return currentValue;
+    }
+    
+    private ArrayList<Integer> getQuantizedEvent(int index, int quant) {
+    	if(quant == 1) return events.get(index);
+    	ArrayList<Integer> collection = new ArrayList<Integer>();
+    	//go from half before index to half after index
+    	for(int i = - quant / 2; i < quant / 2; i++) {
+    		int theRealIndex = index + i;
+    		while(theRealIndex < 0) theRealIndex += loop;
+    		while(theRealIndex >= loop) theRealIndex -= loop;
+        	ArrayList<Integer> moreEvents = events.get(theRealIndex);	
+        	if(moreEvents != null) collection.addAll(moreEvents);
+    	}
+    	if(collection.size() == 0) return null;
+    	return collection;
     }
     
     public ArrayList<Integer> getEventAtIndex(int index) {

@@ -12,7 +12,7 @@ public class BeadsKeys implements KeyListener {
 	public final static BeadsKeys singleton = new BeadsKeys();
 
 	//keyListener methods
-	public void keyPressed(KeyEvent e) {
+	public synchronized void keyPressed(KeyEvent e) {
 		int keyCode = e.getKeyCode();
 		keysDown[keyCode] = true;
 		for(KeyboardListener listener: listeners) {
@@ -21,7 +21,7 @@ public class BeadsKeys implements KeyListener {
 //		System.out.println("key pressed, code = " + keyCode);
 	}
 
-	public void keyReleased(KeyEvent e) {
+	public synchronized void keyReleased(KeyEvent e) {
 		int keyCode = e.getKeyCode();
 		keysDown[keyCode] = false;
 		for(KeyboardListener listener: listeners) {
@@ -33,12 +33,16 @@ public class BeadsKeys implements KeyListener {
 	public void keyTyped(KeyEvent e) {/*Do nothing.*/}
 	//////////////////////////
 	
-	public static void addListener(KeyboardListener listener) {
+	public static synchronized void addListener(KeyboardListener listener) {
 		listeners.add(listener);
 	}
 	
-	public static void removeListener(KeyboardListener listener) {
+	public static synchronized void removeListener(KeyboardListener listener) {
 		listeners.remove(listener);
+	}
+	
+	public static synchronized void clearListeners() {
+		listeners.clear();
 	}
 	
 	public static boolean keyDown(int keyCode) {
