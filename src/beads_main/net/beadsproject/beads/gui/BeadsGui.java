@@ -3,6 +3,7 @@ package net.beadsproject.beads.gui;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -64,6 +65,7 @@ public class BeadsGui {
 				}
 			}
 		});
+		audioButton.setFocusable(false);
 		environmentFrame.content.add(audioButton);
 		EnvironmentPanel environmentPanel = new EnvironmentPanel(env);
 		environmentFrame.content.add(environmentPanel);
@@ -110,6 +112,25 @@ public class BeadsGui {
 					tempoSlider.setValue(0f);
 				}
 			}
+		});
+		BeadsKeys.addListener(new BeadsKeys.KeyboardListener() {
+			public void keyPressed(int keyCode) {
+				System.out.println("pressed " + keyCode);
+				if(keyCode == KeyEvent.VK_SPACE) {
+					if(clock.isPaused()) {
+						clock.reset();
+						clock.pause(false);
+						if(tempoSlider.getValue() == 0) {
+							tempoSlider.setValue(temporaryTempo);
+						}
+					} else {
+						clock.pause(true);
+						temporaryTempo = tempoSlider.getCurrentValue();
+						tempoSlider.setValue(0f);
+					}
+				}
+			}
+			public void keyReleased(int keyCode) {}
 		});
 		ci.add(tg.getComponent());
 		final Readout r = new Readout("time", "");

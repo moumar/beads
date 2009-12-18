@@ -8,9 +8,13 @@ import java.awt.Font;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
@@ -36,14 +40,17 @@ public class BeadsPanel extends JPanel implements InterfaceElement {
 	}
 	
 	private void defocusAndAddKeys(Component c) {
-//		c.setFocusable(false);
-		c.addKeyListener(BeadsKeys.singleton);
-		if(c instanceof Container) {
-			Container cont = (Container)c;
-			for(Component next : cont.getComponents()) {
-				defocusAndAddKeys(next);
+		if(!(c instanceof JComboBox)) {
+			c.setFocusable(false);
+			c.addKeyListener(BeadsKeys.singleton);
+			if(c instanceof Container) {
+				Container cont = (Container)c;
+				for(Component next : cont.getComponents()) {
+					defocusAndAddKeys(next);
+				}
 			}
 		}
+		
 	}
 	
 	public void horizontalBox() {

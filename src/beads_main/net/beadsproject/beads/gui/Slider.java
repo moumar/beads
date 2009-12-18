@@ -100,7 +100,7 @@ public class Slider extends Envelope implements InterfaceElement {
 	
 	public float calculateValueFromFract(float fract) {
 		if(logBuffer != null) fract = expBuffer.getValueFraction(fract);
-		return fract * (max - min) + min;
+		return Math.max(min, Math.min(max, fract * (max - min) + min));
 	}
 	
 	public void setValueFract(float fract) { 
@@ -109,6 +109,12 @@ public class Slider extends Envelope implements InterfaceElement {
 	}
 	
 	public float getValueFract() {
+		float fract = (value - min) / (max - min);
+		if(logBuffer != null) fract = logBuffer.getValueFraction(fract);
+		return fract;
+	}
+	
+	public float calculateFractFromValue(float value) {
 		float fract = (value - min) / (max - min);
 		if(logBuffer != null) fract = logBuffer.getValueFraction(fract);
 		return fract;

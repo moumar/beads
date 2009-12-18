@@ -31,6 +31,9 @@ public class SampleManager {
 	
 	/** List of Sample groups, indexed by group name. */
 	private final static Map<String, ArrayList<Sample>> groups = new TreeMap<String, ArrayList<Sample>>();
+	
+	/** List of group names mapped to group directories, groups only in this list if from same directory. */
+	private final static Map<String, String> groupDirs = new TreeMap<String, String>();
 
 	private final static Map<Sample, FeatureSet> featureSets = new Hashtable<Sample, FeatureSet>();
 	
@@ -212,6 +215,7 @@ public class SampleManager {
 		if(theDirectory == null || !theDirectory.exists()) {
 			theDirectory = new File(folderName);
 		}
+		groupDirs.put(groupName, theDirectory.getAbsolutePath());
 		String[] fileNameList = theDirectory.list();
 		for (int i = 0; i < fileNameList.length; i++) {
 			fileNameList[i] = theDirectory.getAbsolutePath() + "/" + fileNameList[i];
@@ -248,7 +252,8 @@ public class SampleManager {
 			group = groups.get(groupName);
 		int count = 0;
 		for (int i = 0; i < fileNameList.length; i++) {
-			String simpleName = new File(fileNameList[i]).getName();
+//			String simpleName = groupName + "." + new File(fileNameList[i]).getName();	//dangerous to use simple names!
+			String simpleName = fileNameList[i];
 			try {
 				Sample sample = sample(simpleName, fileNameList[i]);
 				if (!group.contains(simpleName) && sample != null) {
@@ -285,6 +290,15 @@ public class SampleManager {
 	 */
 	public static ArrayList<Sample> getGroup(String groupName) {
 		return groups.get(groupName);
+	}
+	
+	/**
+	 * Gets the directory path of the group.
+	 * @param groupName
+	 * @return directory path.
+	 */
+	public static String getGroupDir(String groupName) {
+		return groupDirs.get(groupName);
 	}
 	
 	/**
@@ -349,6 +363,7 @@ public class SampleManager {
 	 */
 	public static void removeGroup(String groupName) {
 		groups.remove(groupName);
+		groupDirs.remove(groupName);
 		for(SampleGroupListener l : listeners) {
 			l.changed();
 		}
