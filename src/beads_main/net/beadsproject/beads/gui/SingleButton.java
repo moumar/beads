@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 
 import net.beadsproject.beads.play.InterfaceElement;
 
@@ -76,13 +77,19 @@ public class SingleButton implements InterfaceElement {
 						state = !state;
 						break;
 					case ONESHOT:
-						state = true;
+//						state = true;
 						break;
 					case HOLD:
 						state = true;
 						break;
 					}
-					if(listener != null) listener.buttonPressed(state);
+					if(listener != null) {
+						SwingUtilities.invokeLater(new Runnable() {
+							public void run() {
+								listener.buttonPressed(state);
+							}
+						});
+					}
 					component.repaint();
 			}
 			public void mouseReleased(MouseEvent e) {

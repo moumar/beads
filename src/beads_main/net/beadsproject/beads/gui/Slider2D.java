@@ -3,8 +3,6 @@ package net.beadsproject.beads.gui;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -12,6 +10,7 @@ import java.awt.event.MouseMotionListener;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.buffers.SineBuffer;
 import net.beadsproject.beads.play.InterfaceElement;
@@ -19,9 +18,6 @@ import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.WavePlayer;
 
 
-//TODO -- a far superior Slider2D would work with any 2 UGens as X and Y inputs, but be able to
-//override them somehow -- perhaps could flip between input mode and manual mode
-//alternatives could have various elastic or oscillatory behaviour, and be clock-aware.
 public class Slider2D implements InterfaceElement {
 
 	private final Slider sliderX;
@@ -37,6 +33,7 @@ public class Slider2D implements InterfaceElement {
 	public JComponent getComponent() {
 		if(component == null) {
 			component = new BeadsComponent() {
+				private static final long serialVersionUID = 1L;
 				public void paintComponent(Graphics g) {
 					//outer box
 					g.setColor(Color.white);

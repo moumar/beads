@@ -32,6 +32,7 @@ public class TimeGraph extends Bead implements InterfaceElement {
 	public JComponent getComponent() {
 		if(component == null) {
 			component = new JComponent() {
+				private static final long serialVersionUID = 1L;
 				public void paintComponent(Graphics g) {
 					//outer box
 					g.setColor(Color.white);

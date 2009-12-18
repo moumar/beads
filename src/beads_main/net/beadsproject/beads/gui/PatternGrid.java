@@ -1,6 +1,7 @@
 package net.beadsproject.beads.gui;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -11,9 +12,8 @@ import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.OverlayLayout;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.AudioUtils;
@@ -22,6 +22,7 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
 import net.beadsproject.beads.events.KillTrigger;
 import net.beadsproject.beads.events.Pattern;
+import net.beadsproject.beads.gui.SingleButton.Mode;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.Gain;
@@ -88,10 +89,10 @@ public class PatternGrid extends ButtonBox {
 	public JComponent getComponent() {
 		if(component == null) {
 			JComponent bb = super.getComponent();
-			JPanel panel = new JPanel();
+			final BeadsPanel panel = new BeadsPanel();
 			//might want to make Overlay an option...
-			OverlayLayout ol = new OverlayLayout(panel);
-			panel.setLayout(ol);
+//			OverlayLayout ol = new OverlayLayout(panel);
+//			panel.setLayout(ol);
 			BeadsPanel overlay = new BeadsPanel() {
 				public void paintComponent(Graphics g) {
 					g.setColor(Color.gray);
@@ -99,11 +100,44 @@ public class PatternGrid extends ButtonBox {
 				}
 			};
 			overlay.fixSize(bb.getPreferredSize());
-			panel.add(overlay);
+			//TODO this didn't work out, try again later
+//			panel.add(overlay);
 			panel.add(bb);
-			//TODO don't have time for this right now
-//			return panel;
-			component = bb;
+			
+			
+			
+			SingleButton sb = new SingleButton("Read", Mode.ONESHOT);
+			sb.setListener(new SingleButton.SingleButtonListener() {
+				public void buttonPressed(boolean newState) {
+					JFileChooser chooser = new JFileChooser();
+					int returnVal = chooser.showOpenDialog(panel);
+			        if (returnVal == JFileChooser.APPROVE_OPTION) {
+						try {
+							read(chooser.getSelectedFile().getAbsolutePath());
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}
+			        } 
+				}
+			});
+			panel.add(sb.getComponent());
+			sb = new SingleButton("Write", Mode.ONESHOT);
+			sb.setListener(new SingleButton.SingleButtonListener() {
+				public void buttonPressed(boolean newState) {
+					JFileChooser chooser = new JFileChooser();
+					int returnVal = chooser.showSaveDialog(panel);
+			        if (returnVal == JFileChooser.APPROVE_OPTION) {
+						try {
+							write(chooser.getSelectedFile().getAbsolutePath());
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}
+			        }
+				}
+			});
+			panel.add(sb.getComponent());
+
+			component = panel;
 		}
 		return component;
 	}
@@ -125,6 +159,7 @@ public class PatternGrid extends ButtonBox {
 			e.printStackTrace();
 		}
 		setBBFromPattern();
+		if(component != null) component.repaint();
 	}
 	
 	public void write(String filename) {

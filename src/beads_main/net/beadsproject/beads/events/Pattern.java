@@ -32,7 +32,7 @@ public class Pattern extends Bead implements Serializable {
     private final Hashtable<Integer, ArrayList<Integer>> events;
     
     /** A BeadArray which is notified for each event. */
-    private final BeadArray listeners;
+    private final transient BeadArray listeners;
     
     /** The integer hop. */
     private int hop;

@@ -45,6 +45,7 @@ public class BeadsGui {
 	private void setup(final Environment env) {
 		environmentFrame = new BeadsWindow("Beads");
 		final JButton audioButton = new JButton("Start") {
+			private static final long serialVersionUID = 1L;
 			public void paintComponent(Graphics g) {
 				if(env.ac.isRunning()) {
 					setText("Stop");
@@ -86,6 +87,7 @@ public class BeadsGui {
 		};
 		tempoToInterval.addInput(tempoSlider);
 		clock.setIntervalEnvelope(tempoToInterval);
+		env.ac.out.addDependent(tempoSlider);
 		BeadsPanel ci = new BeadsPanel();
 		ci.add(tempoSlider.getComponent());
 		Slider slider2 = new Slider(env.ac, "gain", 0f, 2f, 1f);
@@ -99,7 +101,9 @@ public class BeadsGui {
 				if(clock.isPaused()) {
 					clock.reset();
 					clock.pause(false);
-					tempoSlider.setValue(temporaryTempo);
+					if(tempoSlider.getValue() == 0) {
+						tempoSlider.setValue(temporaryTempo);
+					}
 				} else {
 					clock.pause(true);
 					temporaryTempo = tempoSlider.getCurrentValue();

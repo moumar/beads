@@ -5,6 +5,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
+import net.beadsproject.beads.data.Buffer;
 
 /**
  * A Quadrophonic mixer. Add sources with locations and change the locations. Locations are changed on a per-channel basis,
@@ -18,30 +19,49 @@ public class QuadrophonicMixer extends UGen {
 	private class Location {
 		
 		UGen source;
-		Glide[][] pos; 	//pos[chan][dim] - for each output channel of the source, 
+		UGen[][] pos; 	//pos[chan][dim] - for each output channel of the source, 
 					   	//the position is given by 2 Glides (x, y).
+		boolean ownsPosition;
 		
 		Location(UGen source) {
 			this.source = source;
-			pos = new Glide[source.getOuts()][2];
+			pos = new UGen[source.getOuts()][2];
 			for(int i = 0; i < pos.length; i++) {
 				for(int j = 0; j < 2; j++) {
 					pos[i][j] = new Glide(context, 100f); //the position is set to be far-far away
 				}
 			}		
+			ownsPosition = true;
+		}
+		
+		Location(UGen source, UGen[][] controllers) {
+			this.source = source;
+			this.pos = controllers;
+			ownsPosition = false;
 		}
 		
 		void move(int channel, float[] newPos) {
+			if(!ownsPosition) return;
 			for(int i = 0; i < pos[channel].length; i++) {
 				pos[channel][i].setValue(newPos[i]);
 			}
 		}
 		
 		void moveImmediately(int channel, float[] newPos) {
+			if(!ownsPosition) return;
 			for(int i = 0; i < pos[channel].length; i++) {
-				pos[channel][i].setValueImmediately(newPos[i]);
+				((Glide)pos[channel][i]).setValueImmediately(newPos[i]);
 			}
 		}
+		
+//		void mixInAudio(float[][] output) {
+//			source.update();
+//			for(int i = 0; i < output.length; i++) {
+//				for(int j = 0; j < output[i].length; j++) {
+//					output[i][j] += source.getValue(0, j);
+//				}
+//			}
+//		}
 		
 		void mixInAudio(float[][] output) {
 			//update the source
@@ -76,13 +96,13 @@ public class QuadrophonicMixer extends UGen {
 	}
 	
 	//speaker numbering: layout speakers 1-4 on the ground in clockwise order
-	//the x-axis follows the line joining 1 and 4
-	//the y-axis follows the line joining 1 and 2
+	//the y-axis follows the line joining 1 and 4
+	//the x-axis follows the line joining 1 and 2
 	public static final float[][] speakerPositions = new float[][] {
 																	{0,0},
-																	{0,1},
+																	{1,0},
 																	{1,1},
-																	{1,0}
+																	{0,1}
 																	};
 	public static final float circleDiameter = (float)Math.sqrt(2f);
 
@@ -96,7 +116,7 @@ public class QuadrophonicMixer extends UGen {
 		super(context, 4);
 		outputInitializationRegime = OutputInitializationRegime.ZERO;
 		sources = Collections.synchronizedMap(new Hashtable<UGen, Location>());
-		curve = 3f;
+		curve = 2f;
 	}
 	
 	public static float distance(float[] a, float[] b) {
@@ -110,6 +130,11 @@ public class QuadrophonicMixer extends UGen {
 	
 	public void addInput(UGen source) {
 		Location location = new Location(source);
+		sources.put(source, location);
+	}
+	
+	public void addInput(UGen source, UGen[][] controllers) {
+		Location location = new Location(source, controllers);
 		sources.put(source, location);
 	}
 	
@@ -135,5 +160,6 @@ public class QuadrophonicMixer extends UGen {
 			location.mixInAudio(bufOut);
 		}
 	}
+
 
 }

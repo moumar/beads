@@ -120,6 +120,17 @@ public class AudioContext {
 		// use almost entirely default settings
 		this(bufferSizeInFrames, systemBufferSizeInFrames, defaultAudioFormat(2));
 	}
+	
+	/**
+	 * Creates a new AudioContext with default buffer size, default system buffer size and the
+	 * specified  audio format.
+	 * 
+	 * @param audioFormat the audio format, which specifies sample rate, bit depth,
+	 * number of channels, signedness and byte order.
+	 */
+	public AudioContext(AudioFormat audioFormat) {
+		this(DEFAULT_BUFFER_SIZE, DEFAULT_SYSTEM_BUFFER_SIZE, audioFormat);
+	}
 
 	/**
 	 * Creates a new AudioContext with the specified buffer size, system buffer
