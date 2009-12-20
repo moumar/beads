@@ -22,7 +22,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
 import net.beadsproject.beads.gui.BeadsKeys.KeyboardListener;
-import net.beadsproject.beads.play.Player;
+import net.beadsproject.beads.play.GroupPlayer;
 import net.beadsproject.beads.play.SongGroup;
 import net.beadsproject.beads.play.SongPart;
 
@@ -38,10 +38,10 @@ public class SongGrid extends BeadsPanel {
 	private int boxWidth = 15;
 	private int partTextWidth = 150;
 	private int groupTextHeight = 50;
-	private Player player;
+	private GroupPlayer player;
 	private EnvironmentPanel environmentPanel;
 	
-	public SongGrid(Player p, EnvironmentPanel ep) {
+	public SongGrid(GroupPlayer p, EnvironmentPanel ep) {
 		this.player = p;
 		this.environmentPanel = ep;
 		parts = new ArrayList<SongPart>();

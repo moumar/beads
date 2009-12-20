@@ -14,7 +14,7 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.play.Environment;
-import net.beadsproject.beads.play.Player;
+import net.beadsproject.beads.play.GroupPlayer;
 import net.beadsproject.beads.play.SongGroup;
 import net.beadsproject.beads.play.SongPart;
 import net.beadsproject.beads.ugens.Clock;
@@ -69,7 +69,7 @@ public class BeadsGui {
 		environmentFrame.content.add(audioButton);
 		EnvironmentPanel environmentPanel = new EnvironmentPanel(env);
 		environmentFrame.content.add(environmentPanel);
-		Player p = new Player(env);
+		GroupPlayer p = new GroupPlayer(env);
 		songGrid = new SongGrid(p, environmentPanel);
 		songGrid.titledBorder("Song Parts");
 		environmentFrame.content.add(songGrid);

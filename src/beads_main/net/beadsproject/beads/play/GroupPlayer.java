@@ -8,14 +8,14 @@ import net.beadsproject.beads.ugens.Clock;
 /**
  * The Class Player. Handles playing of groups. Does not know about GUI stuff.
  */
-public class Player {
+public class GroupPlayer {
 
 	private SongGroup currentGroup = null;
 	private SongGroup nextGroup;
 	private ArrayList<SongPart> playingParts;
 	private boolean withFadeOut;
 	
-	public Player(Environment e) {
+	public GroupPlayer(Environment e) {
 		playingParts = new ArrayList<SongPart>();
 		withFadeOut = true;
 		//Potential danger that if SongParts are also listening to this clock

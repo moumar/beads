@@ -24,7 +24,7 @@ import net.beadsproject.beads.core.BeadArray;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.play.Environment;
 import net.beadsproject.beads.play.InterfaceElement;
-import net.beadsproject.beads.play.Player;
+import net.beadsproject.beads.play.GroupPlayer;
 import net.beadsproject.beads.play.SongPart;
 import net.beadsproject.beads.ugens.Clock;
 

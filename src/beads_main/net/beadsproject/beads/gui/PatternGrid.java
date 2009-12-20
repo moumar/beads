@@ -21,8 +21,9 @@ import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
 import net.beadsproject.beads.events.KillTrigger;
-import net.beadsproject.beads.events.Pattern;
 import net.beadsproject.beads.gui.SingleButton.Mode;
+import net.beadsproject.beads.play.Pattern;
+import net.beadsproject.beads.play.PatternPlayer;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.Gain;
@@ -34,12 +35,14 @@ import net.beadsproject.beads.ugens.WavePlayer;
 public class PatternGrid extends ButtonBox {
 
 	private Pattern pattern;
+	private PatternPlayer patternPlayer;
 	private JComponent component;
 	
 	public PatternGrid(int width, int height) {
 		super(width, height, SelectionMode.MULTIPLE_SELECTION);
 		pattern = new Pattern();
 		pattern.setLoop(width);
+		patternPlayer = new PatternPlayer(pattern);
 		setListener(new ButtonBoxListener() {
 			public void buttonOff(int i, int j) {
 //				pattern.removeEvent(i * pattern.getHop(), j);
@@ -55,6 +58,7 @@ public class PatternGrid extends ButtonBox {
 	public void setPattern(Pattern pattern) {
 		int numNotesVisible = 20;
 		this.pattern = pattern;
+		patternPlayer.setPattern(pattern);
 		resize(pattern.getLoop(), numNotesVisible);
 		setBoxWidth(200f / pattern.getLoop());
 		setBoxHeight(100f / numNotesVisible);
@@ -80,8 +84,8 @@ public class PatternGrid extends ButtonBox {
 	
 	public ArrayList<Integer> goToStep(int index) {
 		//work out the column to highlight
-		ArrayList<Integer> event = pattern.getEventAtStep(index);
-		setColumnHighlight(pattern.getLastIndex());	//does this break if the continuous update mode changes?
+		ArrayList<Integer> event = patternPlayer.getEventAtStep(index);
+		setColumnHighlight(patternPlayer.getLastIndex());	//does this break if the continuous update mode changes?
 		//the return the data
 		return event;
 	}
@@ -146,6 +150,10 @@ public class PatternGrid extends ButtonBox {
 		return pattern;
 	}
 	
+	public PatternPlayer getPatternPlayer() {
+		return patternPlayer;
+	}
+	
 	public void read(String filename) {
 		URL url = AudioUtils.urlFromString(filename);
 		if(url == null) {
@@ -154,6 +162,7 @@ public class PatternGrid extends ButtonBox {
 		try {
 			ObjectInputStream ois = new ObjectInputStream(url.openStream());
 			pattern = (Pattern)ois.readObject();
+			patternPlayer.setPattern(pattern);
 			ois.close();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -167,7 +176,7 @@ public class PatternGrid extends ButtonBox {
 		try {
 			FileOutputStream fos = new FileOutputStream(f);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
-			oos.writeObject(pattern);
+			oos.writeObject(patternPlayer);
 			oos.close();
 			fos.close();
 		} catch(Exception e) {
@@ -190,7 +199,7 @@ public class PatternGrid extends ButtonBox {
 		clock.addMessageListener(new Bead() {
 			public void messageReceived(Bead message) {
 				if(clock.isBeat()) {
-					ArrayList<Integer> notes = pg.getPattern().getEventAtStep(clock.getBeatCount());
+					ArrayList<Integer> notes = pg.getPatternPlayer().getEventAtStep(clock.getBeatCount());
 					//play note
 					if(notes == null) return;
 					for(int i : notes) {

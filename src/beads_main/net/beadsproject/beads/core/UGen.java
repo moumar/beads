@@ -686,6 +686,28 @@ public abstract class UGen extends Bead {
 	}
 	
 	/**
+	 * Gets the value as a double. Only overridden by certain classes that generate info in doubles. Gets a specific specified value from the output buffer, with indices i (channel)
+	 * and j (offset into buffer).
+	 * 
+	 * @param i channel index.
+	 * @param j buffer frame index.
+	 * 
+	 * @return value of specified sample.
+	 */
+	public double getValueDouble(int i, int j) {
+		return getValue(i, j);
+	}
+	
+	/**
+	 * Gets the value as a double. Only overridden by certain classes that generate info in doubles. Gets the value of the buffer, assuming that the buffer only has one value. This is mainly a convenience method for use with {@link net.beadsproject.beads.ugens.Static Static} type UGens. It is equivalent to {@link #getValue(0, 0)}.
+	 * 
+	 * @return the value.
+	 */
+	public double getValueDouble() {
+		return getValue();
+	}
+	
+	/**
 	 * Sets the value of {@link #bufOut}. This is mainly a convenience method for use with {@link net.beadsproject.beads.ugens.Static Static} and {@link net.beadsproject.beads.ugens.Envelope Envelope} type UGens.
 	 * 
 	 * @param value the new value.
