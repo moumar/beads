@@ -17,6 +17,11 @@ public class PatternPlayer extends Bead {
     
     /** The integer hop. */
     private int hop;
+    
+
+    
+    /** The integer loop. */
+    private int loop;
 
     private ContinuousPlayMode continuousPlayMode;
 
@@ -36,6 +41,7 @@ public class PatternPlayer extends Bead {
 		listeners = new BeadArray();
         continuousPlayMode = ContinuousPlayMode.EXTERNAL;
         setHop(1);
+        setLoop(16);
         reset();
 	}
 
@@ -80,7 +86,7 @@ public class PatternPlayer extends Bead {
     public int getLastIndex() {
     	if(continuousPlayMode == ContinuousPlayMode.INTERNAL) {
 	    	if(currentIndex == 0) {
-	    		return pattern.getLoop() - 1;
+	    		return loop - 1;
 	    	}
 	    	return currentIndex - 1;
     	} else {
@@ -114,11 +120,11 @@ public class PatternPlayer extends Bead {
 	    	if(index % hop == 0) {
 	    		currentValue = pattern.getEventAtIndex(currentIndex);
 	    		currentIndex++;
-	    		if(currentIndex >= pattern.getLoop()) reset();
+	    		if(currentIndex >= loop) reset();
 	    	}
     	} else {
     		if(index % hop == 0) {
-    			currentIndex = index / hop % pattern.getLoop();
+    			currentIndex = index / hop % loop;
 //    			currentValue = events.get(currentIndex);
     			currentValue = pattern.getEventAtIndex(currentIndex);
     		}
@@ -129,14 +135,14 @@ public class PatternPlayer extends Bead {
     	currentValue = null;
     	if(continuousPlayMode == ContinuousPlayMode.INTERNAL) {
 	    	if(index % hop == 0) {
-	    		currentValue = pattern.getQuantizedEvent(currentIndex, quantization);
+	    		currentValue = pattern.getQuantizedEvent(currentIndex, quantization, loop);
 	    		currentIndex++;
-	    		if(currentIndex >= pattern.getLoop()) reset();
+	    		if(currentIndex >= loop) reset();
 	    	}
     	} else {
     		if(index % hop == 0) {
-    			currentIndex = index / hop % pattern.getLoop();
-    			currentValue = pattern.getQuantizedEvent(currentIndex, quantization);
+    			currentIndex = index / hop % loop;
+    			currentValue = pattern.getQuantizedEvent(currentIndex, quantization, loop);
     		}
     	}
         return currentValue;
@@ -165,6 +171,34 @@ public class PatternPlayer extends Bead {
 	public void setHop(int hop) {
 		this.hop = hop;
 	}
+	
+
+
+    /**
+     * Gets the loop length.
+     * 
+     * @return the loop length.
+     */
+    public int getLoop() {
+        return loop;
+    }
+
+    /**
+     * Sets the loop length and activates loop mode.
+     * 
+     * @param loop the loop length.
+     */
+    public void setLoop(int loop) {
+        this.loop = loop;
+    }
+    
+    /**
+     * Deactivates loop mode.
+     */
+    public void setNoLoop() {
+    	loop = Integer.MAX_VALUE;
+    }
+
 
 	
 }

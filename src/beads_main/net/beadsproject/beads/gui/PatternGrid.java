@@ -1,8 +1,5 @@
 package net.beadsproject.beads.gui;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
@@ -24,6 +21,7 @@ import net.beadsproject.beads.events.KillTrigger;
 import net.beadsproject.beads.gui.SingleButton.Mode;
 import net.beadsproject.beads.play.Pattern;
 import net.beadsproject.beads.play.PatternPlayer;
+import net.beadsproject.beads.play.PatternPlayer.ContinuousPlayMode;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.Gain;
@@ -41,15 +39,14 @@ public class PatternGrid extends ButtonBox {
 	public PatternGrid(int width, int height) {
 		super(width, height, SelectionMode.MULTIPLE_SELECTION);
 		pattern = new Pattern();
-		pattern.setLoop(width);
 		patternPlayer = new PatternPlayer(pattern);
+		patternPlayer.setLoop(width);
+		patternPlayer.setContinuousPlayMode(ContinuousPlayMode.INTERNAL);
 		setListener(new ButtonBoxListener() {
 			public void buttonOff(int i, int j) {
-//				pattern.removeEvent(i * pattern.getHop(), j);
 				pattern.removeEvent(i, j);
 			}
 			public void buttonOn(int i, int j) {
-//				pattern.addEvent(i * pattern.getHop(), j);
 				pattern.addEvent(i, j);
 			}
 		});
@@ -59,11 +56,18 @@ public class PatternGrid extends ButtonBox {
 		int numNotesVisible = 20;
 		this.pattern = pattern;
 		patternPlayer.setPattern(pattern);
-		resize(pattern.getLoop(), numNotesVisible);
-		setBoxWidth(200f / pattern.getLoop());
-		setBoxHeight(100f / numNotesVisible);
+		resize(patternPlayer.getLoop(), numNotesVisible);
+		setBoxWidth(200f / patternPlayer.getLoop());	//TODO unhardwire
+		setBoxHeight(100f / numNotesVisible);	//TODO unhardwire
 		setBBFromPattern();
 		if(component != null) component.repaint();
+	}
+	
+	public void setLoop(int loop) {
+		patternPlayer.setLoop(loop);
+		setBoxWidth(200f / patternPlayer.getLoop());
+		if(component != null) component.repaint();
+		if(super.getComponent() != null) super.getComponent().repaint();
 	}
 	
 	private void setBBFromPattern() {
@@ -93,28 +97,16 @@ public class PatternGrid extends ButtonBox {
 	public JComponent getComponent() {
 		if(component == null) {
 			JComponent bb = super.getComponent();
-			final BeadsPanel panel = new BeadsPanel();
-			//might want to make Overlay an option...
-//			OverlayLayout ol = new OverlayLayout(panel);
-//			panel.setLayout(ol);
-			BeadsPanel overlay = new BeadsPanel() {
-				public void paintComponent(Graphics g) {
-					g.setColor(Color.gray);
-					g.fillRect(0,0,getWidth(),getHeight());
-				}
-			};
-			overlay.fixSize(bb.getPreferredSize());
-			//TODO this didn't work out, try again later
-//			panel.add(overlay);
-			panel.add(bb);
-			
-			
-			
+			final BeadsPanel mainPanel = new BeadsPanel();
+			mainPanel.add(bb);
+			final BeadsPanel buttonPanel = new BeadsPanel();
+			buttonPanel.verticalBox();
+			mainPanel.add(buttonPanel);
 			SingleButton sb = new SingleButton("Read", Mode.ONESHOT);
 			sb.setListener(new SingleButton.SingleButtonListener() {
 				public void buttonPressed(boolean newState) {
 					JFileChooser chooser = new JFileChooser();
-					int returnVal = chooser.showOpenDialog(panel);
+					int returnVal = chooser.showOpenDialog(mainPanel);
 			        if (returnVal == JFileChooser.APPROVE_OPTION) {
 						try {
 							read(chooser.getSelectedFile().getAbsolutePath());
@@ -124,12 +116,12 @@ public class PatternGrid extends ButtonBox {
 			        } 
 				}
 			});
-			panel.add(sb.getComponent());
+			buttonPanel.add(sb.getComponent());
 			sb = new SingleButton("Write", Mode.ONESHOT);
 			sb.setListener(new SingleButton.SingleButtonListener() {
 				public void buttonPressed(boolean newState) {
 					JFileChooser chooser = new JFileChooser();
-					int returnVal = chooser.showSaveDialog(panel);
+					int returnVal = chooser.showSaveDialog(mainPanel);
 			        if (returnVal == JFileChooser.APPROVE_OPTION) {
 						try {
 							write(chooser.getSelectedFile().getAbsolutePath());
@@ -139,9 +131,18 @@ public class PatternGrid extends ButtonBox {
 			        }
 				}
 			});
-			panel.add(sb.getComponent());
-
-			component = panel;
+			buttonPanel.add(sb.getComponent());
+			Chooser loopChooser = new Chooser("Loop");
+			for(int i = 1; i < 33; i++) {
+				loopChooser.add("" + i);
+			}
+			loopChooser.setListener(new Chooser.ChooserListener() {
+				public void choice(String s) {
+					setLoop(Integer.parseInt(s));
+				}
+			});
+			buttonPanel.add(loopChooser.getComponent());
+			component = mainPanel;
 		}
 		return component;
 	}
@@ -176,7 +177,7 @@ public class PatternGrid extends ButtonBox {
 		try {
 			FileOutputStream fos = new FileOutputStream(f);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
-			oos.writeObject(patternPlayer);
+			oos.writeObject(pattern);
 			oos.close();
 			fos.close();
 		} catch(Exception e) {

@@ -36,7 +36,7 @@ public class Kit implements Serializable {
 	public Map<String, Object> getEvent(int i) {
 		Map<String, Object> event = new Hashtable<String, Object>();
 		event.putAll(globals);
-		event.putAll(soundEvents.get(i));
+		event.putAll(soundEvents.get(i % soundEvents.size()));
 		return event;
 	}
 	

@@ -6,6 +6,6 @@ import net.beadsproject.beads.core.UGen;
 
 public interface SoundEvent {
 	
-	public void play(UGen output, Map<String, Object> parameters);
+	public UGen play(UGen output, Map<String, Object> parameters);
 	
 }

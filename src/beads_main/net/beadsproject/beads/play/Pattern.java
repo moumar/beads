@@ -32,15 +32,11 @@ public class Pattern implements Serializable {
     private final Hashtable<Integer, ArrayList<Integer>> events;
     
     
-    /** The integer loop. */
-    private int loop;
-    
     /**
      * Instantiates a new empty pattern.
      */
     public Pattern() {
         events = new Hashtable<Integer, ArrayList<Integer>>();
-        setNoLoop();
     }
     
 	/**
@@ -88,7 +84,7 @@ public class Pattern implements Serializable {
 
     
     
-    public ArrayList<Integer> getQuantizedEvent(int index, int quant) {
+    public ArrayList<Integer> getQuantizedEvent(int index, int quant, int loop) {
     	if(quant == 1) return events.get(index);
     	ArrayList<Integer> collection = new ArrayList<Integer>();
     	//go from half before index to half after index
@@ -111,31 +107,5 @@ public class Pattern implements Serializable {
     public Set<Integer> getEvents() {
     	return events.keySet();
     }
-
-    /**
-     * Gets the loop length.
-     * 
-     * @return the loop length.
-     */
-    public int getLoop() {
-        return loop;
-    }
-
-    /**
-     * Sets the loop length and activates loop mode.
-     * 
-     * @param loop the loop length.
-     */
-    public void setLoop(int loop) {
-        this.loop = loop;
-    }
-    
-    /**
-     * Deactivates loop mode.
-     */
-    public void setNoLoop() {
-    	loop = Integer.MAX_VALUE;
-    }
-
     
 }
