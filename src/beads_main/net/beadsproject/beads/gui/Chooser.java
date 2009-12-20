@@ -21,6 +21,7 @@ import javax.swing.JLabel;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.SampleManager;
 import net.beadsproject.beads.play.InterfaceElement;
+import net.beadsproject.beads.play.Music;
 
 public class Chooser implements InterfaceElement {
 
@@ -199,11 +200,11 @@ public class Chooser implements InterfaceElement {
 		if(component != null) component.repaint();
 	}
 	
-	public void setChoice(String group) {
-		if(elements.contains(group)) {
+	public void setChoice(String choice) {
+		if(elements.contains(choice)) {
 			int i = 0;
 			for(; i < elements.size(); i++) {
-				if(elements.get(i).equals(group)) break;
+				if(elements.get(i).equals(choice)) break;
 			}
 			setChoice(i);
 		}
@@ -279,4 +280,46 @@ public class Chooser implements InterfaceElement {
 		return fileChooser;
 	}
 
+	public static Chooser kitChooser() {
+		final Chooser kitChooser = new Chooser("kit") {
+			public void refreshList() {
+				String currentChoice = getChoice();
+				clear();
+				int count = 0;
+				for(String s : Music.kits.keySet()) {
+					add(s);
+					if(s == currentChoice) {
+						choice = count;
+					}
+					count++;
+				}
+				repaint();
+			}
+		};
+		kitChooser.refreshList();
+		kitChooser.setChoice(0);
+		return kitChooser;
+	}
+	
+	public static Chooser patternChooser() {
+		final Chooser kitChooser = new Chooser("pattern") {
+			public void refreshList() {
+				String currentChoice = getChoice();
+				clear();
+				int count = 0;
+				for(String s : Music.patterns.keySet()) {
+					add(s);
+					if(s == currentChoice) {
+						choice = count;
+					}
+					count++;
+				}
+				repaint();
+			}
+		};
+		kitChooser.refreshList();
+		kitChooser.setChoice(0);
+		return kitChooser;
+	}
+	
 }
