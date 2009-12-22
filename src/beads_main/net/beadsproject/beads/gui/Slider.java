@@ -290,7 +290,7 @@ public class Slider extends Envelope implements InterfaceElement {
 		});
 		drawWindow.setContentPane(drawPanel);
 		drawWindow.setUndecorated(true);
-		drawWindow.setSize(new Dimension(component.getWidth() + 100, component.getHeight()));
+		drawWindow.setSize(new Dimension(component.getWidth() + 200, component.getHeight()));
 		drawWindow.setLocation(new Point(component.getLocationOnScreen().x + component.getWidth(), component.getLocationOnScreen().y));
 		drawWindow.setVisible(true);
 	}

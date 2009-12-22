@@ -378,7 +378,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 	 * @param g the Grain.
 	 */
 	private void calculateNextGrainPosition(Grain g) {
-		int direction = rate >= 0 ? 1 : -1;
+		int direction = rate >= 0 ? 1 : -1;	//this is a bit odd in the case when controlling grain from positionEnvelope
 		g.age += msPerSample;
 		if(loopInsideGrains) {
 			switch(loopType) {
