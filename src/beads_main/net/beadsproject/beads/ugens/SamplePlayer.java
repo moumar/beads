@@ -636,7 +636,7 @@ public class SamplePlayer extends UGen {
 	 */
 	protected void calculateNextPosition(int i) {
 		if(positionEnvelope != null) {
-			position = positionEnvelope.getValue(0, i);
+			position = positionEnvelope.getValueDouble(0, i);
 		} else {
 			rate = rateEnvelope.getValue(0, i);
 			switch(loopType) {

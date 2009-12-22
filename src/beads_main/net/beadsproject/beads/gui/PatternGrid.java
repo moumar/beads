@@ -35,11 +35,14 @@ public class PatternGrid extends ButtonBox {
 	private Pattern pattern;
 	private PatternPlayer patternPlayer;
 	private JComponent component;
+	private int numNotesVisible;
+	private Chooser loopChooser;
 	
 	public PatternGrid(int width, int height) {
 		super(width, height, SelectionMode.MULTIPLE_SELECTION);
 		pattern = new Pattern();
 		patternPlayer = new PatternPlayer(pattern);
+		numNotesVisible = 20;
 		patternPlayer.setLoop(width);
 		patternPlayer.setContinuousPlayMode(ContinuousPlayMode.INTERNAL);
 		setListener(new ButtonBoxListener() {
@@ -53,9 +56,9 @@ public class PatternGrid extends ButtonBox {
 	}
 	
 	public void setPattern(Pattern pattern) {
-		int numNotesVisible = 20;
 		this.pattern = pattern;
 		patternPlayer.setPattern(pattern);
+		if(loopChooser != null) loopChooser.setChoice(patternPlayer.getLoop() - 1);
 		resize(patternPlayer.getLoop(), numNotesVisible);
 		setBoxWidth(200f / patternPlayer.getLoop());	//TODO unhardwire
 		setBoxHeight(100f / numNotesVisible);	//TODO unhardwire
@@ -65,6 +68,7 @@ public class PatternGrid extends ButtonBox {
 	
 	public void setLoop(int loop) {
 		patternPlayer.setLoop(loop);
+		resize(loop, numNotesVisible);
 		setBoxWidth(200f / patternPlayer.getLoop());
 		if(component != null) component.repaint();
 		if(super.getComponent() != null) super.getComponent().repaint();
@@ -132,7 +136,7 @@ public class PatternGrid extends ButtonBox {
 				}
 			});
 			buttonPanel.add(sb.getComponent());
-			Chooser loopChooser = new Chooser("Loop");
+			loopChooser = new Chooser("Loop");
 			for(int i = 1; i < 33; i++) {
 				loopChooser.add("" + i);
 			}
@@ -141,6 +145,7 @@ public class PatternGrid extends ButtonBox {
 					setLoop(Integer.parseInt(s));
 				}
 			});
+			loopChooser.setChoice(patternPlayer.getLoop() - 1);
 			buttonPanel.add(loopChooser.getComponent());
 			component = mainPanel;
 		}
@@ -174,6 +179,7 @@ public class PatternGrid extends ButtonBox {
 	
 	public void write(String filename) {
 		File f = new File(filename);
+		pattern.setSuggestedLoop(patternPlayer.getLoop());
 		try {
 			FileOutputStream fos = new FileOutputStream(f);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);

@@ -38,6 +38,8 @@ public class Clock extends UGen implements IntegerBead {
     /** The strength (gain) of the audible click. */
     private float clickStrength;
     
+    private double[] subticks;
+    
     /**
      * Instantiates a new Clock with a static interval of 1000ms.
      * 
@@ -71,6 +73,7 @@ public class Clock extends UGen implements IntegerBead {
         reset();
         ticksPerBeat = 16;
         clickStrength = 0.1f;
+        subticks = new double[context.getBufferSize()];
     }
     
 	/**
@@ -124,16 +127,7 @@ public class Clock extends UGen implements IntegerBead {
      * @return the tick count.
      */
     public long getCount() {
-        return count;
-    }
-
-    /**
-     * Sets the tick count.
-     * 
-     * @param count the new tick count.
-     */
-    public void setCount(int count) {
-        this.count = count;
+        return (int)Math.floor(point);
     }
 
     /**
@@ -165,13 +159,20 @@ public class Clock extends UGen implements IntegerBead {
     public void calculateBuffer() {
     	intervalEnvelope.update();
     	for(int i = 0; i < bufferSize; i++) {  
-    		float interval = intervalEnvelope.getValue(0, i);
-    		float value = Math.max(1.0f, Math.abs(interval) / (float)ticksPerBeat);
-    		point += 1.0f / context.msToSamples(value);
-    		if(point >= 1.0f) {
+    		subticks[i] = point;
+    		double interval = intervalEnvelope.getValueDouble(0, i);
+    		double value = Math.max(1.0, Math.abs(interval) / ticksPerBeat);
+    		boolean backwards = interval < 0;
+    		if(backwards) value *= -1;
+    		point += 1.0 / context.msToSamples(value);
+    		//what happens if we start going backwards? New strategy is untested
+    		while(!backwards && point >= count + 1) {// || point < -count) {
     			tick();
     			count += Math.signum(interval);
-    			while(point >= 1.0f) point -= 1.0f;
+    		} 
+    		while(backwards && point <= count) {
+    			tick();
+    			count += Math.signum(interval);
     		}
     	}
     }
@@ -215,7 +216,7 @@ public class Clock extends UGen implements IntegerBead {
 	 * @return true if the current tick is a beat.
 	 */
 	public boolean isBeat() {
-		return count % ticksPerBeat == 0;
+		return getCount() % ticksPerBeat == 0;
 	}
 	
 	/**
@@ -235,7 +236,15 @@ public class Clock extends UGen implements IntegerBead {
 	 * @return the current beat count.
 	 */
 	public int getBeatCount() {
-		return (int)(count / ticksPerBeat);
+		return (int)(getCount() / ticksPerBeat);
+	}
+	
+	public double getSubTickAtIndex(int i) {
+		return subticks[i];
+	}
+	
+	public double getSubTickNow() {
+		return point;
 	}
 
 }

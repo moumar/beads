@@ -30,6 +30,7 @@ public class Pattern implements Serializable {
 
 	/** A list of events. */
     private final Hashtable<Integer, ArrayList<Integer>> events;
+    private int suggestedLoop;
     
     
     /**
@@ -107,5 +108,15 @@ public class Pattern implements Serializable {
     public Set<Integer> getEvents() {
     	return events.keySet();
     }
+
+	public int getSuggestedLoop() {
+		return suggestedLoop;
+	}
+
+	public void setSuggestedLoop(int suggestedLoop) {
+		this.suggestedLoop = suggestedLoop;
+	}
+    
+    
     
 }

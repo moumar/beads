@@ -39,7 +39,17 @@ public class ButtonBox implements InterfaceElement {
 	}
 	
 	public void resize(int width, int height) {
+		boolean[][] oldButtons = buttons;
 		buttons = new boolean[width][height];
+		if(oldButtons != null) {
+			int minWidth = Math.min(oldButtons.length, buttons.length);
+			int minHeight = Math.min(oldButtons[0].length, buttons[0].length);
+			for(int i = 0; i < minWidth; i++) {
+				for(int j = 0; j < minHeight; j++) {
+					buttons[i][j] = oldButtons[i][j];
+				}
+			}
+		}
 	}
 	
 	public SelectionMode getSelectionMode() {

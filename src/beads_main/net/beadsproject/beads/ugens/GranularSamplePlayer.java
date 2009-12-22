@@ -64,11 +64,11 @@ public class GranularSamplePlayer extends SamplePlayer {
 	 */
 	private static class Grain {
 
-		/** Flag to indicate whether the grain is free. */
-		boolean free;
-
-		/** The start time in milliseconds. */
-		double startTime;
+//		/** Flag to indicate whether the grain is free. */
+//		boolean free;
+//
+//		/** The start time in milliseconds. */
+//		double startTime;
 
 		/** The position in millseconds. */
 		double position;
@@ -232,8 +232,8 @@ public class GranularSamplePlayer extends SamplePlayer {
 	 *            the time
 	 */
 	private void resetGrain(Grain g, int time) {
-		g.startTime = (float)position + (grainSizeEnvelope.getValue(0, time) * randomnessEnvelope.getValue(0, time) * (float)(Math.random() * 2.0f - 1.0f));
-		g.position = g.startTime;
+		g.position = position + (grainSizeEnvelope.getValue(0, time) * randomnessEnvelope.getValue(0, time) * (Math.random() * 2.0 - 1.0));
+//		g.position = g.startTime;
 		g.age = 0f;
 		g.grainSize = grainSizeEnvelope.getValue(0, time);
 	}   
@@ -259,12 +259,16 @@ public class GranularSamplePlayer extends SamplePlayer {
 	private void firstGrain() {
 		if(firstGrain) {
 			Grain g = new Grain();
-			g.startTime = -position / 2f;
+//			g.startTime = -position / 2f;
+//			g.startTime = position;
 			g.position = position;
-			g.age = grainSizeEnvelope.getValue() / 2f;
+			g.age = grainSizeEnvelope.getValue() / 4f;
 			
 			grains.add(g);
 			firstGrain = false;
+
+//			System.out.println("firstGrain " + g.position + " " + g.age + " " );
+			
 			timeSinceLastGrain = grainIntervalEnvelope.getValue() / 2f;
 			setGrainPan(g, randomPanEnvelope.getValue(0, 0));
 		}
@@ -374,7 +378,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 	 * @param g the Grain.
 	 */
 	private void calculateNextGrainPosition(Grain g) {
-		int direction = rate > 0 ? 1 : -1;
+		int direction = rate >= 0 ? 1 : -1;
 		g.age += msPerSample;
 		if(loopInsideGrains) {
 			switch(loopType) {

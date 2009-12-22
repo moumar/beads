@@ -81,6 +81,8 @@ public class PatternPlayer extends Bead {
 
 	public void setPattern(Pattern pattern) {
 		this.pattern = pattern;
+		int suggestedLoop = pattern.getSuggestedLoop();
+		if(suggestedLoop != 0) loop = suggestedLoop;
 	}
 
     public int getLastIndex() {
