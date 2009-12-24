@@ -3,6 +3,7 @@ package net.beadsproject.beads.ugens;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Map;
+
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
@@ -18,8 +19,9 @@ public class OctophonicMixer extends UGen {
 	private class Location {
 		
 		UGen source;
-		Glide[][] pos; 	//pos[chan][dim] - for each output channel of the source, 
-					   	//the position is given by 3 Glides (x, y, z).
+		UGen[][] pos; 	//pos[chan][dim] - for each output channel of the source, 
+						//the position is given by 3 Glides (x, y, z).
+		boolean ownsPosition;
 		
 		Location(UGen source) {
 			this.source = source;
@@ -28,18 +30,27 @@ public class OctophonicMixer extends UGen {
 				for(int j = 0; j < 3; j++) {
 					pos[i][j] = new Glide(context, 100f); //the position is set to be far-far away
 				}
-			}		
+			}	
+			ownsPosition = true;
+		}
+		
+		Location(UGen source, UGen[][] controllers) {
+			this.source = source;
+			this.pos = controllers;
+			ownsPosition = false;
 		}
 		
 		void move(int channel, float[] newPos) {
+			if(!ownsPosition) return;
 			for(int i = 0; i < pos[channel].length; i++) {
 				pos[channel][i].setValue(newPos[i]);
 			}
 		}
 		
 		void moveImmediately(int channel, float[] newPos) {
+			if(!ownsPosition) return;
 			for(int i = 0; i < pos[channel].length; i++) {
-				pos[channel][i].setValueImmediately(newPos[i]);
+				((Glide)pos[channel][i]).setValueImmediately(newPos[i]);
 			}
 		}
 		
@@ -59,15 +70,15 @@ public class OctophonicMixer extends UGen {
 					for(int dim = 0; dim < 3; dim++) {
 						currentPos[dim] = pos[outputChannel][dim].getValue(0, time);
 					}	
-					float[] speakerGains = new float[8];
+					float[] speakerGains = new float[speakerPositions.length];
 					//work out speaker gains given current pos (distance of pos from each speaker?)
-					for(int speaker = 0; speaker < 8; speaker++) {
+					for(int speaker = 0; speaker < speakerPositions.length; speaker++) {
 						float distance = distance(speakerPositions[speaker], currentPos);
 						float linearGain = Math.max(0, 1f - distance / sphereDiameter);
 						speakerGains[speaker] = (float)Math.pow(linearGain, curve);
 					}
 					//then mix that channel in
-					for(int speaker = 0; speaker < 8; speaker++) {
+					for(int speaker = 0; speaker < speakerPositions.length; speaker++) {
 						output[speaker][time] += speakerGains[speaker] * source.getValue(outputChannel, time);
 					}
 				}
@@ -75,24 +86,15 @@ public class OctophonicMixer extends UGen {
 		}
 	}
 	
-	//speaker numbering: first layout speakers 1-4 on the ground in clockwise order
+	//default speaker numbering: first layout speakers 1-4 on the ground in clockwise order
 	//then layout speakers 5-8 so that they are above 1-4 respectively. Then:
 	//the x-axis follows the line joining 1 and 4
 	//the y-axis follows the line joining 1 and 2
 	//the z-axis follows the line joining 1 and 5
 	//This follows the 'right-handed' ordering of the axes: 
 	//http://en.wikipedia.org/wiki/Cartesian_coordinate_system#Orientation_and_handedness
-	public static final float[][] speakerPositions = new float[][] {
-																	{0,0,0},
-																	{0,1,0},
-																	{1,1,0},
-																	{1,0,0},
-																	{0,0,1},
-																	{0,1,1},
-																	{1,1,1},
-																	{1,0,1}
-																	};
-	public static final float sphereDiameter = (float)Math.sqrt(3f);
+	public static float[][] speakerPositions;
+	public static float sphereDiameter;
 
 	private Map<UGen, Location> sources;
 	private float curve; //values over 1 will focus the sound on individual speakers more
@@ -101,10 +103,38 @@ public class OctophonicMixer extends UGen {
 								//speakers will not play a sound that is further than 1 diameter away from them
 	
 	public OctophonicMixer(AudioContext context) {
-		super(context, 8);
+		this(context, new float[][] {
+			{0,0,0},
+			{0,1,0},
+			{1,1,0},
+			{1,0,0},
+			{0,0,1},
+			{0,1,1},
+			{1,1,1},
+			{1,0,1}
+			}, (float)Math.sqrt(3f));
+	}
+	
+	public OctophonicMixer(AudioContext context, float[][] locations, float sphereDiameter) {
+		super(context, locations.length);
+		setSpeakerPositions(locations);
+		setSphereDiameter(sphereDiameter);
 		outputInitializationRegime = OutputInitializationRegime.ZERO;
 		sources = Collections.synchronizedMap(new Hashtable<UGen, Location>());
 		curve = 3f;
+	}
+	
+	public void setSphereDiameter(float sd) {
+		sphereDiameter = sd;
+	}
+	
+	public void setSpeakerPositions(float[][] locations) {
+		speakerPositions = new float[locations.length][3];
+		for(int i = 0; i < speakerPositions.length; i++) {
+			for(int j = 0; j < 3; j++) {
+				speakerPositions[i][j] = locations[i][j];
+			}
+		}
 	}
 	
 	public static float distance(float[] a, float[] b) {
@@ -120,6 +150,11 @@ public class OctophonicMixer extends UGen {
 		Location location = new Location(source);
 		sources.put(source, location);
 	}
+
+	public void addInput(UGen source, UGen[][] controllers) {
+		Location location = new Location(source, controllers);
+		sources.put(source, location);
+	}
 	
 	public void setLocation(UGen source, int channel, float[] newPos) {
 		sources.get(source).move(channel, newPos);
@@ -132,6 +167,20 @@ public class OctophonicMixer extends UGen {
 	public void removeSource(UGen source) {
 		sources.remove(source);
 	}
+	
+
+	@Override
+	public synchronized void clearInputConnections() {
+		super.clearInputConnections();
+		sources.clear();
+	}
+
+	@Override
+	public synchronized void removeAllConnections(UGen sourceUGen) {
+		super.removeAllConnections(sourceUGen);
+		removeSource(sourceUGen);
+	}
+
 	
 	public void setCurve(float curve) {
 		this.curve = curve;

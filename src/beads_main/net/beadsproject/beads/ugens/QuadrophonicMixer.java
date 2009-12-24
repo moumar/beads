@@ -3,9 +3,9 @@ package net.beadsproject.beads.ugens;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Map;
+
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
-import net.beadsproject.beads.data.Buffer;
 
 /**
  * A Quadrophonic mixer. Add sources with locations and change the locations. Locations are changed on a per-channel basis,
@@ -54,15 +54,6 @@ public class QuadrophonicMixer extends UGen {
 			}
 		}
 		
-//		void mixInAudio(float[][] output) {
-//			source.update();
-//			for(int i = 0; i < output.length; i++) {
-//				for(int j = 0; j < output[i].length; j++) {
-//					output[i][j] += source.getValue(0, j);
-//				}
-//			}
-//		}
-		
 		void mixInAudio(float[][] output) {
 			//update the source
 			source.update();
@@ -95,16 +86,11 @@ public class QuadrophonicMixer extends UGen {
 		}
 	}
 	
-	//speaker numbering: layout speakers 1-4 on the ground in clockwise order
+	//default speaker numbering: layout speakers 1-4 on the ground in clockwise order
 	//the y-axis follows the line joining 1 and 4
 	//the x-axis follows the line joining 1 and 2
-	public static final float[][] speakerPositions = new float[][] {
-																	{0,0},
-																	{1,0},
-																	{1,1},
-																	{0,1}
-																	};
-	public static final float circleDiameter = (float)Math.sqrt(2f);
+	public static float[][] speakerPositions;
+	public static float circleDiameter;
 
 	private Map<UGen, Location> sources;
 	private float curve; //values over 1 will focus the sound on individual speakers more
@@ -113,10 +99,34 @@ public class QuadrophonicMixer extends UGen {
 								//speakers will not play a sound that is further than 1 diameter away from them
 	
 	public QuadrophonicMixer(AudioContext context) {
-		super(context, 4);
+		this(context, new float[][] {
+				{0,0},
+				{1,0},
+				{1,1},
+				{0,1}
+				}, (float)Math.sqrt(2f));
+	}
+	
+	public QuadrophonicMixer(AudioContext context, float[][] locations, float diameter) {
+		super(context, locations.length);
+		setSpeakerPositions(locations);
+		setCircleDiameter(diameter);
 		outputInitializationRegime = OutputInitializationRegime.ZERO;
 		sources = Collections.synchronizedMap(new Hashtable<UGen, Location>());
-		curve = 2f;
+		curve = 3f;
+	}
+	
+	public void setCircleDiameter(float sd) {
+		circleDiameter = sd;
+	}
+	
+	public void setSpeakerPositions(float[][] locations) {
+		speakerPositions = new float[locations.length][2];
+		for(int i = 0; i < speakerPositions.length; i++) {
+			for(int j = 0; j < 2; j++) {
+				speakerPositions[i][j] = locations[i][j];
+			}
+		}
 	}
 	
 	public static float distance(float[] a, float[] b) {
@@ -150,6 +160,19 @@ public class QuadrophonicMixer extends UGen {
 		sources.remove(source);
 	}
 	
+	
+	@Override
+	public synchronized void clearInputConnections() {
+		super.clearInputConnections();
+		sources.clear();
+	}
+
+	@Override
+	public synchronized void removeAllConnections(UGen sourceUGen) {
+		super.removeAllConnections(sourceUGen);
+		removeSource(sourceUGen);
+	}
+
 	public void setCurve(float curve) {
 		this.curve = curve;
 	}
