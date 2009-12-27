@@ -46,7 +46,7 @@ public class Pattern implements Serializable {
      * @param key the key.
      * @param value the value.
      */
-    public void addEvent(int key, int value) {
+    public synchronized void addEvent(int key, int value) {
     	ArrayList<Integer> eventSet = events.get(key);
     	if(eventSet == null) {
     		eventSet = new ArrayList<Integer>();
@@ -60,7 +60,7 @@ public class Pattern implements Serializable {
      * 
      * @param key the key.
      */
-    public void removeEvent(int key, int value) {
+    public synchronized void removeEvent(int key, int value) {
     	ArrayList<Integer> eventSet = events.get(key);
     	if(eventSet != null) {
     		eventSet.remove(new Integer(value));
@@ -100,7 +100,7 @@ public class Pattern implements Serializable {
     	return collection;
     }
     
-    public ArrayList<Integer> getEventAtIndex(int index) {
+    public  ArrayList<Integer> getEventAtIndex(int index) {
     	return events.get(index);
     }
     
