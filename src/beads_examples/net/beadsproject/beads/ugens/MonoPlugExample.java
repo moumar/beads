@@ -19,8 +19,10 @@ public class MonoPlugExample {
 		g.addInput(1, wp2, 0);
 		
 		//compare these...
-		MonoPlug p1 = new MonoPlug(ac, g, 0);
-		MonoPlug p2 = new MonoPlug(ac, g, 1);
+		MonoPlug p1 = new MonoPlug(ac);
+		p1.addInput(0, g, 0);
+		MonoPlug p2 = new MonoPlug(ac);
+		p2.addInput(0, g, 0);
 		
 		ac.out.addInput(p1);
 	}

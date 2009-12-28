@@ -27,9 +27,9 @@ public class Static extends UGen {
 	public Static(AudioContext context, float x) {
 		super(context, 1);
 		this.x = x;
+		outputInitializationRegime = OutputInitializationRegime.NULL;
+		outputPauseRegime = OutputPauseRegime.NULL;
 		pause(true); //might as well be muted
-		outputInitializationRegime = OutputInitializationRegime.RETAIN;
-		outputPauseRegime = OutputPauseRegime.RETAIN;
 	}
 
 	/* (non-Javadoc)
@@ -59,6 +59,24 @@ public class Static extends UGen {
 	 */
 	public float getValue() {
 		return x;
+	}
+	
+	public static void main(String[] args) {
+		AudioContext ac = new AudioContext();
+		Static s1 = new Static(ac, 0.1f);
+		Static s2 = new Static(ac, 0.4f);
+		Gain g = new Gain(ac, 1, 1f);
+		g.addInput(s1);
+//		g.addInput(s2);
+		Function f = new Function(g) {
+			public float calculate() {
+				System.out.println(x[0]);
+				return x[0];
+			}
+		};
+		ac.out.addInput(f);
+		ac.start();
+		
 	}
 	
 	

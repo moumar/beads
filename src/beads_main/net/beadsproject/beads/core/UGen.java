@@ -77,7 +77,7 @@ public abstract class UGen extends Bead {
 	protected enum OutputInitializationRegime {ZERO, NULL, JUNK, RETAIN};
 	protected OutputInitializationRegime outputInitializationRegime;
 	
-	protected enum OutputPauseRegime {ZERO, RETAIN};
+	protected enum OutputPauseRegime {ZERO, RETAIN, NULL};
 	protected OutputPauseRegime outputPauseRegime;
 
 	/**
@@ -234,6 +234,10 @@ public abstract class UGen extends Bead {
 			break;
 		case RETAIN:
 			break;
+		case NULL:
+			for(int i = 0; i < outs; i++) {
+				bufOut[i] = null;
+			}
 		default:
 			break;
 		}
@@ -494,8 +498,15 @@ public abstract class UGen extends Bead {
 	 * @return number of UGen outputs connected to that input.
 	 */
 	public synchronized int getNumberOfConnectedUGens(int index) {
-		//System.out.println("getNumberOfConnectedUGens(), channel=" + index + " num=" + inputsAtChannel[index].size());
 		return inputsAtChannel[index].size();
+	}
+	
+	/**
+	 * Gets the number of dependent UGens.
+	 * @return number of dependent UGens.
+	 */
+	public synchronized int getNumberOfDependents() {
+		return dependents.size();
 	}
 
 	/**

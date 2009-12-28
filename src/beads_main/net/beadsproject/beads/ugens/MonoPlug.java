@@ -19,13 +19,9 @@ public class MonoPlug extends UGen {
 	 * Instantiates a new MonoPlug.
 	 * 
 	 * @param context the AudioContext.
-	 * @param sourceUGen the source UGen.
-	 * @param outputIndex the output index of the source UGen.
 	 */
-	public MonoPlug(AudioContext context, UGen sourceUGen, int outputIndex) {
+	public MonoPlug(AudioContext context) {
 		super(context, 1, 1);
-		addInput(0, sourceUGen, outputIndex);
-		bufOut[0] = bufIn[0];
 		outputInitializationRegime = OutputInitializationRegime.RETAIN;
 		outputPauseRegime = OutputPauseRegime.ZERO;
 	}
@@ -34,15 +30,19 @@ public class MonoPlug extends UGen {
 	 * @see net.beadsproject.beads.core.UGen#calculateBuffer()
 	 */
 	@Override
-	public void calculateBuffer() {}
+	public void calculateBuffer() {
+		bufOut[0] = bufIn[0];
+	}
 	
 	public static void main(String[] args) {
 		AudioContext ac = new AudioContext();
 		WavePlayer wp = new WavePlayer(ac, 500f, Buffer.SINE);
 		
-		MonoPlug mp = new MonoPlug(ac, wp, 0);
+		MonoPlug mp = new MonoPlug(ac);
+		mp.addInput(wp);
 		ac.out.addInput(mp);
 		
+//		ac.out.addInput(wp);
 		ac.start();
 	}
 

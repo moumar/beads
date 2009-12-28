@@ -148,7 +148,7 @@ public class AudioContext {
 		checkForDroppedFrames = true;
 		logTime = false;
 		maxReserveBufs = 50;
-		threadPriority = Thread.MAX_PRIORITY;
+		threadPriority = Thread.NORM_PRIORITY;
 		
 		// set audio format
 		this.audioFormat = audioFormat;
