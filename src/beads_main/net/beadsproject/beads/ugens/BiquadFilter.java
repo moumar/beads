@@ -377,8 +377,7 @@ public class BiquadFilter extends UGen {
 		bo2 = bo[bufferSize - 2];
 
 		// check to make sure filter didn't blow up
-		if (Float.isNaN(bi1) || Float.isNaN(bi2) || Float.isNaN(bo1)
-				|| Float.isNaN(bo2))
+		if (Float.isNaN(bi1) || Float.isNaN(bo1))
 			reset();
 
 	}
