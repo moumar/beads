@@ -164,7 +164,7 @@ public class SampleManager {
 	 * @param groupName the group name.
 	 * @param sampleList the sample list.
 	 */
-	public static void group(String groupName, Sample[] sampleList) {
+	public static List<Sample> group(String groupName, Sample[] sampleList) {
 		ArrayList<Sample> group;
 		if (!groups.keySet().contains(groupName)) {
 			group = new ArrayList<Sample>();
@@ -179,6 +179,7 @@ public class SampleManager {
 		for(SampleGroupListener l : listeners) {
 			l.changed();
 		}
+		return group;
 	}
 
 	/**
@@ -188,8 +189,8 @@ public class SampleManager {
 	 * @param groupName the group name.
 	 * @param folderName the folder address (URL or file path).
 	 */
-	public static void group(String groupName, String folderName) {
-		group(groupName, folderName, Integer.MAX_VALUE);
+	public static List<Sample> group(String groupName, String folderName) {
+		return group(groupName, folderName, Integer.MAX_VALUE);
 	}
 	
 	/**
@@ -200,7 +201,7 @@ public class SampleManager {
 	 * @param folderName the folder address (URL or file path).
 	 * @param maxItems number of items to limit to.
 	 */
-	public static void group(String groupName, String folderName, int maxItems) {
+	public static List<Sample> group(String groupName, String folderName, int maxItems) {
 		//first try interpreting the folderName as a system resource
 		File theDirectory = null;
 		try {
@@ -221,7 +222,7 @@ public class SampleManager {
 			fileNameList[i] = theDirectory.getAbsolutePath() + "/" + fileNameList[i];
 			
 		}
-		group(groupName, fileNameList, maxItems);
+		return group(groupName, fileNameList, maxItems);
 	}
 
 	/**
@@ -231,8 +232,8 @@ public class SampleManager {
 	 * @param groupName the group name.
 	 * @param fileNameList the file name list.
 	 */
-	public static void group(String groupName, String[] fileNameList) {
-		group(groupName, fileNameList, Integer.MAX_VALUE);
+	public static List<Sample> group(String groupName, String[] fileNameList) {
+		return group(groupName, fileNameList, Integer.MAX_VALUE);
 	}
 	
 	/**
@@ -243,7 +244,7 @@ public class SampleManager {
 	 * @param fileNameList the file name list.
 	 * @param maxItems number of items to limit to.
 	 */
-	public static void group(String groupName, String[] fileNameList, int maxItems) {
+	public static List<Sample> group(String groupName, String[] fileNameList, int maxItems) {
 		ArrayList<Sample> group;
 		if (!groups.keySet().contains(groupName)) {
 			group = new ArrayList<Sample>();
@@ -267,6 +268,7 @@ public class SampleManager {
 		for(SampleGroupListener l : listeners) {
 			l.changed();
 		}
+		return group;
 	}
 	
 	/**
