@@ -97,8 +97,8 @@ public class BiquadFilter extends UGen {
 	public final static int HIGH_SHELF = 8;
 
 	/**
-	 * Indicates a user-defined filter; see {@link setCustomType}. This constant
-	 * is not recognized by {@link setType}.
+	 * Indicates a user-defined filter; see {@link #setCustomType(BiquadCustomCoeffCalculator) setCustomType}. This constant
+	 * is not recognized by {@link #setType(int) setType}.
 	 */
 	public final static int CUSTOM_FILTER = 100;
 
@@ -123,14 +123,14 @@ public class BiquadFilter extends UGen {
 	private UGen freqUGen, qUGen, gainUGen;
 
 	/**
-	 * Constructor for frequency and Q as floats. See {@link setType} for a list
+	 * Constructor for frequency and Q as floats. See {@link #setType(int) setType} for a list
 	 * of supported filter types.
 	 * 
 	 * @param context
 	 *            The AudioContext.
 	 * @param itype
-	 *            The initial filter type, e.g. {@link LP}, {@link HP},
-	 *            {@link BP_SKIRT}, etc.
+	 *            The initial filter type, e.g. {@link #LP}, {@link #HP},
+	 *            {@link #BP_SKIRT}, etc.
 	 * @param ifreq
 	 *            The initial frequency.
 	 * @param iqval
@@ -146,14 +146,14 @@ public class BiquadFilter extends UGen {
 	}
 
 	/**
-	 * Constructor for frequency as a UGen and Q as a float. See {@link setType}
+	 * Constructor for frequency as a UGen and Q as a float. See {@link #setType(int) setType}
 	 * for a list of supported filter types.
 	 * 
 	 * @param context
 	 *            The AudioContext.
 	 * @param itype
-	 *            The initial filter type, {@link LP}, {@link HP},
-	 *            {@link BP_SKIRT}, etc.
+	 *            The initial filter type, {@link #LP}, {@link #HP},
+	 *            {@link #BP_SKIRT}, etc.
 	 * @param ifreq
 	 *            The frequency UGen.
 	 * @param iqval
@@ -171,14 +171,14 @@ public class BiquadFilter extends UGen {
 	}
 
 	/**
-	 * Constructor for frequency as a float and Q as a UGen. See {@link setType}
+	 * Constructor for frequency as a float and Q as a UGen. See {@link #setType(int) setType}
 	 * for a list of supported filter types.
 	 * 
 	 * @param context
 	 *            The AudioContext.
 	 * @param itype
-	 *            The initial filter type, e.g. {@link LP}, {@link HP},
-	 *            {@link BP_SKIRT}, etc.
+	 *            The initial filter type, e.g. {@link #LP}, {@link #HP},
+	 *            {@link #BP_SKIRT}, etc.
 	 * @param ifreq
 	 *            The initial frequency.
 	 * @param iqval
@@ -196,14 +196,14 @@ public class BiquadFilter extends UGen {
 	}
 
 	/**
-	 * Constructor for frequency and Q as UGens. See {@link setType} for a list
+	 * Constructor for frequency and Q as UGens. See {@link #setType(int) setType} for a list
 	 * of supported filter types.
 	 * 
 	 * @param context
 	 *            The AudioContext.
 	 * @param itype
-	 *            The initial filter type, e.g. {@link LP}, {@link HP},
-	 *            {@link BP_SKIRT}, etc.
+	 *            The initial filter type, e.g. {@link #LP}, {@link #HP},
+	 *            {@link #BP_SKIRT}, etc.
 	 * @param ifreq
 	 *            The frequency UGen.
 	 * @param iqval
@@ -588,7 +588,7 @@ public class BiquadFilter extends UGen {
 
 	/**
 	 * Sets the parameters for the filter, including the type. (For a list of
-	 * supported types, see {@link setType}).
+	 * supported types, see {@link BiquadFilter#setType(int)}).
 	 * 
 	 * @param ntype
 	 *            The filter type, e.g. {@link #LP}, {@link #HP},
@@ -619,7 +619,7 @@ public class BiquadFilter extends UGen {
 	}
 
 	/**
-	 * Sets the type of filter. To set a custom type, use {@link setCustomType}.
+	 * Sets the type of filter. To set a custom type, use {@link #setCustomType(BiquadCustomCoeffCalculator) setCustomType}.
 	 * The following types are recognized:
 	 * <ul>
 	 * <li>{@link #LP} - Low-pass filter.</li>
@@ -680,7 +680,7 @@ public class BiquadFilter extends UGen {
 	 * Gets the type of the filter.
 	 * 
 	 * @return The filter type.
-	 * @see setType
+	 * @see #setType(int)
 	 */
 	public int getType() {
 		return type;

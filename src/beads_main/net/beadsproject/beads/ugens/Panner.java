@@ -118,11 +118,13 @@ public class Panner extends UGen {
 					* f;
 		}
 	}
-	
+
 	/**
 	 * Calculates an array of square-roots from 0 to 1.
-	 * @param rs	The size of the array minus 2.
-	 * @return		The array.
+	 * 
+	 * @param rs
+	 *            The size of the array minus 2.
+	 * @return The array.
 	 */
 	protected static float[] buildRoots(int rs) {
 		float[] roots = new float[rs + 2];

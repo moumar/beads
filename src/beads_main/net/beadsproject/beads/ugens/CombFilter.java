@@ -5,12 +5,13 @@ import java.util.Arrays;
 import net.beadsproject.beads.core.*;
 
 /**
- * Implements a simple comb filter with both feed-forward and feed-back components.
- * 
+ * Implements a simple comb filter with both feed-forward and feed-back
+ * components.
+ * <p>
  * y(n) = a * x(n) + g * x(n - d) - h * y(n - d)
  * 
  * @author Benito Crawford
- * @version 0.9
+ * @version 0.9.1
  */
 public class CombFilter extends UGen {
 
@@ -24,8 +25,11 @@ public class CombFilter extends UGen {
 
 	/**
 	 * Constructor.
-	 * @param con		The audio context.
-	 * @param maxdel	The maximum delay in samples.
+	 * 
+	 * @param con
+	 *            The audio context.
+	 * @param maxdel
+	 *            The maximum delay in samples.
 	 */
 	public CombFilter(AudioContext con, int maxdel) {
 		super(con, 1, 1);
@@ -35,20 +39,20 @@ public class CombFilter extends UGen {
 		xn = new float[bufLen];
 		constructPUs();
 	}
-	
+
 	/**
 	 * Set up our ParamUpdaters.
 	 */
 	protected void constructPUs() {
 		int c = 0;
-		if(delayUGen != null) {
+		if (delayUGen != null) {
 			c += 1;
 		}
-		if(gUGen != null) {
+		if (gUGen != null) {
 			c += 2;
 		}
-		if(pu1 == null || pu1.type != c) {
-			switch(c) {
+		if (pu1 == null || pu1.type != c) {
+			switch (c) {
 			case 0:
 				pu1 = new ParamUpdater(c);
 				break;
@@ -57,15 +61,14 @@ public class CombFilter extends UGen {
 					void updateUGens() {
 						delayUGen.update();
 					}
+
 					void updateParams() {
 						int d = (int) delayUGen.getValue(0, currsample);
-						if(d < 0) {
+						if (d < 0) {
 							delay = 0;
-						}
-						else if(d >= maxDelay) {
+						} else if (d >= maxDelay) {
 							delay = maxDelay;
-						}
-						else {
+						} else {
 							delay = d;
 						}
 					}
@@ -76,6 +79,7 @@ public class CombFilter extends UGen {
 					void updateUGens() {
 						gUGen.update();
 					}
+
 					void updateParams() {
 						g = gUGen.getValue(0, currsample);
 					}
@@ -87,34 +91,33 @@ public class CombFilter extends UGen {
 						delayUGen.update();
 						gUGen.update();
 					}
+
 					void updateParams() {
 						int d = (int) delayUGen.getValue(0, currsample);
-						if(d < 0) {
+						if (d < 0) {
 							delay = 0;
-						}
-						else if(d >= maxDelay) {
+						} else if (d >= maxDelay) {
 							delay = maxDelay;
-						}
-						else {
+						} else {
 							delay = d;
 						}
 						g = gUGen.getValue(0, currsample);
 					}
 				};
 				break;
-			}				
+			}
 		}
-		
+
 		c = 0;
-		if(hUGen != null) {
+		if (hUGen != null) {
 			c += 1;
 		}
-		if(aUGen != null) {
+		if (aUGen != null) {
 			c += 2;
 		}
 
-		if(pu2 == null || pu2.type != c) {
-			switch(c) {
+		if (pu2 == null || pu2.type != c) {
+			switch (c) {
 			case 0:
 				pu2 = new ParamUpdater(0);
 				break;
@@ -123,6 +126,7 @@ public class CombFilter extends UGen {
 					void updateUGens() {
 						hUGen.update();
 					}
+
 					void updateParams() {
 						h = hUGen.getValue(0, currsample);
 					}
@@ -133,6 +137,7 @@ public class CombFilter extends UGen {
 					void updateUGens() {
 						aUGen.update();
 					}
+
 					void updateParams() {
 						a = aUGen.getValue(0, currsample);
 					}
@@ -144,6 +149,7 @@ public class CombFilter extends UGen {
 						hUGen.update();
 						aUGen.update();
 					}
+
 					void updateParams() {
 						h = hUGen.getValue(0, currsample);
 						a = aUGen.getValue(0, currsample);
@@ -152,9 +158,9 @@ public class CombFilter extends UGen {
 				break;
 			}
 		}
-		
+
 	}
-	
+
 	@Override
 	public void calculateBuffer() {
 
@@ -163,116 +169,135 @@ public class CombFilter extends UGen {
 
 		pu1.updateUGens();
 		pu2.updateUGens();
-		
+
 		for (currsample = 0; currsample < bufferSize; currsample++) {
 			pu1.updateParams();
 			pu2.updateUGens();
 			int ind2 = (ind + bufLen - delay) % bufLen;
-			bo[currsample] = yn[ind] = a * (xn[ind] = bi[currsample]) + g * xn[ind2] - h * yn[ind2];
+			bo[currsample] = yn[ind] = a * (xn[ind] = bi[currsample]) + g
+					* xn[ind2] - h * yn[ind2];
 			ind = (ind + 1) % bufLen;
 		}
 	}
-	
+
 	/**
 	 * Use this to reset the filter if it explodes.
 	 */
 	public void reset() {
 		Arrays.fill(yn, 0);
 	}
-	
+
 	/**
 	 * For efficiency.
 	 */
 	protected class ParamUpdater {
 		int type;
+
 		ParamUpdater(int type) {
 			this.type = type;
 		}
-		void updateUGens() {}
-		void updateParams() {}
+
+		void updateUGens() {
+		}
+
+		void updateParams() {
+		}
 	}
-	
+
 	/**
 	 * Gets the maximum delay in samples.
-	 * @return	The maximum delay.
+	 * 
+	 * @return The maximum delay.
 	 */
 	public int getMaxDelay() {
 		return maxDelay;
 	}
-	
+
 	/**
 	 * Gets the current delay in samples.
-	 * @return	The delay in samples.
+	 * 
+	 * @return The delay in samples.
 	 */
 	public int getDelay() {
 		return delay;
 	}
-	
+
 	/**
-	 * Sets the delay time in samples. This will remove the delay UGen, if there is one.
-	 * @param delay	The delay in samples.
+	 * Sets the delay time in samples. This will remove the delay UGen, if there
+	 * is one.
+	 * 
+	 * @param delay
+	 *            The delay in samples.
 	 */
 	public void setDelay(int delay) {
-		if(delay < 0) {
+		if (delay < 0) {
 			this.delay = 0;
-		}
-		else if(delay >= maxDelay) {
+		} else if (delay >= maxDelay) {
 			this.delay = maxDelay;
-		}
-		else {
+		} else {
 			this.delay = delay;
 		}
 		delayUGen = null;
 		constructPUs();
 	}
-	
+
 	/**
 	 * Sets a UGen to specify the delay in samples (converted to ints).
-	 * @param delay	The delay UGen.
+	 * 
+	 * @param delay
+	 *            The delay UGen.
 	 */
 	public void setDelay(UGen delay) {
 		delayUGen = delay;
 		constructPUs();
 	}
-	
+
 	/**
 	 * Gets the delay UGen, if it exists.
-	 * @return	The delay UGen.
+	 * 
+	 * @return The delay UGen.
 	 */
 	public UGen getDelayUGen() {
 		return delayUGen;
 	}
-	
+
 	/**
 	 * Gets the g parameter.
-	 * @return	The g parameter.
+	 * 
+	 * @return The g parameter.
 	 */
 	public float getG() {
 		return g;
 	}
-	
+
 	/**
-	 * Sets the g parameter to a float value. This will remove the g UGen, if there is one.
-	 * @param g	The g parameter.
+	 * Sets the g parameter to a float value. This will remove the g UGen, if
+	 * there is one.
+	 * 
+	 * @param g
+	 *            The g parameter.
 	 */
 	public void setG(float g) {
 		this.g = g;
 		gUGen = null;
 		constructPUs();
 	}
-	
+
 	/**
 	 * Sets a UGen to specify the g parameter.
-	 * @param g	The g UGen.
+	 * 
+	 * @param g
+	 *            The g UGen.
 	 */
 	public void setG(UGen g) {
 		gUGen = g;
 		constructPUs();
 	}
-	
+
 	/**
 	 * Gets the g UGen, if it exists.
-	 * @return	The g UGen.
+	 * 
+	 * @return The g UGen.
 	 */
 	public UGen getGUGen() {
 		return gUGen;
@@ -280,81 +305,100 @@ public class CombFilter extends UGen {
 
 	/**
 	 * Gets the h parameter.
-	 * @return	The h parameter.
+	 * 
+	 * @return The h parameter.
 	 */
 	public float getH() {
 		return h;
 	}
-	
+
 	/**
-	 * Sets the h parameter to a float value. This will remove the h UGen, if there is one.
-	 * @param h	The h parameter.
+	 * Sets the h parameter to a float value. This will remove the h UGen, if
+	 * there is one.
+	 * 
+	 * @param h
+	 *            The h parameter.
 	 */
 	public void setH(float h) {
 		this.h = h;
 		hUGen = null;
 		constructPUs();
 	}
-	
+
 	/**
 	 * Sets a UGen to specify the h parameter.
-	 * @param h	The h UGen.
+	 * 
+	 * @param h
+	 *            The h UGen.
 	 */
 	public void setH(UGen h) {
 		hUGen = h;
 		constructPUs();
 	}
-	
+
 	/**
 	 * Gets the h UGen, if it exists.
-	 * @return	The h UGen.
+	 * 
+	 * @return The h UGen.
 	 */
 	public UGen getHUGen() {
 		return hUGen;
 	}
-	
+
 	/**
 	 * Gets the h parameter.
-	 * @return	The h parameter.
+	 * 
+	 * @return The h parameter.
 	 */
 	public float getA() {
 		return a;
 	}
-	
+
 	/**
-	 * Sets the 'a' parameter to a float value. This will remove the 'a' UGen, if there is one.
-	 * @param a	The 'a' parameter.
+	 * Sets the 'a' parameter to a float value. This will remove the 'a' UGen,
+	 * if there is one.
+	 * 
+	 * @param a
+	 *            The 'a' parameter.
 	 */
 	public void setA(float a) {
 		this.a = a;
 		hUGen = null;
 		constructPUs();
 	}
-	
+
 	/**
 	 * Sets a UGen to specify the 'a' parameter.
-	 * @param a	The 'a' UGen.
+	 * 
+	 * @param a
+	 *            The 'a' UGen.
 	 */
 	public void setA(UGen a) {
 		aUGen = a;
 		constructPUs();
 	}
-	
+
 	/**
 	 * Gets the 'a' UGen, if it exists.
-	 * @return	The 'a' UGen.
+	 * 
+	 * @return The 'a' UGen.
 	 */
 	public UGen getAUGen() {
 		return aUGen;
 	}
-	
+
 	/**
-	 * Sets all the parameters at once. This will clear parameter UGens, if they exist.
+	 * Sets all the parameters at once. This will clear parameter UGens, if they
+	 * exist.
 	 * 
-	 * @param delay	The delay in samples.
-	 * @param a		The 'a' parameter.
-	 * @param g		The g parameter.
-	 * @param h		The h parameter.
+	 * @param delay
+	 *            The delay in samples.
+	 * @param a
+	 *            The 'a' parameter.
+	 * @param g
+	 *            The g parameter.
+	 * @param h
+	 *            The h parameter.
 	 */
 	public void setParams(int delay, float a, float g, float h) {
 		this.a = a;
@@ -365,14 +409,19 @@ public class CombFilter extends UGen {
 		hUGen = null;
 		setDelay(delay);
 	}
-	
+
 	/**
-	 * Sets the parameter UGens. Passing null values will freeze the parameters at their previous values.
+	 * Sets the parameter UGens. Passing null values will freeze the parameters
+	 * at their previous values.
 	 * 
-	 * @param delUGen	The delay UGen.
-	 * @param aUGen		The 'a' UGen.
-	 * @param gUGen		The g UGen.
-	 * @param hUGen		The h UGen.
+	 * @param delUGen
+	 *            The delay UGen.
+	 * @param aUGen
+	 *            The 'a' UGen.
+	 * @param gUGen
+	 *            The g UGen.
+	 * @param hUGen
+	 *            The h UGen.
 	 */
 	public void setParams(UGen delUGen, UGen aUGen, UGen gUGen, UGen hUGen) {
 		delayUGen = delUGen;

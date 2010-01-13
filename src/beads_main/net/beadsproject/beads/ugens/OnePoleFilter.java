@@ -5,7 +5,7 @@ import net.beadsproject.beads.core.*;
 /**
  * A simple one-pole filter implementation. Cut-off frequency can be specified
  * either by UGen or a float.
- * 
+ * <p>
  * It uses the formula: y(n) = a * x(n) + (1 - a) * y(n - 1)
  * 
  * @author Benito Crawford

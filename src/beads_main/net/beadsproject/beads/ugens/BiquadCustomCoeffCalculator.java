@@ -4,7 +4,7 @@ package net.beadsproject.beads.ugens;
  * BiquadCustomCoeffCalculator provides a mechanism to define custom filter
  * coefficients for a {@link BiquadFilter} based on frequency and Q. Users can
  * create their own coefficient calculator classes by extending this class and
- * passing it to a BiquadFilter instance with {@link BiquadFilter.setType()}.
+ * passing it to a BiquadFilter instance with {@link BiquadFilter#setType(int)}.
  * 
  * <p>
  * An instance of such a custom class should override

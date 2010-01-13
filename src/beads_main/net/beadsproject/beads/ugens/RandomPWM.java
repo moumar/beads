@@ -7,8 +7,8 @@ import net.beadsproject.beads.core.*;
  * pulses of lengths randomly distributed between a minimum length and a maximum
  * length (specified in samples). Additionally, the distribution of the randomly
  * controlled by setting the pulse length exponent parameter (see
- * {@link setLengthExponent}).
- * 
+ * {@link #setLengthExponent(float) setLengthExponent}).
+ * <p>
  * A RandomPWM instance has three modes:
  * <ul>
  * <li>{@link #ALTERNATING} (default) - pulses alternate between -1 and 1.</li>
@@ -37,7 +37,7 @@ public class RandomPWM extends UGen {
 	 * @param context
 	 *            The audio context.
 	 * @param mode
-	 *            The pulse mode; see {@link setMode}.
+	 *            The pulse mode; see {@link #setMode(int) setMode}.
 	 * @param minl
 	 *            The minimum pulse length.
 	 * @param maxl
@@ -98,8 +98,8 @@ public class RandomPWM extends UGen {
 	}
 
 	/**
-	 * Sets the pulse mode (see {@link setMode}, minimum pulse length, maximum
-	 * pulse length, and pulse length exponent.
+	 * Sets the pulse mode (see {@link #setMode(int) setMode}), minimum pulse
+	 * length, maximum pulse length, and pulse length exponent.
 	 * 
 	 * @param mode
 	 *            The pulse mode.
@@ -136,8 +136,8 @@ public class RandomPWM extends UGen {
 	/**
 	 * Sets the minimum pulse length.
 	 * 
-	 * @param The
-	 *            minimum pulse length.
+	 * @param minl
+	 *            The minimum pulse length.
 	 */
 	public void setMinLength(float minl) {
 		setParams(minl, maxlen, lenexp);
@@ -155,8 +155,8 @@ public class RandomPWM extends UGen {
 	/**
 	 * Sets the maximum pulse length.
 	 * 
-	 * @param The
-	 *            maximum pulse length.
+	 * @param maxl
+	 *            The maximum pulse length.
 	 */
 	public void setMaxLength(float maxl) {
 		setParams(minlen, maxl, lenexp);
@@ -188,7 +188,7 @@ public class RandomPWM extends UGen {
 	 * Gets the pulse length exponent.
 	 * 
 	 * @return The pulse length exponent.
-	 * @see setLengthExponent
+	 * @see #setLengthExponent(float)
 	 */
 	public float getLengthExponent() {
 		return lenexp;
@@ -200,7 +200,7 @@ public class RandomPWM extends UGen {
 	 * 0 and 1; and use {@link #NOISE} for pulses distributed randomly between
 	 * -1 and 1.
 	 * 
-	 * @param ntype
+	 * @param mode
 	 *            The pulse mode.
 	 */
 	public void setMode(int mode) {
@@ -211,7 +211,7 @@ public class RandomPWM extends UGen {
 	 * Gets the pulse mode.
 	 * 
 	 * @return The pulse mode.
-	 * @see setMode.
+	 * @see #setMode(int)
 	 */
 	public int getMode() {
 		return mod;
