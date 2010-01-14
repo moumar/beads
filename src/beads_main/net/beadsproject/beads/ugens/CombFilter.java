@@ -166,13 +166,12 @@ public class CombFilter extends UGen {
 
 		float[] bi = bufIn[0];
 		float[] bo = bufOut[0];
-
 		pu1.updateUGens();
 		pu2.updateUGens();
 
 		for (currsample = 0; currsample < bufferSize; currsample++) {
 			pu1.updateParams();
-			pu2.updateUGens();
+			pu2.updateParams();
 			int ind2 = (ind + bufLen - delay) % bufLen;
 			bo[currsample] = yn[ind] = a * (xn[ind] = bi[currsample]) + g
 					* xn[ind2] - h * yn[ind2];
@@ -429,5 +428,20 @@ public class CombFilter extends UGen {
 		this.gUGen = gUGen;
 		this.hUGen = hUGen;
 		constructPUs();
+	}
+	
+	public static void main(String[] args) {
+		//Ollie - I'm interested in comparing the speed of this ParamUpdater with Static
+		AudioContext ac = new AudioContext();
+		for(int i = 0; i < 1000; i++) {
+			CombFilter c = new CombFilter(ac, 1000);
+			
+			//compare these two lines...
+//			c.setA(1f);
+			c.setA(new Static(ac, 1f));
+			
+			ac.out.addInput(c);
+		}
+		ac.start();
 	}
 }
