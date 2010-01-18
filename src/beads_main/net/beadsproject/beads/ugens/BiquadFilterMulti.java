@@ -178,8 +178,7 @@ public class BiquadFilterMulti extends UGen {
 	 *            A DataBead specifying parameter values; see
 	 *            {@link #setParams(DataBead)}.
 	 */
-	public BiquadFilterMulti(AudioContext context, int channels,
-			DataBead params) {
+	public BiquadFilterMulti(AudioContext context, int channels, DataBead params) {
 		this(context, channels, LP);
 		setParams(params);
 	}
@@ -524,8 +523,7 @@ public class BiquadFilterMulti extends UGen {
 				setType(((Number) o).intValue());
 			}
 
-			if (paramBead.containsKey("frequency")) {
-				o = paramBead.get("frequency");
+			if ((o = paramBead.get("frequency")) != null) {
 				if (o instanceof UGen) {
 					setFreq((UGen) o);
 				} else {
@@ -533,8 +531,7 @@ public class BiquadFilterMulti extends UGen {
 				}
 			}
 
-			if (paramBead.containsKey("q")) {
-				o = paramBead.get("q");
+			if ((o = paramBead.get("q")) != null) {
 				if (o instanceof UGen) {
 					setQ((UGen) o);
 				} else {
@@ -542,8 +539,7 @@ public class BiquadFilterMulti extends UGen {
 				}
 			}
 
-			if (paramBead.containsKey("gain")) {
-				o = paramBead.get("gain");
+			if ((o = paramBead.get("gain")) != null) {
 				if (o instanceof UGen) {
 					setGain((UGen) o);
 				} else {
@@ -713,12 +709,16 @@ public class BiquadFilterMulti extends UGen {
 	 *            The frequency UGen.
 	 */
 	public BiquadFilterMulti setFreq(UGen nfreq) {
-		freqUGen = nfreq;
-		freqUGen.update();
-		freq = freqUGen.getValue();
+		if (nfreq == null) {
+			setFreq(freq);
+		} else {
+			freqUGen = nfreq;
+			freqUGen.update();
+			freq = freqUGen.getValue();
+			isFreqStatic = false;
+			areAllStatic = false;
+		}
 		vc.calcVals();
-		isFreqStatic = false;
-		areAllStatic = false;
 		return this;
 	}
 
@@ -763,12 +763,16 @@ public class BiquadFilterMulti extends UGen {
 	 * @return This BiquadFilter instance.
 	 */
 	public BiquadFilterMulti setQ(UGen nqval) {
-		qUGen = nqval;
-		qUGen.update();
-		q = freqUGen.getValue();
+		if (nqval == null) {
+			setQ(q);
+		} else {
+			qUGen = nqval;
+			qUGen.update();
+			q = freqUGen.getValue();
+			isQStatic = false;
+			areAllStatic = false;
+		}
 		vc.calcVals();
-		isQStatic = false;
-		areAllStatic = false;
 		return this;
 	}
 
@@ -823,12 +827,16 @@ public class BiquadFilterMulti extends UGen {
 	 *            The gain UGen, specifying the gain in decibels.
 	 */
 	public BiquadFilterMulti setGain(UGen ngain) {
-		gainUGen = ngain;
-		gainUGen.update();
-		gain = freqUGen.getValue();
+		if (ngain == null) {
+			setGain(gain);
+		} else {
+			gainUGen = ngain;
+			gainUGen.update();
+			gain = freqUGen.getValue();
+			isGainStatic = false;
+			areAllStatic = false;
+		}
 		vc.calcVals();
-		isGainStatic = false;
-		areAllStatic = false;
 		return this;
 	}
 
