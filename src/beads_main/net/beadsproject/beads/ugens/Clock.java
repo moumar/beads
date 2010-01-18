@@ -38,6 +38,7 @@ public class Clock extends UGen implements IntegerBead {
     /** The strength (gain) of the audible click. */
     private float clickStrength;
     
+    /** Used so that other objects can discover what */
     private double[] subticks;
     
     /**
