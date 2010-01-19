@@ -513,6 +513,7 @@ public class BiquadFilterMulti extends UGen {
 	 * 
 	 * @param paramBead
 	 *            The DataBead specifying parameters.
+	 * @return This filter instance.
 	 */
 	public BiquadFilterMulti setParams(DataBead paramBead) {
 		if (paramBead != null) {
