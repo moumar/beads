@@ -1,6 +1,7 @@
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
+import net.beadsproject.beads.data.DataBead;
 
 /**
  * A simple panning object that takes a mono input and gives stereo output.
@@ -17,10 +18,9 @@ public class Panner extends UGen {
 
 	protected static int rootSize = 1024;
 	public static float[] ROOTS = buildRoots(rootSize);
-	private int currsample = 0;
 	protected float pos = 0, p1, p2;
 	protected UGen posUGen;
-	protected ParamUpdater pu;
+	protected boolean isPosStatic;
 
 	/**
 	 * Constructor that sets the pan to the middle by default.
@@ -42,8 +42,7 @@ public class Panner extends UGen {
 	 */
 	public Panner(AudioContext con, float ipos) {
 		super(con, 1, 2);
-		pos = ipos;
-		constructPU();
+		setPos(ipos);
 	}
 
 	/**
@@ -56,34 +55,7 @@ public class Panner extends UGen {
 	 */
 	public Panner(AudioContext con, UGen posUGen) {
 		super(con, 1, 2);
-		this.posUGen = posUGen;
-		constructPU();
-	}
-
-	/**
-	 * To set up the ParamUpdater.
-	 */
-	protected void constructPU() {
-		if (posUGen == null) {
-			if (pu == null || pu.type != 0) {
-				pu = new ParamUpdater(0);
-			}
-			calcVals();
-		} else {
-			if (pu == null || pu.type != 1) {
-				pu = new ParamUpdater(1) {
-					void updateUGens() {
-						posUGen.update();
-					}
-
-					void updateParams() {
-						pos = posUGen.getValue(0, currsample);
-						calcVals();
-					}
-				};
-			}
-		}
-
+		setPos(posUGen);
 	}
 
 	@Override
@@ -93,29 +65,37 @@ public class Panner extends UGen {
 		float[] bo1 = bufOut[0];
 		float[] bo2 = bufOut[1];
 
-		pu.updateUGens();
+		if (isPosStatic) {
 
-		for (int currsample = 0; currsample < bufferSize; currsample++) {
-			pu.updateParams();
-			bo1[currsample] = p1 * bi[currsample];
-			bo2[currsample] = p2 * bi[currsample];
-		}
-	}
+			for (int currsample = 0; currsample < bufferSize; currsample++) {
+				bo1[currsample] = p1 * bi[currsample];
+				bo2[currsample] = p2 * bi[currsample];
+			}
 
-	protected void calcVals() {
-		if (pos >= 1) {
-			p1 = 0;
-			p2 = 1;
-		} else if (pos <= -1) {
-			p1 = 1;
-			p2 = 0;
 		} else {
-			int n1;
-			float f = (pos + 1) * .5f * (float) rootSize;
-			f -= (n1 = (int) Math.floor(f));
-			p2 = ROOTS[n1] * (1 - f) + ROOTS[n1 + 1] * f;
-			p1 = ROOTS[rootSize - n1] * (1 - f) + ROOTS[rootSize - (n1 + 1)]
-					* f;
+
+			posUGen.update();
+
+			for (int currsample = 0; currsample < bufferSize; currsample++) {
+
+				if ((pos = posUGen.getValue(0, currsample)) >= 1) {
+					p1 = 0;
+					p2 = 1;
+				} else if (pos <= -1) {
+					p1 = 1;
+					p2 = 0;
+				} else {
+					int n1;
+					float f = (pos + 1) * .5f * (float) rootSize;
+					f -= (n1 = (int) Math.floor(f));
+					p2 = ROOTS[n1] * (1 - f) + ROOTS[n1 + 1] * f;
+					p1 = ROOTS[rootSize - n1] * (1 - f)
+							+ ROOTS[rootSize - (n1 + 1)] * f;
+				}
+
+				bo1[currsample] = p1 * bi[currsample];
+				bo2[currsample] = p2 * bi[currsample];
+			}
 		}
 	}
 
@@ -136,26 +116,6 @@ public class Panner extends UGen {
 	}
 
 	/**
-	 * For efficiency.
-	 * 
-	 * @author Benito Crawford
-	 * 
-	 */
-	protected class ParamUpdater {
-		int type;
-
-		ParamUpdater(int type) {
-			this.type = type;
-		}
-
-		void updateUGens() {
-		}
-
-		void updateParams() {
-		}
-	}
-
-	/**
 	 * Gets the current pan position.
 	 * 
 	 * @return The pan position.
@@ -169,11 +129,26 @@ public class Panner extends UGen {
 	 * 
 	 * @param pos
 	 *            The pan position.
+	 * @return This Panner instance.
 	 */
-	public void setPos(float pos) {
-		this.pos = pos;
+	public Panner setPos(float pos) {
+		if ((this.pos = pos) >= 1) {
+			p1 = 0;
+			p2 = 1;
+		} else if (pos <= -1) {
+			p1 = 1;
+			p2 = 0;
+		} else {
+			int n1;
+			float f = (pos + 1) * .5f * (float) rootSize;
+			f -= (n1 = (int) Math.floor(f));
+			p2 = ROOTS[n1] * (1 - f) + ROOTS[n1 + 1] * f;
+			p1 = ROOTS[rootSize - n1] * (1 - f) + ROOTS[rootSize - (n1 + 1)]
+					* f;
+		}
+		isPosStatic = true;
 		posUGen = null;
-		constructPU();
+		return this;
 	}
 
 	/**
@@ -181,10 +156,19 @@ public class Panner extends UGen {
 	 * 
 	 * @param posUGen
 	 *            The pan UGen.
+	 * @return This Panner instance.
 	 */
-	public void setPos(UGen posUGen) {
-		this.posUGen = posUGen;
-		constructPU();
+	public Panner setPos(UGen posUGen) {
+		if (posUGen == null) {
+			setPos(pos);
+		} else {
+			this.posUGen = posUGen;
+			posUGen.update();
+			pos = posUGen.getValue();
+			isPosStatic = false;
+		}
+
+		return this;
 	}
 
 	/**
@@ -193,7 +177,71 @@ public class Panner extends UGen {
 	 * @return The pan UGen.
 	 */
 	public UGen getPosUGen() {
-		return posUGen;
+		if (isPosStatic) {
+			return null;
+		} else {
+			return posUGen;
+		}
+	}
+
+	/**
+	 * Sets the parameter with a DataBead.
+	 * <p>
+	 * Use the "position" property to specify pan position.
+	 * 
+	 * @param paramBead
+	 *            The DataBead specifying parameters.
+	 * @return This filter instance.
+	 */
+	public Panner setParams(DataBead paramBead) {
+		if (paramBead != null) {
+			Object o;
+
+			if ((o = paramBead.get("position")) != null) {
+				if (o instanceof UGen) {
+					setPos((UGen) o);
+				} else {
+					setPos(paramBead.getFloat("position", pos));
+				}
+			}
+
+		}
+		return this;
+	}
+
+	public void messageReceived(Bead message) {
+		if (message instanceof DataBead) {
+			setParams((DataBead) message);
+		}
+	}
+
+	/**
+	 * Gets a DataBead with the pan position (whether float or UGen), stored in
+	 * the key "position".
+	 * 
+	 * @return The DataBead with the stored parameter.
+	 */
+	public DataBead getParams() {
+		DataBead db = new DataBead();
+
+		if (isPosStatic) {
+			db.put("position", pos);
+		} else {
+			db.put("position", posUGen);
+		}
+
+		return db;
+	}
+
+	/**
+	 * Gets a DataBead with property "position" set to its current float value.
+	 * 
+	 * @return The DataBead with the static float parameter value.
+	 */
+	public DataBead getStaticParams() {
+		DataBead db = new DataBead();
+		db.put("position", pos);
+		return db;
 	}
 
 }
