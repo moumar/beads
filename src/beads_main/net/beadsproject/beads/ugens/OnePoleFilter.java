@@ -1,6 +1,7 @@
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
+import net.beadsproject.beads.data.DataBead;
 
 /**
  * A simple one-pole filter implementation. Cut-off frequency can be specified
@@ -13,10 +14,9 @@ import net.beadsproject.beads.core.*;
  */
 public class OnePoleFilter extends UGen {
 	private float freq, a0, b1, y1 = 0;
-	private int currsamp;
 	private UGen freqUGen;
 	protected float samplingfreq, two_pi_over_sf;
-	protected ParamUpdater pu;
+	protected boolean isFreqStatic;
 
 	/**
 	 * Constructor for cut-off frequency specified by a static float.
@@ -50,44 +50,32 @@ public class OnePoleFilter extends UGen {
 		setFreq(freq);
 	}
 
-	protected void constructPU() {
-		if (freqUGen == null) {
-			if (pu == null || pu.type != 0) {
-				pu = new ParamUpdater(0);
-			}
-		} else {
-			if (pu == null || pu.type != 1) {
-				pu = new ParamUpdater(0) {
-					void updateUGens() {
-						freqUGen.update();
-					}
-
-					void updateParams() {
-						freq = freqUGen.getValue(0, currsamp);
-						calcVals();
-					}
-				};
-			}
-		}
-
-		calcVals();
-	}
-
 	protected void calcVals() {
-		a0 = (float) Math.sin(two_pi_over_sf * freq);
-		b1 = a0 - 1;
+		b1 = (a0 = (float) Math.sin(two_pi_over_sf * freq)) - 1;
 	}
 
 	@Override
 	public void calculateBuffer() {
-		pu.updateUGens();
-
 		float[] bi = bufIn[0];
 		float[] bo = bufOut[0];
 
-		for (currsamp = 0; currsamp < bufferSize; currsamp++) {
-			pu.updateParams();
-			bo[currsamp] = y1 = a0 * bi[currsamp] - b1 * y1;
+		if (isFreqStatic) {
+
+			for (int currsamp = 0; currsamp < bufferSize; currsamp++) {
+				bo[currsamp] = y1 = a0 * bi[currsamp] - b1 * y1;
+			}
+
+		} else {
+
+			freqUGen.update();
+
+			for (int currsamp = 0; currsamp < bufferSize; currsamp++) {
+				b1 = (a0 = (float) Math.sin(two_pi_over_sf
+						* freqUGen.getValue(0, currsamp))) - 1;
+				bo[currsamp] = y1 = a0 * bi[currsamp] - b1 * y1;
+			}
+			freq = freqUGen.getValue(0, bufferSize - 1);
+
 		}
 
 		// check to see if it blew up
@@ -109,43 +97,107 @@ public class OnePoleFilter extends UGen {
 	 * 
 	 * @param freq
 	 *            The cut-off frequency.
+	 * @return This filter instance.
 	 */
-	public void setFreq(float freq) {
+	public OnePoleFilter setFreq(float freq) {
 		this.freq = freq;
-		constructPU();
+		b1 = (a0 = (float) Math.sin(two_pi_over_sf * freq)) - 1;
+		isFreqStatic = true;
+		return this;
 	}
 
 	/**
-	 * Sets a UGen to specify the cut-off frequency.
+	 * Sets a UGen to specify the cut-off frequency; passing null freezes the
+	 * frequency at its current value.
 	 * 
 	 * @param freqUGen
 	 *            The cut-off frequency UGen.
+	 * @return This filter instance.
 	 */
-	public void setFreq(UGen freqUGen) {
-		this.freqUGen = freqUGen;
-		constructPU();
+	public OnePoleFilter setFreq(UGen freqUGen) {
+		if (freqUGen == null) {
+			setFreq(freq);
+		} else {
+			this.freqUGen = freqUGen;
+			freqUGen.update();
+			freq = freqUGen.getValue();
+			isFreqStatic = false;
+		}
+		return this;
 	}
 
 	/**
-	 * Gets the cut-off frequency UGen.
+	 * Gets the cut-off frequency UGen; returns null if frequency is static.
 	 * 
 	 * @return The cut-off frequency UGen.
 	 */
 	public UGen getFreqUGen() {
-		return freqUGen;
-	}
+		if (isFreqStatic) {
+			return null;
+		} else {
 
-	private class ParamUpdater {
-		int type;
-
-		ParamUpdater(int type) {
-			this.type = type;
-		}
-
-		void updateUGens() {
-		}
-
-		void updateParams() {
+			return freqUGen;
 		}
 	}
+
+	/**
+	 * Sets the filter parameters with a DataBead.
+	 * <p>
+	 * Use the "frequency" properties to specify filter frequency.
+	 * 
+	 * @param paramBead
+	 *            The DataBead specifying parameters.
+	 * @return This filter instance.
+	 */
+	public OnePoleFilter setParams(DataBead paramBead) {
+		if (paramBead != null) {
+			Object o;
+
+			if ((o = paramBead.get("frequency")) != null) {
+				if (o instanceof UGen) {
+					setFreq((UGen) o);
+				} else {
+					setFreq(paramBead.getFloat("frequency", freq));
+				}
+			}
+
+		}
+		return this;
+	}
+
+	public void messageReceived(Bead message) {
+		if (message instanceof DataBead) {
+			setParams((DataBead) message);
+		}
+	}
+
+	/**
+	 * Gets a DataBead with the filter frequency (whether float or UGen), stored
+	 * in the key "frequency".
+	 * 
+	 * @return The DataBead with the stored parameter.
+	 */
+	public DataBead getParams() {
+		DataBead db = new DataBead();
+
+		if (isFreqStatic) {
+			db.put("frequency", freq);
+		} else {
+			db.put("frequency", freqUGen);
+		}
+
+		return db;
+	}
+
+	/**
+	 * Gets a DataBead with property "frequency" set to its current float value.
+	 * 
+	 * @return The DataBead with the static float parameter value.
+	 */
+	public DataBead getStaticParams() {
+		DataBead db = new DataBead();
+		db.put("frequency", freq);
+		return db;
+	}
+
 }
