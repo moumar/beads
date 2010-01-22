@@ -10,8 +10,8 @@ import java.util.*;
  * @author Benito Crawford
  * @version 0.9
  */
-public class DataBead<T> extends Bead implements Map<String, T> {
-	public Hashtable<String, T> properties;
+public class DataBead extends Bead implements Map<String, Object> {
+	public Hashtable<String, Object> properties;
 
 	/**
 	 * Creates a DataBead instance with no defined properties.
@@ -22,7 +22,7 @@ public class DataBead<T> extends Bead implements Map<String, T> {
 
 	/**
 	 * Creates a DataBead instance with properties specified by a String array
-	 * that are set to corresponding values specified by and Object array.
+	 * that are set to corresponding values specified by an Object array.
 	 * 
 	 * @param proparr
 	 *            The array of property names.
@@ -30,8 +30,8 @@ public class DataBead<T> extends Bead implements Map<String, T> {
 	 *            The array of Object values.
 	 * 
 	 */
-	public DataBead(String[] proparr, T[] valarr) {
-		properties = new Hashtable<String, T>();
+	public DataBead(String[] proparr, Object[] valarr) {
+		properties = new Hashtable<String, Object>();
 
 		if (proparr != null && valarr != null) {
 			int s = Math.min(proparr.length, valarr.length);
@@ -50,9 +50,9 @@ public class DataBead<T> extends Bead implements Map<String, T> {
 	 * @param ht
 	 *            The input Hashtable.
 	 */
-	public DataBead(Hashtable<String, T> ht) {
+	public DataBead(Hashtable<String, Object> ht) {
 		if (ht == null) {
-			properties = new Hashtable<String, T>();
+			properties = new Hashtable<String, Object>();
 		} else {
 			properties = ht;
 		}
@@ -74,7 +74,7 @@ public class DataBead<T> extends Bead implements Map<String, T> {
 	 * @param db
 	 *            The input DataBead.
 	 */
-	public void putAll(DataBead<? extends T> db) {
+	public void putAll(DataBead db) {
 		putAll(db.properties);
 	}
 
@@ -122,8 +122,8 @@ public class DataBead<T> extends Bead implements Map<String, T> {
 	 * properties.
 	 */
 	@Override
-	public DataBead<T> clone() {
-		DataBead<T> ret = new DataBead<T>();
+	public DataBead clone() {
+		DataBead ret = new DataBead();
 		ret.setName(getName());
 		ret.putAll(properties);
 		return ret;
@@ -140,8 +140,8 @@ public class DataBead<T> extends Bead implements Map<String, T> {
 	 *            The second input DataBead.
 	 * @return The new DataBead.
 	 */
-	public static <K> DataBead<K> combine(DataBead<? extends K> a, DataBead<? extends K> b) {
-		DataBead<K> c = new DataBead<K>();
+	public static DataBead combine(DataBead a, DataBead b) {
+		DataBead c = new DataBead();
 		c.putAll(b);
 		c.putAll(a);
 		return c;
@@ -164,11 +164,11 @@ public class DataBead<T> extends Bead implements Map<String, T> {
 		return properties.containsValue(value);
 	}
 
-	public Set<java.util.Map.Entry<String, T>> entrySet() {
+	public Set<java.util.Map.Entry<String, Object>> entrySet() {
 		return properties.entrySet();
 	}
 
-	public T get(Object key) {
+	public Object get(Object key) {
 		return properties.get(key);
 	}
 
@@ -180,15 +180,15 @@ public class DataBead<T> extends Bead implements Map<String, T> {
 		return properties.keySet();
 	}
 
-	public T put(String key, T value) {
+	public Object put(String key, Object value) {
 		return properties.put(key, value);
 	}
 
-	public void putAll(Map<? extends String, ? extends T> m) {
+	public void putAll(Map<? extends String, ? extends Object> m) {
 		properties.putAll(m);
 	}
 
-	public T remove(Object key) {
+	public Object remove(Object key) {
 		return properties.remove(key);
 	}
 
@@ -196,7 +196,7 @@ public class DataBead<T> extends Bead implements Map<String, T> {
 		return properties.size();
 	}
 
-	public Collection<T> values() {
+	public Collection<Object> values() {
 		return properties.values();
 	}
 

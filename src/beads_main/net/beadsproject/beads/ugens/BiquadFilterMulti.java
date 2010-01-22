@@ -3,7 +3,7 @@ package net.beadsproject.beads.ugens;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.data.DataBead;
+import net.beadsproject.beads.data.*;
 
 /**
  * A simple implementation of a multi-channel biquad filter. It calculates
@@ -30,7 +30,7 @@ import net.beadsproject.beads.data.DataBead;
  * @author Benito Crawford
  * @version 0.9.5
  */
-public class BiquadFilterMulti extends UGen {
+public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 
 	/**
 	 * Indicates a low-pass filter; coefficients are calculated from equations
@@ -555,6 +555,15 @@ public class BiquadFilterMulti extends UGen {
 		if (message instanceof DataBead) {
 			setParams((DataBead) message);
 		}
+	}
+
+	/**
+	 * Equivalent to {@link #setParams(DataBead)}.
+	 * 
+	 * @return This filter instance.
+	 */
+	public DataBeadReceiver sendData(DataBead db) {
+		return setParams(db);
 	}
 
 	/**
