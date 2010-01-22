@@ -563,7 +563,8 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 	 * @return This filter instance.
 	 */
 	public DataBeadReceiver sendData(DataBead db) {
-		return setParams(db);
+		setParams(db);
+		return this;
 	}
 
 	/**

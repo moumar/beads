@@ -1,7 +1,7 @@
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
-import net.beadsproject.beads.data.DataBead;
+import net.beadsproject.beads.data.*;
 
 /**
  * A simple all-pass filter with variable delay. Implements the following
@@ -12,7 +12,7 @@ import net.beadsproject.beads.data.DataBead;
  * @author Benito Crawford
  * @version 0.9.5
  */
-public class AllpassFilter extends UGen {
+public class AllpassFilter extends UGen implements DataBeadReceiver {
 
 	protected float g;
 	protected int maxDelay = 1, delay = 0, ind = 0, bufLen;
@@ -87,7 +87,7 @@ public class AllpassFilter extends UGen {
 		this(context, maxdel);
 		setDelay(idel).setG(ig);
 	}
-	
+
 	private AllpassFilter(AudioContext context, int maxdel) {
 		super(context, 1, 1);
 		maxDelay = Math.max(maxdel, 1);
@@ -265,7 +265,7 @@ public class AllpassFilter extends UGen {
 			return delayUGen;
 		}
 	}
-	
+
 	/**
 	 * Sets the filter parameters with a DataBead.
 	 * <p>
@@ -288,7 +288,7 @@ public class AllpassFilter extends UGen {
 				if (o instanceof UGen) {
 					setDelay((UGen) o);
 				} else {
-					setDelay((int)paramBead.getFloat("delay", delay));
+					setDelay((int) paramBead.getFloat("delay", delay));
 				}
 			}
 
@@ -311,8 +311,8 @@ public class AllpassFilter extends UGen {
 	}
 
 	/**
-	 * Gets a DataBead with properties "delay" and "g" set to the
-	 * corresponding filter parameters.
+	 * Gets a DataBead with properties "delay" and "g" set to the corresponding
+	 * filter parameters.
 	 * 
 	 * @return The parameter DataBead.
 	 */
@@ -334,8 +334,8 @@ public class AllpassFilter extends UGen {
 	}
 
 	/**
-	 * Gets a DataBead with properties "delay" and "g" set to static
-	 * float values corresponding to the current filter parameters.
+	 * Gets a DataBead with properties "delay" and "g" set to static float
+	 * values corresponding to the current filter parameters.
 	 * 
 	 * @return The static parameter DataBead.
 	 */
@@ -344,6 +344,17 @@ public class AllpassFilter extends UGen {
 		db.put("delay", delay);
 		db.put("g", g);
 		return db;
-	}	
+	}
+
+	/**
+	 * Sets the filter's parameters with a DataBead.
+	 * 
+	 * @return This filter instance.
+	 * @see #setParams(DataBead)
+	 */
+	public DataBeadReceiver sendData(DataBead db) {
+		setParams(db);
+		return this;
+	}
 
 }

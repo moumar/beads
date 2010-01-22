@@ -118,6 +118,23 @@ public class DataBead extends Bead implements Map<String, Object> {
 	}
 
 	/**
+	 * Returns the UGen value for the specified key. If the value stored at the
+	 * key is not a UGen, it returns <code>null</code>.
+	 * 
+	 * @param key
+	 *            The key.
+	 * @return The UGen if it exists.
+	 */
+	public UGen getUGen(String key) {
+		Object o = get(key);
+		if (o instanceof UGen) {
+			return (UGen) o;
+		} else {
+			return null;
+		}
+	}
+
+	/**
 	 * Returns a new DataBead with a shallow copy of the the original DataBead's
 	 * properties.
 	 */

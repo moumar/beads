@@ -1,7 +1,7 @@
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
-import net.beadsproject.beads.data.DataBead;
+import net.beadsproject.beads.data.*;
 
 /**
  * A simple one-pole filter implementation. Cut-off frequency can be specified
@@ -12,7 +12,7 @@ import net.beadsproject.beads.data.DataBead;
  * @author Benito Crawford
  * @version 0.9
  */
-public class OnePoleFilter extends UGen {
+public class OnePoleFilter extends UGen implements DataBeadReceiver {
 	private float freq, a0, b1, y1 = 0;
 	private UGen freqUGen;
 	protected float samplingfreq, two_pi_over_sf;
@@ -198,6 +198,17 @@ public class OnePoleFilter extends UGen {
 		DataBead db = new DataBead();
 		db.put("frequency", freq);
 		return db;
+	}
+
+	/**
+	 * Sets the filter frequency with a DataBead.
+	 * 
+	 * @see #setParams(DataBead)
+	 * @return This filter instance.
+	 */
+	public DataBeadReceiver sendData(DataBead db) {
+		setParams(db);
+		return this;
 	}
 
 }

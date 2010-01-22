@@ -276,9 +276,15 @@ public class RandomPWM extends UGen implements DataBeadReceiver {
 		setParams((int) db.getFloat("mode", mode), db.getFloat("minLength",
 				minLength), db.getFloat("maxLength", maxLength), db.getFloat(
 				"lengthExponent", lengthExponent));
-		return null;
+		return this;
 	}
 
+	public void messageReceived(Bead message) {
+		if(message instanceof DataBead) {
+			sendData((DataBead) message);
+		}
+	}
+	
 	/**
 	 * Gets a DataBead filled with properties corresponding to this object's
 	 * parameters.

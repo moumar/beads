@@ -1,7 +1,7 @@
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
-import net.beadsproject.beads.data.DataBead;
+import net.beadsproject.beads.data.*;
 
 /**
  * A simple panning object that takes a mono input and gives stereo output.
@@ -14,7 +14,7 @@ import net.beadsproject.beads.data.DataBead;
  * @author Benito Crawford
  * @version 0.9.1
  */
-public class Panner extends UGen {
+public class Panner extends UGen implements DataBeadReceiver {
 
 	protected static int rootSize = 1024;
 	public static float[] ROOTS = buildRoots(rootSize);
@@ -242,6 +242,15 @@ public class Panner extends UGen {
 		DataBead db = new DataBead();
 		db.put("position", pos);
 		return db;
+	}
+
+	/**
+	 * Sets the pan position with a DataBead.
+	 * @see #setParams(DataBead)
+	 */
+	public DataBeadReceiver sendData(DataBead db) {
+		setParams(db);
+		return this;
 	}
 
 }

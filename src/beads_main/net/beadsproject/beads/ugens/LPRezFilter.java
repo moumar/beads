@@ -1,7 +1,7 @@
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
-import net.beadsproject.beads.data.DataBead;
+import net.beadsproject.beads.data.*;
 
 /**
  * A simple 2nd-order resonant low-pass filter optimized for single-channel
@@ -21,7 +21,7 @@ import net.beadsproject.beads.data.DataBead;
  * @author Benito Crawford
  * @version 0.9.5
  */
-public class LPRezFilter extends UGen {
+public class LPRezFilter extends UGen implements DataBeadReceiver {
 
 	protected float freq = 100;
 	protected float res = .5f, _2pi_over_sr, cosw = 0;
@@ -400,6 +400,15 @@ public class LPRezFilter extends UGen {
 		db.put("frequency", freq);
 		db.put("resonance", res);
 		return db;
+	}
+
+	/**
+	 * Sets the filter's parameters with properties from a DataBead.
+	 * @see #setParams(DataBead)
+	 */
+	public DataBeadReceiver sendData(DataBead db) {
+		setParams(db);
+		return this;
 	}
 
 }

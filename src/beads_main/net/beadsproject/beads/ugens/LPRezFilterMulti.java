@@ -21,7 +21,7 @@ import net.beadsproject.beads.data.DataBead;
  * @author Benito Crawford
  * @version 0.9.5
  */
-public class LPRezFilterMulti extends net.beadsproject.beads.ugens.LPRezFilter {
+public class LPRezFilterMulti extends LPRezFilter {
 
 	private float[] y1m, y2m;
 	private int channels;
