@@ -1,6 +1,7 @@
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
+import net.beadsproject.beads.data.*;
 
 /**
  * A simple random-length pulse wave modulator. This UGen generates constant
@@ -14,22 +15,26 @@ import net.beadsproject.beads.core.*;
  * <li>{@link #ALTERNATING} (default) - pulses alternate between -1 and 1.</li>
  * <li>{@link #PULSING} (default) - pulses alternate between 0 and 1.</li>
  * <li>{@link #NOISE} - pulses are distributed continuously between -1 and 1.</li>
+ * <li>{@link #SAW} - for random-length ramps between -1 and 1.</li>
+ * <li>{@link #RAMPED_NOISE} - for random-length ramps between random values.</li>
  * </ul>
  * 
  * @author Benito Crawford
  * @version 0.9.1
  * 
  */
-public class RandomPWM extends UGen {
+public class RandomPWM extends UGen implements DataBeadReceiver {
 	public final static int ALTERNATING = 0;
 	public final static int NOISE = 1;
 	public final static int PULSING = 2;
+	public final static int SAW = 3;
+	public final static int RAMPED_NOISE = 4;
 
-	protected int mod = 0;
-	protected float val = 0;
-	protected float minlen = 1, maxlen = 1, len = 0;
-	protected float lenexp = 1;
-	protected float lenscale;
+	protected int mode = 0;
+	protected float targetVal = 0, baseVal = 0, valDiff = 0;
+	protected float count = 0, pulseLen = 0;
+	protected float minLength = 10, maxLength = 100, lengthExponent = 1;
+	protected float lengthDiff = 0;
 
 	/**
 	 * Constructor.
@@ -54,47 +59,79 @@ public class RandomPWM extends UGen {
 	public void calculateBuffer() {
 		float[] bo = bufOut[0];
 
-		if (mod == PULSING) {
+		if (mode == PULSING) {
 			for (int i = 0; i < bo.length; i++) {
-				if (len <= 0) {
-					float d = (float) Math.pow(Math.random(), lenexp)
-							* lenscale + minlen;
-					len += d;
-					if (val > 0)
-						val = 0;
-					else
-						val = 1;
+				if (count <= 0) {
+					calcVals();
+					if (targetVal > 0) {
+						targetVal = 0;
+					} else {
+						targetVal = 1;
+					}
+					valDiff = targetVal - baseVal;
 				}
-				bo[i] = val;
-				len--;
+				bo[i] = targetVal;
+				count--;
 			}
-		} else if (mod == ALTERNATING) {
+		} else if (mode == ALTERNATING) {
 			for (int i = 0; i < bo.length; i++) {
-				if (len <= 0) {
-					float d = (float) Math.pow(Math.random(), lenexp)
-							* lenscale + minlen;
-					len += d;
-					if (val > 0)
-						val = -1;
-					else
-						val = 1;
+				if (count <= 0) {
+					calcVals();
+					if (targetVal > 0) {
+						targetVal = -1;
+					} else {
+						targetVal = 1;
+					}
+					valDiff = targetVal - baseVal;
 				}
-				bo[i] = val;
-				len--;
+				bo[i] = targetVal;
+				count--;
+			}
+		} else if (mode == SAW) {
+			for (int i = 0; i < bo.length; i++) {
+				if (count <= 0) {
+					calcVals();
+					if (targetVal > 0) {
+						targetVal = -1;
+					} else {
+						targetVal = 1;
+					}
+					valDiff = targetVal - baseVal;
+				}
+				bo[i] = targetVal - ((float) count / pulseLen) * valDiff;
+				count--;
+			}
+		} else if (mode == RAMPED_NOISE) {
+			for (int i = 0; i < bo.length; i++) {
+				if (count <= 0) {
+					calcVals();
+					targetVal = (float) (Math.random() * 2 - 1);
+					valDiff = targetVal - baseVal;
+				}
+				bo[i] = targetVal - ((float) count / pulseLen) * valDiff;
+				count--;
 			}
 		} else {
+			// for NOISE
 			for (int i = 0; i < bo.length; i++) {
-				if (len <= 0) {
-					float d = (float) Math.pow(Math.random(), lenexp)
-							* lenscale + minlen;
-					len += d;
-					val = (float) (Math.random() * 2 - 1);
+				if (count <= 0) {
+					calcVals();
+					targetVal = (float) (Math.random() * 2 - 1);
+					valDiff = targetVal - baseVal;
 				}
-				bo[i] = val;
-				len--;
+				bo[i] = targetVal;
+				count--;
 			}
 		}
 
+	}
+
+	protected void calcVals() {
+		float d = (float) Math.pow(Math.random(), lengthExponent) * lengthDiff
+				+ minLength;
+		count += d;
+		pulseLen = count;
+		baseVal = targetVal;
 	}
 
 	/**
@@ -110,9 +147,10 @@ public class RandomPWM extends UGen {
 	 * @param lexp
 	 *            The pulse length exponent.
 	 */
-	public void setParams(int mode, float minl, float maxl, float lexp) {
+	public RandomPWM setParams(int mode, float minl, float maxl, float lexp) {
 		setParams(minl, maxl, lexp);
 		setMode(mode);
+		return this;
 	}
 
 	/**
@@ -126,11 +164,12 @@ public class RandomPWM extends UGen {
 	 * @param lexp
 	 *            The pulse length exponent.
 	 */
-	public void setParams(float minl, float maxl, float lexp) {
+	public RandomPWM setParams(float minl, float maxl, float lexp) {
 		setLengthExponent(lexp);
-		minlen = Math.max(minl, 1);
-		maxlen = Math.max(minlen, maxl);
-		lenscale = maxlen - minlen;
+		minLength = Math.max(minl, 1);
+		maxLength = Math.max(minLength, maxl);
+		lengthDiff = maxLength - minLength;
+		return this;
 	}
 
 	/**
@@ -139,8 +178,9 @@ public class RandomPWM extends UGen {
 	 * @param minl
 	 *            The minimum pulse length.
 	 */
-	public void setMinLength(float minl) {
-		setParams(minl, maxlen, lenexp);
+	public RandomPWM setMinLength(float minl) {
+		setParams(minl, maxLength, lengthExponent);
+		return this;
 	}
 
 	/**
@@ -149,7 +189,7 @@ public class RandomPWM extends UGen {
 	 * @return The minimum pulse length.
 	 */
 	public float getMinLength() {
-		return minlen;
+		return minLength;
 	}
 
 	/**
@@ -158,8 +198,9 @@ public class RandomPWM extends UGen {
 	 * @param maxl
 	 *            The maximum pulse length.
 	 */
-	public void setMaxLength(float maxl) {
-		setParams(minlen, maxl, lenexp);
+	public RandomPWM setMaxLength(float maxl) {
+		setParams(minLength, maxl, lengthExponent);
+		return this;
 	}
 
 	/**
@@ -168,7 +209,7 @@ public class RandomPWM extends UGen {
 	 * @return The maximum pulse length.
 	 */
 	public float getMaxLength() {
-		return maxlen;
+		return maxLength;
 	}
 
 	/**
@@ -180,8 +221,11 @@ public class RandomPWM extends UGen {
 	 * @param lexp
 	 *            The pulse length exponent.
 	 */
-	public void setLengthExponent(float lexp) {
-		lenexp = Math.max(lexp, .001f);
+	public RandomPWM setLengthExponent(float lexp) {
+		if ((lengthExponent = lexp) < .001f) {
+			lengthExponent = .001f;
+		}
+		return this;
 	}
 
 	/**
@@ -191,20 +235,27 @@ public class RandomPWM extends UGen {
 	 * @see #setLengthExponent(float)
 	 */
 	public float getLengthExponent() {
-		return lenexp;
+		return lengthExponent;
 	}
 
 	/**
-	 * Sets the pulse mode. Use {@link #ALTERNATING} for pulses that alternate
-	 * between -1 and 1; use {@link #PULSING} for pulses that alternate between
-	 * 0 and 1; and use {@link #NOISE} for pulses distributed randomly between
-	 * -1 and 1.
+	 * Sets the pulse mode.
+	 * <p>
+	 * <ul>
+	 * <li>Use {@link #ALTERNATING} for pulses that alternate between -1 and 1.</li>
+	 * <li>Use {@link #PULSING} for pulses that alternate between 0 and 1.</li>
+	 * <li>Use {@link #NOISE} for pulses distributed randomly between -1 and 1.</li>
+	 * <li>Use {@link #SAW} for random-length ramps between -1 and 1.</li>
+	 * <li>Use {@link #RAMPED_NOISE} for random-length ramps between random
+	 * values.</li>
+	 * </ul>
 	 * 
 	 * @param mode
 	 *            The pulse mode.
 	 */
-	public void setMode(int mode) {
-		mod = mode;
+	public RandomPWM setMode(int mode) {
+		this.mode = mode;
+		return this;
 	}
 
 	/**
@@ -214,6 +265,32 @@ public class RandomPWM extends UGen {
 	 * @see #setMode(int)
 	 */
 	public int getMode() {
-		return mod;
+		return mode;
+	}
+
+	/**
+	 * Use the properties "mode", "minLength", "maxLength", and "lengthExponent"
+	 * to set the corresponding parameters (floats only).
+	 */
+	public DataBeadReceiver sendData(DataBead db) {
+		setParams((int) db.getFloat("mode", mode), db.getFloat("minLength",
+				minLength), db.getFloat("maxLength", maxLength), db.getFloat(
+				"lengthExponent", lengthExponent));
+		return null;
+	}
+
+	/**
+	 * Gets a DataBead filled with properties corresponding to this object's
+	 * parameters.
+	 * 
+	 * @return The parameter DataBead.
+	 */
+	public DataBead getParams() {
+		DataBead db = new DataBead();
+		db.put("mode", mode);
+		db.put("minLength", minLength);
+		db.put("maxLength", maxLength);
+		db.put("lengthExponent", lengthExponent);
+		return db;
 	}
 }
