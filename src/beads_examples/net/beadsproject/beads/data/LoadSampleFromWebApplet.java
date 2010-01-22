@@ -1,5 +1,6 @@
 package net.beadsproject.beads.data;
 
+import java.applet.Applet;
 import java.util.Random;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
@@ -9,11 +10,14 @@ import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.SamplePlayer;
 
 
-public class LoadSampleFromWeb {
+public class LoadSampleFromWebApplet extends Applet {
 
-	public static void main(String[] args) throws Exception {
-		
-		String prefix = "http://www.olliebown.com/files/music/Roland909";
+	private static final long serialVersionUID = 1L;
+
+	@Override
+	public void init() {		
+//		String prefix = "http://www.olliebown.com/files/music/Roland909";
+		String prefix = "Roland909";
 		
 		Sample kik = SampleManager.sample(prefix + "/BT0A0A7.WAV");
 		Sample hh = SampleManager.sample(prefix + "/HHCD8.WAV");
