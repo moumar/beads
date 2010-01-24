@@ -8,7 +8,7 @@ import java.util.*;
  * values may be any Object. Implements the Map interface.
  * 
  * @author Benito Crawford
- * @version 0.9
+ * @version 0.9.5
  */
 public class DataBead extends Bead implements Map<String, Object> {
 	public Hashtable<String, Object> properties;
