@@ -329,7 +329,7 @@ public class AudioFile {
 			isEncoded = false;
 			decodedFormat = encodedFormat;
 			decodedStream = encodedStream;
-
+			
 			nFrames = (int)(decodedStream.getFrameLength());
 			length = 1000.f * decodedStream.getFrameLength() / decodedFormat.getSampleRate();
 		}

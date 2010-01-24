@@ -26,6 +26,9 @@ public class BeadsGui {
 	private SongGrid songGrid;
 	private BeadsWindow environmentFrame;
 	private float temporaryTempo;
+	private double timeAtLastTap;
+	private Slider tempoSlider;
+	private Clock clock;
 	
 	public BeadsGui() {
 		Environment env = null;
@@ -37,6 +40,7 @@ public class BeadsGui {
 			System.exit(1);
 		}
 		setup(env);
+		timeAtLastTap = 0;
 	}
 	
 	public BeadsGui(Environment env) {
@@ -73,8 +77,8 @@ public class BeadsGui {
 		songGrid = new SongGrid(p, environmentPanel);
 		songGrid.titledBorder("Song Parts");
 		environmentFrame.content.add(songGrid);
-		final Clock clock = (Clock)env.elements.get("master clock");
-		final Slider tempoSlider = new Slider(env.ac, "tempo", -200, 1000, 175);
+		clock = (Clock)env.elements.get("master clock");
+		tempoSlider = new Slider(env.ac, "tempo", -200, 1000, 175);
 		tempoSlider.storeValue(175f);
 		tempoSlider.storeValue(87.5f);
 		tempoSlider.storeValue(116.66666f);
@@ -115,7 +119,6 @@ public class BeadsGui {
 		});
 		BeadsKeys.addListener(new BeadsKeys.KeyboardListener() {
 			public void keyPressed(int keyCode) {
-				System.out.println("pressed " + keyCode);
 				if(keyCode == KeyEvent.VK_SPACE) {
 					if(clock.isPaused()) {
 						clock.reset();
@@ -128,7 +131,9 @@ public class BeadsGui {
 						temporaryTempo = tempoSlider.getCurrentValue();
 						tempoSlider.setValue(0f);
 					}
-				}
+				} else if(keyCode == KeyEvent.VK_Z) {
+					tap();
+				} 
 			}
 			public void keyReleased(int keyCode) {}
 		});
@@ -154,6 +159,15 @@ public class BeadsGui {
 
 	public void repack() {
 		((JFrame)songGrid.getTopLevelAncestor()).pack();
+	}
+	
+	
+	public void tap() {
+		double currentTime = tempoSlider.getContext().getTime();
+		double interval = currentTime - timeAtLastTap;
+		tempoSlider.setValue((float)(60000.0 / interval));
+		timeAtLastTap = currentTime;
+//		clock.reset();
 	}
 	
 	public void addSongGroup(SongGroup sg) {

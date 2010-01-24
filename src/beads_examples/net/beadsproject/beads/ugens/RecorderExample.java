@@ -24,7 +24,8 @@ public class RecorderExample {
 		float ms = 100f; 
 		final Sample s = new Sample(ac.getAudioFormat(), ms);
 		s.clear();
-		final Recorder r = new Recorder(ac,s, Recorder.Mode.INFINITE);
+		final Recorder r = new Recorder(ac,s);
+		
 		
 		// set up something to record
 		Envelope e = new Envelope(ac,440f);

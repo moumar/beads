@@ -10,6 +10,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
 import net.beadsproject.beads.data.Buffer;
+import net.beadsproject.beads.data.ControllerBead;
 import net.beadsproject.beads.events.KillTrigger;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.DelayTrigger;

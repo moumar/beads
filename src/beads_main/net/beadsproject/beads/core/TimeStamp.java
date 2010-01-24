@@ -1,7 +1,7 @@
 package net.beadsproject.beads.core;
 
 /**
- * TimeStamps store time with respect to the current {@link AudioContext}. Specificially, the TimeStamp stores a time step and an index into a buffer. 
+ * TimeStamps store time with respect to the current {@link AudioContext}. Specifically, the TimeStamp stores a time step and an index into a buffer. 
  */
 public class TimeStamp {
 
