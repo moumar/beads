@@ -28,7 +28,7 @@ import net.beadsproject.beads.data.*;
  * calling {@link #setCustomType(CustomCoeffCalculator)}.
  * 
  * @author Benito Crawford
- * @version 0.9.5
+ * @version 0.9.5.1
  */
 public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 
