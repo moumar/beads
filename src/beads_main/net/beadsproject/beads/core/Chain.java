@@ -1,10 +1,14 @@
 package net.beadsproject.beads.core;
 
+import net.beadsproject.beads.core.UGen.OutputInitializationRegime;
+
 /**
- * Organizes a series of connected UGens into one unit. It allows for users to define a custom UGen purely from other UGens, without programming 
- * the {@link UGen#calculateBuffer()} routine.
+ * Organizes a series of connected UGens into one unit. It allows for users to
+ * define a custom UGen purely from other UGens, without programming the
+ * {@link UGen#calculateBuffer()} routine.
+ * 
  * @author Benito Crawford
- * @version 0.9
+ * @version 0.9.5
  */
 public abstract class Chain extends UGen {
 
