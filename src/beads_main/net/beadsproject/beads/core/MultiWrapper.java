@@ -3,13 +3,15 @@ package net.beadsproject.beads.core;
 import net.beadsproject.beads.data.*;
 
 /**
- * A generalized multi-channel wrapper for UGens.
+ * A generalized multi-channel wrapper for UGens. Can either be used to treat an
+ * existing array of UGens as one, big, multi-channel UGen, or to create a
+ * multi-channel UGen from newly created UGens. (Best description ever.)
  * 
  * @author Benito Crawford
- * @version 0.9
+ * @version 0.9.5
  * 
  */
-public abstract class MultiWrapper extends UGen implements DataBeadReceiver {
+public class MultiWrapper extends UGen implements DataBeadReceiver {
 	private UGen[] ugens;
 	private int channels, insPerChannel, outsPerChannel;
 	private UGen mwIn, mwOut;
@@ -31,12 +33,10 @@ public abstract class MultiWrapper extends UGen implements DataBeadReceiver {
 	private MultiWrapper(AudioContext context, int numIns, int numOuts) {
 		super(context, numIns, numOuts);
 
-		/*
-		 * This UGen facilitates getting signals from the inputs of the
-		 * MultiWrap to the inputs of the channel UGens. Since we already did
-		 * our adding in the pullInputs() method of the MultiWrap class, we'll
-		 * just point to those input buffers with bufOut...
-		 */
+		// This UGen facilitates getting signals from the inputs of the
+		// MultiWrap to the inputs of the channel UGens. Since we already did
+		// our adding in the pullInputs() method of the MultiWrap class, we'll
+		// just point to those input buffers with bufOut...
 		mwIn = new UGen(context, 0, ins) {
 			@Override
 			public void calculateBuffer() {
@@ -46,8 +46,7 @@ public abstract class MultiWrapper extends UGen implements DataBeadReceiver {
 		mwIn.outputInitializationRegime = OutputInitializationRegime.RETAIN;
 
 		// This collects the output of the chain and lets this MultiWrapper
-		// instance
-		// grab the data.
+		// instance grab the data.
 		mwOut = new UGen(context, outs, 0) {
 			@Override
 			public void calculateBuffer() {
@@ -105,8 +104,7 @@ public abstract class MultiWrapper extends UGen implements DataBeadReceiver {
 	 *            The number of ouputs per channel.
 	 */
 	public MultiWrapper(AudioContext context, UGen[] ugens, int insPerChannel,
-			int outsPerChannel) throws Exception {
-
+			int outsPerChannel) {
 		this(context, ugens.length * insPerChannel, ugens.length
 				* outsPerChannel);
 
@@ -154,7 +152,13 @@ public abstract class MultiWrapper extends UGen implements DataBeadReceiver {
 	 * @return The new channel UGen.
 	 */
 	public UGen buildUGens(int channelIndex) {
-		return null;
+		// Make a harmless, empty UGen that does nothing by default. That way
+		// if the user doesn't override the method, it won't explode - it'll
+		// just do nothing.
+		return new UGen(context, 1, 0) {
+			public void calculateBuffer() {
+			}
+		};
 	}
 
 	@Override
