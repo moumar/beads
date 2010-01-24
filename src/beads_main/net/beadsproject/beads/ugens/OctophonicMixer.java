@@ -1,7 +1,9 @@
 package net.beadsproject.beads.ugens;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 import net.beadsproject.beads.core.AudioContext;
@@ -97,6 +99,7 @@ public class OctophonicMixer extends UGen {
 	public static float sphereDiameter;
 
 	private Map<UGen, Location> sources;
+	private List<UGen> deadSources;
 	private float curve; //values over 1 will focus the sound on individual speakers more
 								//values below 1 will spread the sound, with zero being closer to an equal mix
 								//1 is linear
@@ -121,6 +124,7 @@ public class OctophonicMixer extends UGen {
 		setSphereDiameter(sphereDiameter);
 		outputInitializationRegime = OutputInitializationRegime.ZERO;
 		sources = Collections.synchronizedMap(new Hashtable<UGen, Location>());
+		deadSources = new ArrayList<UGen>();
 		curve = 3f;
 	}
 	
@@ -165,7 +169,9 @@ public class OctophonicMixer extends UGen {
 	}
 	
 	public void removeSource(UGen source) {
-		sources.remove(source);
+		synchronized(sources) {
+			sources.remove(source);
+		}
 	}
 	
 
@@ -188,8 +194,18 @@ public class OctophonicMixer extends UGen {
 
 	@Override
 	public void calculateBuffer() {
-		for(Location location : sources.values()) {
-			location.mixInAudio(bufOut);
+		synchronized(sources) {
+			for(UGen source : sources.keySet()) {
+				Location location = sources.get(source);
+				location.mixInAudio(bufOut);
+				if(source.isDeleted()) {
+					deadSources.add(source);
+				}
+			}
+			for(UGen source : deadSources) {
+				sources.remove(source);
+			}
+			deadSources.clear();
 		}
 	}
 
