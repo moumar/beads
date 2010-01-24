@@ -8,10 +8,10 @@ import net.beadsproject.beads.data.*;
  * multi-channel UGen from newly created UGens. (Best description ever.)
  * 
  * @author Benito Crawford
- * @version 0.9
+ * @version 0.9.5
  * 
  */
-public abstract class MultiWrapper extends UGen implements DataBeadReceiver {
+public class MultiWrapper extends UGen implements DataBeadReceiver {
 	private UGen[] ugens;
 	private int channels, insPerChannel, outsPerChannel;
 	private UGen mwIn, mwOut;
@@ -104,8 +104,7 @@ public abstract class MultiWrapper extends UGen implements DataBeadReceiver {
 	 *            The number of ouputs per channel.
 	 */
 	public MultiWrapper(AudioContext context, UGen[] ugens, int insPerChannel,
-			int outsPerChannel) throws Exception {
-
+			int outsPerChannel) {
 		this(context, ugens.length * insPerChannel, ugens.length
 				* outsPerChannel);
 
