@@ -6,7 +6,7 @@ package net.beadsproject.beads.core;
  * {@link UGen#calculateBuffer()} routine.
  * 
  * @author Benito Crawford
- * @version 0.9
+ * @version 0.9.5
  */
 public abstract class Chain extends UGen {
 
