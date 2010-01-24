@@ -455,18 +455,18 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 			float b = 2 * a * (float) Math.sqrt(A);
 			float c = (A - 1) * cosw;
 
-			b0 = A * (A + 1 - c + b);
-			b1 = -2 * A * ((A - 1) - (A + 1) * cosw);
-			b2 = A * (A + 1 - c - b);
-			a0 = A + 1 + c + b;
-			a1 = 2 * (A - 1 + (A + 1) * cosw);
-			a2 = A + 1 + c - b;
+			b0 = A * (A + 1 + c + b);
+			b1 = -2 * A * (A - 1 + (A + 1) * cosw);
+			b2 = A * (A + 1 + c - b);
+			a0 = A + 1 - c + b;
+			a1 = 2 * (A - 1 - (A + 1) * cosw);
+			a2 = A + 1 - c - b;
 			/*
 			 * highShelf: H(s) = A * (A*s^2 + (sqrt(A)/Q)*s + 1)/(s^2 +
 			 * (sqrt(A)/Q)*s + A)
 			 * 
-			 * b0 = A*( (A+1) + (A-1)*cos(w0) + 2*sqrt(A)*alpha ) b1 =
-			 * -2*A*((A-1) + (A+1)*cos(w0) ) b2 = A*( (A+1) + (A-1)*cos(w0) -
+			 * b0 = A*( (A+1) + (A-1)*cos(w0) + 2*sqrt(A)*alpha )
+			 * b1 =	 * -2*A*((A-1) + (A+1)*cos(w0) ) b2 = A*( (A+1) + (A-1)*cos(w0) -
 			 * 2*sqrt(A)*alpha ) a0 = (A+1) - (A-1)*cos(w0) + 2*sqrt(A)*alpha a1
 			 * = 2*( (A-1) - (A+1)*cos(w0) ) a2 = (A+1) - (A-1)*cos(w0) -
 			 * 2*sqrt(A)*alpha
