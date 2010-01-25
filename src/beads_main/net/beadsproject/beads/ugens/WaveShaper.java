@@ -1,6 +1,7 @@
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
+import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.DataBead;
 import net.beadsproject.beads.data.DataBeadReceiver;
 
@@ -18,7 +19,10 @@ import net.beadsproject.beads.data.DataBeadReceiver;
  * <code>wetMix</code>. (1 is none of the original signal; 0 is only the
  * original signal.)</li>
  * </ol>
- * <p>This UGen is a {@link DataBeadReceiver}, so you can set its parameters with a DataBead.</p>
+ * <p>
+ * This UGen is a {@link DataBeadReceiver}, so you can set its parameters with a
+ * DataBead.
+ * </p>
  * 
  * @author Benito Crawford
  * @version 0.9.5
@@ -33,15 +37,42 @@ public class WaveShaper extends UGen implements DataBeadReceiver {
 	protected float[] shape;
 	protected int shapeLen;
 
+	/**
+	 * Constructor that uses a default cosine-based wave shape.
+	 * 
+	 * @param context
+	 *            The audio context.
+	 */
 	public WaveShaper(AudioContext context) {
 		super(context, 1, 1);
 		setPreGain(2).setPostGain(1).setLimit(1).setWetMix(1);
 		setShape(generateCosineShape(1025));
 	}
 
+	/**
+	 * Constructor that uses the provided float array for its wave shape.
+	 * 
+	 * @param context
+	 *            The audio context.
+	 * @param shape
+	 *            The float array.
+	 */
 	public WaveShaper(AudioContext context, float[] shape) {
 		this(context);
 		setShape(shape);
+	}
+
+	/**
+	 * Constructor that uses the float array from a Buffer for its wave shape.
+	 * 
+	 * @param context
+	 *            The audio context.
+	 * @param shapeBuffer
+	 *            The Buffer from which to get the wave shape.
+	 */
+	public WaveShaper(AudioContext context, Buffer shapeBuffer) {
+		this(context);
+		setShape(shapeBuffer.buf);
 	}
 
 	/**
