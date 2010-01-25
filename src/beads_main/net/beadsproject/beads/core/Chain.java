@@ -1,7 +1,5 @@
 package net.beadsproject.beads.core;
 
-import net.beadsproject.beads.core.UGen.OutputInitializationRegime;
-
 /**
  * Organizes a series of connected UGens into one unit. It allows for users to
  * define a custom UGen purely from other UGens, without programming the
@@ -10,7 +8,7 @@ import net.beadsproject.beads.core.UGen.OutputInitializationRegime;
  * @author Benito Crawford
  * @version 0.9.5
  */
-public abstract class Chain extends UGen {
+public class Chain extends UGen {
 
 	private UGen chainIn, chainOut;
 
@@ -37,17 +35,8 @@ public abstract class Chain extends UGen {
 		this.bufOut = chainOut.bufIn;
 		this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
 
-		defineChain();
 	}
 
-	/**
-	 * The signal chain definition. Override this method to create a series of
-	 * UGens which become the signal chain. The Chain object inputs can be added
-	 * to chain UGens through {@link #addChainInputToUGen(int, UGen, int)
-	 * addChainInputToUGen}; connect UGens to the Chain objects outputs with
-	 * {@link #addChainOutput(int, UGen, int) addChainOutput}.
-	 */
-	public abstract void defineChain();
 
 	/**
 	 * Adds the Chain inputs to the target UGen's inputs.
@@ -55,7 +44,7 @@ public abstract class Chain extends UGen {
 	 * @param targetUGen
 	 *            The target UGen.
 	 */
-	protected void drawFromChainInput(UGen targetUGen) {
+	public void drawFromChainInput(UGen targetUGen) {
 		targetUGen.addInput(chainIn);
 	}
 
@@ -67,7 +56,7 @@ public abstract class Chain extends UGen {
 	 * @param targetUGen
 	 *            The UGen to which to add the Chain input.
 	 */
-	protected void drawFromChainInput(int chainInputIndex, UGen targetUGen) {
+	public void drawFromChainInput(int chainInputIndex, UGen targetUGen) {
 		for (int i = 0; i < targetUGen.ins; i++) {
 			targetUGen.addInput(i, chainIn, chainInputIndex);
 		}
@@ -84,7 +73,7 @@ public abstract class Chain extends UGen {
 	 * @param targetInputIndex
 	 *            The input of the target UGen.
 	 */
-	protected void drawFromChainInput(int chainInputIndex, UGen targetUGen,
+	public void drawFromChainInput(int chainInputIndex, UGen targetUGen,
 			int targetInputIndex) {
 		targetUGen.addInput(targetInputIndex, chainIn, chainInputIndex);
 	}
@@ -95,7 +84,7 @@ public abstract class Chain extends UGen {
 	 * @param sourceUGen
 	 *            The source UGen.
 	 */
-	protected void addToChainOutput(UGen sourceUGen) {
+	public void addToChainOutput(UGen sourceUGen) {
 		chainOut.addInput(sourceUGen);
 	}
 
@@ -107,7 +96,7 @@ public abstract class Chain extends UGen {
 	 * @param sourceUGen
 	 *            The source UGen.
 	 */
-	protected void addToChainOutput(int chainOutputIndex, UGen sourceUGen) {
+	public void addToChainOutput(int chainOutputIndex, UGen sourceUGen) {
 		for (int i = 0; i < sourceUGen.outs; i++) {
 			addToChainOutput(chainOutputIndex, sourceUGen, i);
 		}
@@ -123,7 +112,7 @@ public abstract class Chain extends UGen {
 	 * @param sourceOutputIndex
 	 *            The output of the source UGen to add to the Chain output.
 	 */
-	protected void addToChainOutput(int chainOutputIndex, UGen sourceUGen,
+	public void addToChainOutput(int chainOutputIndex, UGen sourceUGen,
 			int sourceOutputIndex) {
 		chainOut.addInput(chainOutputIndex, sourceUGen, sourceOutputIndex);
 	}

@@ -11,10 +11,9 @@ import net.beadsproject.beads.data.*;
  * @version 0.9.5
  * 
  */
-public class MultiWrapper extends UGen implements DataBeadReceiver {
+public class MultiWrapper extends Chain implements DataBeadReceiver {
 	private UGen[] ugens;
 	private int channels, insPerChannel, outsPerChannel;
-	private UGen mwIn, mwOut;
 
 	/**
 	 * Constructor for an multi-channel wrapper for 1-in/1-out UGens on each
@@ -32,29 +31,6 @@ public class MultiWrapper extends UGen implements DataBeadReceiver {
 
 	private MultiWrapper(AudioContext context, int numIns, int numOuts) {
 		super(context, numIns, numOuts);
-
-		// This UGen facilitates getting signals from the inputs of the
-		// MultiWrap to the inputs of the channel UGens. Since we already did
-		// our adding in the pullInputs() method of the MultiWrap class, we'll
-		// just point to those input buffers with bufOut...
-		mwIn = new UGen(context, 0, ins) {
-			@Override
-			public void calculateBuffer() {
-			}
-		};
-		mwIn.bufOut = bufIn;
-		mwIn.outputInitializationRegime = OutputInitializationRegime.RETAIN;
-
-		// This collects the output of the chain and lets this MultiWrapper
-		// instance grab the data.
-		mwOut = new UGen(context, outs, 0) {
-			@Override
-			public void calculateBuffer() {
-			}
-		};
-		this.bufOut = mwOut.bufIn;
-		this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
-
 	}
 
 	/**
@@ -125,7 +101,7 @@ public class MultiWrapper extends UGen implements DataBeadReceiver {
 			// mwIn
 			for (int j = 0; j < insPerChannel; j++) {
 				if (j < ugens[i].ins) {
-					ugens[i].addInput(j, mwIn, i * insPerChannel + j);
+					this.drawFromChainInput(i * insPerChannel + j, ugens[i], j);
 				}
 			}
 
@@ -133,7 +109,7 @@ public class MultiWrapper extends UGen implements DataBeadReceiver {
 			// of mwOut
 			for (int j = 0; j < outsPerChannel; j++) {
 				if (j < ugens[i].outs) {
-					mwOut.addInput(i * outsPerChannel + j, ugens[i], j);
+					this.addToChainOutput(i * outsPerChannel + j, ugens[i], j);
 				}
 			}
 
@@ -159,11 +135,6 @@ public class MultiWrapper extends UGen implements DataBeadReceiver {
 			public void calculateBuffer() {
 			}
 		};
-	}
-
-	@Override
-	public void calculateBuffer() {
-		mwOut.update();
 	}
 
 	/**
