@@ -8,21 +8,39 @@ import java.util.*;
  * values may be any Object. Implements the Map interface.
  * 
  * @author Benito Crawford
- * @version 0.9.5
+ * @version 0.9.6
  */
 public class DataBead extends Bead implements Map<String, Object> {
-	public Hashtable<String, Object> properties;
+	public Map<String, Object> properties;
 
 	/**
-	 * Creates a DataBead instance with no defined properties.
+	 * Creates a DataBead instance with no defined properties. Properties may be
+	 * added with {@link #put(String, Object) put()}.
 	 */
 	public DataBead() {
 		this(null);
 	}
 
 	/**
+	 * Creates a DataBead with one property defined by the specified key and
+	 * value. Other properties may be added with {@link #put(String, Object)
+	 * put()}.
+	 * 
+	 * @param key
+	 *            The property name.
+	 * @param val
+	 *            The property value.
+	 */
+	public DataBead(String key, Object val) {
+		properties = new Hashtable<String, Object>();
+		if (key != null)
+			properties.put(key, val);
+	}
+
+	/**
 	 * Creates a DataBead instance with properties specified by a String array
-	 * that are set to corresponding values specified by an Object array.
+	 * that are set to corresponding values specified by an Object array. Other
+	 * properties may be added with {@link #put(String, Object) put()}.
 	 * 
 	 * @param proparr
 	 *            The array of property names.
@@ -43,14 +61,15 @@ public class DataBead extends Bead implements Map<String, Object> {
 	}
 
 	/**
-	 * Creates a DataBead instance that uses a Hashtable for its properties.
-	 * (This does not copy the input Hashtable, so any changes to it will change
-	 * the properties of the DataBead!)
+	 * Creates a DataBead instance that uses a Map (a Hashtable, for example)
+	 * for its properties. (This does not copy the input Map, so any changes to
+	 * it will change the properties of the DataBead!) Other properties may be
+	 * added with {@link #put(String, Object) put()}.
 	 * 
 	 * @param ht
-	 *            The input Hashtable.
+	 *            The input Map.
 	 */
-	public DataBead(Hashtable<String, Object> ht) {
+	public DataBead(Map<String, Object> ht) {
 		if (ht == null) {
 			properties = new Hashtable<String, Object>();
 		} else {
