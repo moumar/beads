@@ -23,8 +23,8 @@ public class TapIn extends UGen {
 	/**
 	 * @param ac
 	 *            AudioContext
-	 * @param bufferSizeInMS
-	 *            The size of the tapin buffer in milliseconds.
+	 * @param maxDelayInMS
+	 *            The size of the tapin memory buffer in milliseconds.
 	 */
 	public TapIn(AudioContext ac, float maxDelayInMS) {
 		super(ac, 1, 0);
@@ -138,7 +138,7 @@ public class TapIn extends UGen {
 	 * @param sampDel
 	 * @param g
 	 * @param lastY
-	 * @return
+	 * @return The last output value.
 	 */
 
 	public float fillBufferAllpass(float buf[], int sampDel, float g,

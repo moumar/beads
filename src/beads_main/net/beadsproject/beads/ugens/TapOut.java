@@ -87,8 +87,8 @@ public class TapOut extends UGen {
 	 *            The TapIn from which to draw the delayed signal.
 	 * @param mode
 	 *            The delay mode; see {@link #setMode(int)}.
-	 * @param delayUGen
-	 *            The UGen specifying the delay time in milliseconds.
+	 * @param delay
+	 *            The delay time in milliseconds.
 	 */
 	public TapOut(AudioContext ac, TapIn ti, int mode, float delay) {
 		this(ac, ti);
