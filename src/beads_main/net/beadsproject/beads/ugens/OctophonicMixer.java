@@ -1,10 +1,14 @@
 package net.beadsproject.beads.ugens;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
@@ -95,8 +99,8 @@ public class OctophonicMixer extends UGen {
 	//the z-axis follows the line joining 1 and 5
 	//This follows the 'right-handed' ordering of the axes: 
 	//http://en.wikipedia.org/wiki/Cartesian_coordinate_system#Orientation_and_handedness
-	public static float[][] speakerPositions;
-	public static float sphereDiameter;
+	public float[][] speakerPositions;
+	public float sphereDiameter;
 
 	private Map<UGen, Location> sources;
 	private List<UGen> deadSources;
@@ -115,7 +119,12 @@ public class OctophonicMixer extends UGen {
 			{0,1,1},
 			{1,1,1},
 			{1,0,1}
-			}, (float)Math.sqrt(3f));
+			}
+		);
+	}
+
+	public OctophonicMixer(AudioContext context, float[][] locations) {
+		this(context, locations, (float)Math.sqrt(3f));
 	}
 	
 	public OctophonicMixer(AudioContext context, float[][] locations, float sphereDiameter) {
@@ -130,6 +139,32 @@ public class OctophonicMixer extends UGen {
 	
 	public void setSphereDiameter(float sd) {
 		sphereDiameter = sd;
+	}
+	
+	public static float[][] speakerPositionsFromFile(String file) {
+		try {
+			FileInputStream fis = new FileInputStream(new File(file));
+			Scanner scanner = new Scanner(fis);
+			LinkedList<Float> coords = new LinkedList<Float>();
+			while(scanner.hasNext()) {
+				coords.add(scanner.nextFloat());
+			}
+			System.out.print("OctophonicMixer: Loaded speaker positions from " + file + " ");
+			float[][] speakerPositions = new float[coords.size() / 3][3];
+			for(int i = 0; i < speakerPositions.length; i++) {
+				System.out.print("[");
+				for(int j = 0; j < 3; j++) {
+					speakerPositions[i][j] = coords.poll();
+					System.out.print(speakerPositions[i][j] + " ");
+				}
+				System.out.print("]");
+			}
+			System.out.println();
+			return speakerPositions;
+		} catch(Exception e) { 
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	public void setSpeakerPositions(float[][] locations) {
@@ -208,5 +243,6 @@ public class OctophonicMixer extends UGen {
 			deadSources.clear();
 		}
 	}
+	
 
 }
