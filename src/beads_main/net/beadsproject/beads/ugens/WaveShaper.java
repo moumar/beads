@@ -152,8 +152,7 @@ public class WaveShaper extends UGen implements DataBeadReceiver {
 
 			if (y1 <= 0) {
 				y2 = shape[0] * postGain;
-			}
-			if (y1 >= shapeLen) {
+			} else if (y1 >= shapeLen) {
 				y2 = shape[shapeLen] * postGain;
 			} else {
 				int ind = (int) y1;
@@ -161,6 +160,7 @@ public class WaveShaper extends UGen implements DataBeadReceiver {
 				y2 = (shape[ind] * (1 - frac) + shape[ind + 1] * frac)
 						* postGain;
 			}
+			// System.out.println("#1: " + y1 + ", " + y2);
 
 			if (y2 > limit) {
 				y2 = limit;
