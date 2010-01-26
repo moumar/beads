@@ -110,30 +110,50 @@ public class DataBead extends Bead implements Map<String, Object> {
 	 * <code>param = databead.getFloat("paramKey", param);</code>
 	 * 
 	 * @param key
+	 *            The property key.
 	 * @param defaultVal
+	 *            The value to return if the property does not contain a
+	 *            float-convertible value.
 	 * @return The property value, or the default value if there is no float
 	 *         representation of the property.
 	 */
 	public float getFloat(String key, float defaultVal) {
+		Float ret;
+		if ((ret = getFloatObject(key)) == null) {
+			return defaultVal;
+		} else
+			return ret;
+	}
 
+	/**
+	 * Gets a Float representation of the specified property; returns
+	 * <code>null</code> if that property doesn't exist or cannot be cast as a
+	 * Float.
+	 * 
+	 * @param key
+	 *            The property key.
+	 * @return The property value, or the default value if there is no float
+	 *         representation of the property.
+	 */
+
+	public Float getFloatObject(String key) {
 		Object o = get(key);
 		if (o instanceof Number) {
 			return ((Number) o).floatValue();
 		} else if (o instanceof String) {
 			try {
-				float r = Float.parseFloat((String) o);
+				Float r = Float.parseFloat((String) o);
 				return r;
 			} catch (Exception e) {
 			}
 		} else if (o instanceof Boolean) {
 			if ((Boolean) o == true) {
-				return 1;
+				return 1f;
 			} else {
-				return 0;
+				return 0f;
 			}
 		}
-
-		return defaultVal;
+		return null;
 	}
 
 	/**
