@@ -80,7 +80,7 @@ public class WaveShaper extends UGen implements DataBeadReceiver {
 	 * a little warmth when used for wave-shaping.
 	 * 
 	 * @param length
-	 *            The length of the array
+	 *            The length of the array.
 	 * @return The generated array.
 	 */
 	public static float[] generateCosineShape(int length) {
@@ -88,6 +88,38 @@ public class WaveShaper extends UGen implements DataBeadReceiver {
 		int l = length - 1;
 		for (int i = 1; i < length - 1; i++) {
 			ret[i] = 0 - (float) Math.cos((float) i * Math.PI / l);
+		}
+		ret[0] = -1;
+		ret[length - 1] = 1;
+		if (length % 2 == 1) {
+			ret[l / 2] = 0;
+		}
+		return ret;
+	}
+
+	/**
+	 * Generates an exponentially-based waveform in a float array. Negative
+	 * input results in negative output.
+	 * 
+	 * @param length
+	 *            The length of the array.
+	 * @param exponent
+	 *            The exponent.
+	 * @return The generated array.
+	 */
+	public static float[] generateExponentialShape(int length, float exponent) {
+		float[] ret = new float[length];
+
+		int l = length - 1;
+		for (int i = 1; i < length - 1; i++) {
+			float x = (i / l) * 2 - 1;
+			if (x < 0) {
+				ret[i] = (float) -Math.pow(-x, exponent);
+			} else if (x == 0) {
+				ret[i] = 0;
+			} else {
+				ret[i] = (float) Math.pow(x, exponent);
+			}
 		}
 		ret[0] = -1;
 		ret[length - 1] = 1;
