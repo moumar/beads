@@ -27,6 +27,9 @@ public class ShortFrameSegmenter extends AudioSegmenter {
 	/** The current chunks being recorded at the moment. */
 	private float[][] chunks;
 	
+	/** Equal to hopSize * chunks.length. This is a single record cycle. */
+	private int cycleLen;
+	
 	/** The time in samples. */
 	private int count;
 	
@@ -104,6 +107,7 @@ public class ShortFrameSegmenter extends AudioSegmenter {
 	private void setupBuffers() {
 		int requiredBuffers = (int)Math.ceil((float)chunkSize / (float)hopSize);
 		chunks = new float[requiredBuffers][chunkSize];
+		cycleLen = requiredBuffers * hopSize;
 	}
 
 	/* (non-Javadoc)
@@ -113,17 +117,41 @@ public class ShortFrameSegmenter extends AudioSegmenter {
 	public void calculateBuffer() {
 		for(int i = 0; i < bufferSize; i++) {
 			for(int j = 0; j < chunks.length; j++) {
-				int pos = (count + j * hopSize) % chunkSize;
-				chunks[j][pos] = bufIn[0][i] * window.getValueFraction((float)pos / (float)chunkSize);
+				int pos = count - j * hopSize;
+				if(pos < 0) pos += cycleLen;
+				if(pos < chunkSize) {
+					chunks[j][pos] = bufIn[0][i] * window.getValueFraction((float)pos / (float)(chunkSize - 1));
+				}
 			}
-			count = (count + 1) % chunkSize;
+			count++;
 			if(count % hopSize == 0) {
 				TimeStamp nextTimeStamp = context.generateTimeStamp(i);
-				segment(lastTimeStamp, nextTimeStamp, chunks[count / hopSize]);
+				int chunkIndex = count / hopSize - 1;
+				segment(lastTimeStamp, nextTimeStamp, chunks[chunkIndex]);
 				lastTimeStamp = nextTimeStamp;
 			}
+			count %= cycleLen;
 		}
 	}
+	
+//	/* (non-Javadoc)
+//	 * @see net.beadsproject.beads.core.UGen#calculateBuffer()
+//	 */
+//	@Override
+//	public void calculateBuffer() {
+//		for(int i = 0; i < bufferSize; i++) {
+//			for(int j = 0; j < chunks.length; j++) {
+//				int pos = (count + j * hopSize) % chunkSize;
+//				chunks[j][pos] = bufIn[0][i] * window.getValueFraction((float)pos / (float)chunkSize);
+//			}
+//			count = (count + 1) % chunkSize;
+//			if(count % hopSize == 0) {
+//				TimeStamp nextTimeStamp = context.generateTimeStamp(i);
+//				segment(lastTimeStamp, nextTimeStamp, chunks[count / hopSize]);
+//				lastTimeStamp = nextTimeStamp;
+//			}
+//		}
+//	}
 	
 
 }
