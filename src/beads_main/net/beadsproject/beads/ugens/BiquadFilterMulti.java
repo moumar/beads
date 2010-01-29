@@ -88,8 +88,6 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 	 * Indicates a low-shelf filter; coefficients are calculated from equations
 	 * given in "Cookbook formulae for audio EQ biquad filter coefficients" by
 	 * Robert Bristow-Johnson.
-	 * 
-	 * <em>untested!</em>
 	 */
 	public final static int LOW_SHELF = 7;
 
@@ -97,11 +95,20 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 	 * Indicates a high-shelf filter; coefficients are calculated from equations
 	 * given in "Cookbook formulae for audio EQ biquad filter coefficients" by
 	 * Robert Bristow-Johnson.
-	 * 
-	 * <em>untested!</em>
 	 */
 	public final static int HIGH_SHELF = 8;
 
+
+	/**
+	 * Indicates a Butterworth low-pass filter; only the frequency parameter is relevant.
+	 */
+	public final static int BUTTERWORTH_LP = 9;
+
+	/**
+	 * Indicates a Butterworth high-pass filter; only the frequency parameter is relevant.
+	 */
+	public final static int BUTTERWORTH_HP = 10;
+	
 	/**
 	 * Indicates a user-defined filter; see
 	 * {@link #setCustomType(CustomCoeffCalculator) setCustomType}. This
@@ -119,7 +126,8 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 	private int channels = 2;
 	protected float freq = 100, q = 1, gain = 0;
 	private int type = -1;
-	protected float samplingfreq, two_pi_over_sf;
+	protected float samplingfreq, two_pi_over_sf, pi_over_sf;
+	public static final float SQRT2 = (float) Math.sqrt(2);
 
 	private float[] bo1m, bo2m, bi1m, bi2m;
 
@@ -162,6 +170,7 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 		bo2m = new float[this.channels];
 		samplingfreq = context.getSampleRate();
 		two_pi_over_sf = (float) (Math.PI * 2 / samplingfreq);
+		pi_over_sf = (float) (Math.PI / samplingfreq);
 		setType(itype);
 		setFreq(freq).setQ(q).setGain(gain);
 	}
@@ -473,6 +482,30 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 			 */
 		}
 	}
+	
+	private class ButterworthLPValCalculator extends ValCalculator {
+		public void calcVals() {
+			float k = (float) Math.tan(freq * pi_over_sf);
+			a0 = a2 = k * k;
+			a1 = 2 * a0;
+			b0 = 1 + SQRT2 * k + a0;
+			b1 = 2 * (a0 - 1);
+			b2 = 1 - SQRT2 * k + a0;
+		}	
+	}
+
+	private class ButterworthHPValCalculator extends ValCalculator {
+		public void calcVals() {
+			float k = (float) Math.tan(freq * pi_over_sf);
+			float k2p1 = k * k + 1;
+			b0 = k2p1 + SQRT2 * k ;
+			b1 = 2 * (k2p1 - 2);
+			b2 = k2p1 - SQRT2 * k;
+
+			a0 = a2 = 1;
+			a1 = -2;
+		}	
+	}
 
 	/**
 	 * The coeffiecent calculator that interfaces with a
@@ -664,6 +697,12 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 				break;
 			case HIGH_SHELF:
 				vc = new HighShelfValCalculator();
+				break;
+			case BUTTERWORTH_LP:
+				vc = new ButterworthLPValCalculator();
+				break;
+			case BUTTERWORTH_HP:
+				vc = new ButterworthHPValCalculator();
 				break;
 			default:
 				type = t;
