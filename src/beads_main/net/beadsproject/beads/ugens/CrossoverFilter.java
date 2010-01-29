@@ -4,6 +4,27 @@ import net.beadsproject.beads.core.*;
 import net.beadsproject.beads.data.DataBeadReceiver;
 import net.beadsproject.beads.data.DataBead;
 
+/**
+ * A multi-channel 4th-order Linkwitz-Riley crossover filter. For each input
+ * channel, the filter outputs both a low-pass and a high-pass channel. If the
+ * filter has two inputs, for example, then it will output four channels:
+ * <p>
+ * <ul>
+ * <li>0: Low-pass of input 0</li>
+ * <li>1: High-pass of input 0</li>
+ * <li>2: Low-pass of input 1</li>
+ * <li>3: High-pass of input 1</li>
+ * </ul>
+ * <p>
+ * A key feature of Linkwitz-Riley filters is that the low- and high-pass bands
+ * added together produce a flat frequency response, making them particularly
+ * useful as crossover filters. A 4th-order version is equivalent to cascading
+ * two identical 2nd-order Butterworth filters.
+ * 
+ * @author Benito Crawford
+ * @version 0.9.5
+ * 
+ */
 public class CrossoverFilter extends UGen implements DataBeadReceiver {
 
 	// filter coefficients
@@ -251,7 +272,9 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 			setFreq(freq);
 		} else {
 			this.freqUGen = freqUGen;
-
+			freqUGen.update();
+			freq = freqUGen.getValue();
+			calcVals();
 		}
 		return this;
 	}
@@ -265,8 +288,18 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 		return channels;
 	}
 
+	/**
+	 * Sets the crossover frequency with a DataBead. If the value of the
+	 * property "frequency" is either a UGen or can be interpreted as a float,
+	 * the cutoff frequency will be set appropriately.
+	 */
 	public DataBeadReceiver sendData(DataBead db) {
-		setFreq(db.getFloat("frequency", freq));
+		UGen u = db.getUGen("frequency");
+		if (u == null) {
+			setFreq(db.getFloat("frequency", freq));
+		} else {
+			setFreq(u);
+		}
 		return this;
 	}
 
