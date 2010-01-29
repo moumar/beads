@@ -5,16 +5,18 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
+
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-import org.tritonus.share.sampled.file.TAudioFileFormat;
-
 import net.beadsproject.beads.core.AudioUtils;
+
+import org.tritonus.share.sampled.file.TAudioFileFormat;
 
 /**
  * Represents an audio file. Handles loading and format conversion.
@@ -39,15 +41,23 @@ public class AudioFile {
 	// the name of this audiofile - corresponds to the name of file, url, or a inputstream generated id
 	protected String name;
 	
+	// the mp3 info if its an mp3 file
+	
+	
 	protected AudioFileFormat audioFileFormat;
 	/** The number of channels. */
 	protected int nChannels;
 	
-	/** The total number of frames.
+	/** 
+	 *  The total number of frames.
 	 *  If it equals AudioSystem.NOT_SPECIFIED then the length is unknown. 
 	 **/
 	protected long nFrames;
-	/** Length of the file in milliseconds */
+	
+	/** 
+	 * Length of the file in milliseconds 
+	 * If <0 then it is unknown. 
+	 **/
 	protected float length;
 	
 	private long nTotalFramesRead = 0; // also a pointer into the current pos
@@ -108,7 +118,7 @@ public class AudioFile {
 		}
 		audioInputStream = null;
 		
-		// check if .wav ending and detected as .mp3, if so it is bad!
+		// Sometimes non-mp3 files get detected as mp3s so we eradicate them
 		if (!name.endsWith(".mp3"))
 		{
 			if ((url!=null && AudioSystem.getAudioFileFormat(url) instanceof TAudioFileFormat) ||
@@ -207,8 +217,7 @@ public class AudioFile {
 	 * Note: this function skips frames, not bytes.
 	 * Doesn't work for vbr!
 	 * 
-	 * Known issue, MP3 seeking is not precise.
-	 * TODO: Fix this issue.
+	 * TODO: Known issue, MP3 seeking is not precise. Why?
 	 *
 	 * @param frames Number of frames to skip
 	 */
@@ -303,20 +312,15 @@ public class AudioFile {
 			isEncoded = true;
 			decodedStream = AudioSystem.getAudioInputStream(decodedFormat, encodedStream);
 			nFrames = AudioSystem.NOT_SPECIFIED;
-			//System.out.printf("frames (encoded): %d\n",(int)(encodedStream.getFrameLength()));
-			//System.out.printf("frames (decoded): %d\n",(int)(decodedStream.getFrameLength()));
-			//System.out.println("estimated duration " + (Long)audioFileFormat.properties().get("duration") / 60000000.);
-
 			lengthInBytes = audioFileFormat.getByteLength();
 			audioInfo = audioFileFormat.properties();
 			length = getTimeLengthEstimation(audioInfo);
-//			System.out.println("audio info " + audioInfo);
-//			System.out.println("length " + length);
 			if (length<0)
 			{
-				System.out.println("AudioFile cannot determine the duration of the file. Is it missing the duration tag?");
-//				System.exit(1); //Ollie -- anything but sysexit! Not good for gigs.
-				throw new UnsupportedAudioFileException("AudioFile cannot determine the duration of the file.");
+				// System.out.println("AudioFile cannot determine the duration of the file. Is it missing the duration tag?");
+				// throw new UnsupportedAudioFileException("AudioFile cannot determine the duration of the file.");
+				
+				// this is okay, as long as we use the total regime in sample
 			}
 			else
 			{
@@ -335,16 +339,16 @@ public class AudioFile {
 		}
 
 		numBytes = decodedFormat.getSampleSizeInBits()/8;
-		nChannels = decodedFormat.getChannels();
-		
+		nChannels = decodedFormat.getChannels();		
 
+		/*
 		if (nFrames==AudioSystem.NOT_SPECIFIED)
 		{
 			System.out.println("Cannot determine the length of the audio file: " + url.getFile());
 			System.out.println("AudioFile needs to know the length in order to operate appropriately.");
 			System.out.println("Now exiting.");
 			System.exit(1);
-		}
+		}*/
 		
 		if (file != null && encodedStream.markSupported()) {
 			encodedStream.mark(Math.min(bufferSize,(int) file.length()));
@@ -567,11 +571,24 @@ public class AudioFile {
 		return numFramesJustRead;
 	}
 	
+	@SuppressWarnings("unchecked")
+	public Map<String,Object> getFileProperties()
+	{
+		if (audioInfo!=null)
+		{
+			Map<String,Object> prop = new HashMap<String,Object>();
+			prop.putAll(audioFileFormat.properties());
+			prop.putAll(audioInfo);
+			return prop;
+		}
+		else return audioFileFormat.properties();
+	}
+	
 	 /**
 	  * THIS CODE IS FROM jlGui PlayerUI.java.
 	  * jlGui can be obtained at: http://www.javazoom.net/jlgui/jlgui.html
 	  */
-    public long getTimeLengthEstimation(Map properties)
+    private long getTimeLengthEstimation(Map properties)
     {
         long milliseconds = -1;
         int byteslength = -1;
@@ -616,8 +633,9 @@ public class AudioFile {
                 {
                     milliseconds = (int) (1000.0f * byteslength / (samplerate * framesize));
                 }
-            }
+            }            
         }
+        
         return milliseconds;
     }
     
