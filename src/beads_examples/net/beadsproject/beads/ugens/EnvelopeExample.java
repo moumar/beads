@@ -13,7 +13,7 @@ public class EnvelopeExample {
 	
 	public static void main(String[] args) {
 		System.out.println("Testing: " + Envelope.class);
-		AudioContext ac = new AudioContext(512, 5000);
+		AudioContext ac = new AudioContext();
 		WavePlayer wp = new WavePlayer(ac, 500f + 500f, new SineBuffer().getDefault());
 		//create an envelope
 		final Envelope e = new Envelope(ac, 500f);

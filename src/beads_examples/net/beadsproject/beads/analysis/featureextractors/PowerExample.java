@@ -13,7 +13,7 @@ public class PowerExample {
 	public static void main(String[] args) {
 		System.out.println("Testing: " + Power.class);
 		//set up audio
-		AudioContext ac = new AudioContext(512, 5000);
+		AudioContext ac = new AudioContext();
 		//set up sound to analyse
 		WavePlayer wp = new WavePlayer(ac, 500f, new SineBuffer().getDefault());
 		Gain g = new Gain(ac, 1);

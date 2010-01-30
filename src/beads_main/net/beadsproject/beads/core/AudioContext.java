@@ -5,21 +5,12 @@
  */
 package net.beadsproject.beads.core;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
-
 import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.Line;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.Mixer;
-import javax.sound.sampled.SourceDataLine;
-
+import net.beadsproject.beads.core.io.JavaSoundAudioIO;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
 import net.beadsproject.beads.ugens.DelayTrigger;
@@ -38,28 +29,15 @@ import net.beadsproject.beads.ugens.Recorder;
 public class AudioContext {
 
 	public static final int DEFAULT_BUFFER_SIZE = 512;
-	public static final int DEFAULT_SYSTEM_BUFFER_SIZE = 5000;
+	
+	/** The audio IO device. */
+	private AudioIO audioIO;
 	
 	/** The audio format. */
 	private AudioFormat audioFormat;
-
-	/** The source data line. */
-	private SourceDataLine sourceDataLine;
-	
-	/** The mixer. */
-	private Mixer mixer;
-	
-	/** The buffer size in bytes. */
-	private int bufferSizeInBytes;
-	
-	/** The current byte buffer. */
-	private byte[] bbuf;
-	
-	/** Thread for running realtime audio. */
-	private Thread audioThread;
 	
 	/** The stop flag. */
-	private boolean stop;
+	private boolean stopped;
 	
 	/** The root {@link UGen}. */
 	public final Gain out;
@@ -76,17 +54,16 @@ public class AudioContext {
 	/** The buffer size in frames. */
 	private int bufferSizeInFrames;
 	
-	/** The system buffer size in frames. */
-	private int systemBufferSizeInFrames;
-	
 	/** Used for allocating buffers to UGens. */
 	private int maxReserveBufs;
 	private ArrayList<float[]> bufferStore;
 	private int bufStoreIndex;
 	private float[] zeroBuf;
 	
-	/** The priority of the audio thread. */
-	private int threadPriority; 
+	/** Used for testing for dropped frames. */
+	private long nanoLeap;
+	private long nanoStart;
+	private boolean lastFrameGood;
 	
 	/**
 	 * Creates a new AudioContext with default settings. The default buffer size
@@ -105,7 +82,7 @@ public class AudioContext {
 	 * @param bufferSizeInFrames the buffer size in samples.
 	 */
 	public AudioContext(int bufferSizeInFrames) {
-		this(bufferSizeInFrames, DEFAULT_SYSTEM_BUFFER_SIZE);
+		this(bufferSizeInFrames, defaultAudioIO());
 	}
 
 	/**
@@ -116,9 +93,9 @@ public class AudioContext {
 	 * @param bufferSizeInFrames the buffer size in samples.
 	 * @param systemBufferSizeInFrames the system buffer size in samples.
 	 */
-	public AudioContext(int bufferSizeInFrames, int systemBufferSizeInFrames) {
+	public AudioContext(int bufferSizeInFrames, AudioIO ioSystem) {
 		// use almost entirely default settings
-		this(bufferSizeInFrames, systemBufferSizeInFrames, defaultAudioFormat(2));
+		this(bufferSizeInFrames, ioSystem, defaultAudioFormat(2));
 	}
 	
 	/**
@@ -129,7 +106,7 @@ public class AudioContext {
 	 * number of channels, signedness and byte order.
 	 */
 	public AudioContext(AudioFormat audioFormat) {
-		this(DEFAULT_BUFFER_SIZE, DEFAULT_SYSTEM_BUFFER_SIZE, audioFormat);
+		this(DEFAULT_BUFFER_SIZE, defaultAudioIO(), audioFormat);
 	}
 
 	/**
@@ -141,226 +118,41 @@ public class AudioContext {
 	 * @param audioFormat the audio format, which specifies sample rate, bit depth,
 	 * number of channels, signedness and byte order.
 	 */
-	public AudioContext(int bufferSizeInFrames, int systemBufferSizeInFrames, AudioFormat audioFormat) {
-		// set up other basic stuff
-		mixer = null;
-		stop = true;
+	public AudioContext(int bufferSizeInFrames, AudioIO audioIO, AudioFormat audioFormat) {
+		// set up basic stuff
 		checkForDroppedFrames = true;
 		logTime = false;
 		maxReserveBufs = 50;
-		threadPriority = Thread.NORM_PRIORITY;
-		
+		stopped = true;
 		// set audio format
 		this.audioFormat = audioFormat;
 		// set buffer size
 		setBufferSize(bufferSizeInFrames);
-		this.systemBufferSizeInFrames = systemBufferSizeInFrames;
 		// set up the default root UGen
 		out = new Gain(this, audioFormat.getChannels());
+		//bind to AudioIO
+		this.audioIO = audioIO;
+		this.audioIO.context = this;
+		this.audioIO.prepare();
+	}
+	
+	/**
+	 * Returns a UGen which can be used to grab audio from the audio input, as specified by the AudioIO.
+	 * @param channels an array of ints indicating which channels are required.
+	 * @return a UGen which can be used to access audio input.
+	 */
+	public UGen getAudioInput(int[] channels) {
+		return audioIO.getAudioInput(channels);
+	}
+	
+	/**
+	 * produces the default AudioIO which is a JavaSoundAudioIO with noargs constructor.
+	 * @return a new JavaSoundAudioIO with noargs constructor.
+	 */
+	public static AudioIO defaultAudioIO() {
+		return new JavaSoundAudioIO();
 	}
 
-	/**
-	 * Initialises JavaSound.
-	 */
-	private void initJavaSound() {
-		getDefaultMixerIfNotAlreadyChosen();
-		System.out.print("CHOSEN MIXER: ");
-		System.out.println(mixer.getMixerInfo().getName());
-		if (mixer == null)
-			return;
-		DataLine.Info info = new DataLine.Info(SourceDataLine.class,
-				audioFormat);
-		try {
-			sourceDataLine = (SourceDataLine) mixer.getLine(info);
-			if (systemBufferSizeInFrames < 0)
-				sourceDataLine.open(audioFormat);
-			else
-				sourceDataLine.open(audioFormat, systemBufferSizeInFrames
-						* audioFormat.getFrameSize());
-		} catch (LineUnavailableException ex) {
-			System.out
-					.println(getClass().getName() + " : Error getting line\n");
-		}
-	}
-
-	/**
-	 * Gets the JavaSound mixer being used by this AudioContext.
-	 * 
-	 * @return the requested mixer.
-	 */
-	private void getDefaultMixerIfNotAlreadyChosen() {
-		if(mixer == null) {
-			selectMixer(0);
-		} 
-	}
-	
-	
-	/**
-	 * Presents a choice of mixers on the commandline.
-	 */
-	public void chooseMixerCommandLine() {
-		System.out.println("Choose a mixer....");
-		printMixerInfo();
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		try {
-			selectMixer(Integer.parseInt(br.readLine()) - 1);
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-	 * Select a mixer by index.
-	 * 
-	 * @param i the index of the selected mixer.
-	 */
-	public void selectMixer(int i) {
-		Mixer.Info[] mixerinfo = AudioSystem.getMixerInfo();
-		mixer = AudioSystem.getMixer(mixerinfo[i]);
-	}
-
-	/**
-	 * Prints information about the current Mixer to System.out.
-	 */
-	public static void printMixerInfo() {
-		Mixer.Info[] mixerinfo = AudioSystem.getMixerInfo();
-		for (int i = 0; i < mixerinfo.length; i++) {
-			String name = mixerinfo[i].getName();
-			if (name.equals(""))
-				name = "No name";
-			System.out.println((i+1) + ") " + name + " --- " + mixerinfo[i].getDescription());
-			Mixer m = AudioSystem.getMixer(mixerinfo[i]);
-			Line.Info[] lineinfo = m.getSourceLineInfo();
-			for (int j = 0; j < lineinfo.length; j++) {
-				System.out.println("  - " + lineinfo[j].toString());
-			}
-		}
-	}
-	
-	/**
-	 * Sets the priority of the audio thread.
-	 * Default priority is Thread.MAX_PRIORITY.
-	 *  
-	 * @param priority 
-	 */
-	public void setThreadPriority(int priority)
-	{
-		this.threadPriority = priority;
-	}
-	
-	/**
-	 * @return The priority of the audio thread.
-	 */
-	public int getThreadPriority()
-	{
-		return this.threadPriority;
-	}
-	
-	
-	/**
-	 * Runs the system in realtime.
-	 */
-	private void run() {
-		runRealTime();
-	}
-
-	/**
-	 * Used by this AudioContext's Thread, use {@link #start()} instead of this.
-	 */
-	private void runRealTime() {
-		initJavaSound();
-		sourceDataLine.start();
-		// calibration test stuff
-		long nanoStart = System.nanoTime();
-		long nanoLeap = (long) (1000000000 / (audioFormat.getSampleRate() / (float) bufferSizeInFrames));
-		boolean skipFrame = false;
-		byte b = 0;
-		Arrays.fill(bbuf, b);
-		timeStep = 0;
-		float[] interleavedOutput = new float[audioFormat.getChannels() * bufferSizeInFrames];
-		while (!stop) {
-			if (!skipFrame) {
-				bufStoreIndex = 0;
-				Arrays.fill(zeroBuf, 0f);
-				out.update(); // this will propagate all of the updates
-				interleave(out.bufOut, interleavedOutput);
-				AudioUtils.floatToByte(bbuf, interleavedOutput,
-						audioFormat.isBigEndian());
-				sourceDataLine.write(bbuf, 0, bbuf.length);
-			}
-			if (checkForDroppedFrames) {
-				long expectedNanoTime = nanoLeap * (timeStep + 1);
-				long realNanoTime = System.nanoTime() - nanoStart;
-				float frameDifference = (float) (expectedNanoTime - realNanoTime)
-						/ (float) nanoLeap;
-				if (frameDifference < -1) {
-					skipFrame = true;
-					System.out.println("Audio dropped frame.");
-				} else
-					skipFrame = false;
-			}
-			timeStep++;
-			if(Thread.interrupted()) System.out.println("Thread interrupted");
-			if(logTime && timeStep % 100 == 0) {
-				System.out.println(samplesToMs(timeStep * bufferSizeInFrames) / 1000f + " (seconds), bufferStore.size()=" + bufferStore.size());
-			}
-		}
-		//try this to clear the buffer (should get rid of buzz)
-//		Arrays.fill(interleavedOutput, 0f);
-//		AudioUtils.floatToByte(bbuf, interleavedOutput,
-//				audioFormat.isBigEndian());
-//		while(sourceDataLine.available() > 0) {
-//			sourceDataLine.write(bbuf, 0, Math.min(bbuf.length, sourceDataLine.available()));
-//		}
-//		System.out.println("Audio stopped");
-		//now clean up
-		sourceDataLine.drain();
-		sourceDataLine.stop();
-		sourceDataLine.close();
-		sourceDataLine = null;
-		mixer = null;
-	}
-	
-	/*public void runJJack() {
-		if(stop) {
-			byte b = 0;
-			Arrays.fill(bbuf, b);
-			timeStep = 0;
-			stop = false;
-			System.out.println(JJackSystem.getInfo());
-			JJackSystem.setProcessor(new JJackAudioProcessor() {
-				public void process(JJackAudioEvent e) {
-					 TODO questions: 
-					 * 
-					 * how do we tell JJackSystem what buffer size and 
-					 * number of channels to use? Or alternatively, find out what settings
-					 * it is using?
-					 * 
-					 * Why is the number of input channels the same as the number of output channels.
-					 * 
-					 
-			        for (int i=0; i<e.countChannels(); i++) {
-			            FloatBuffer inBufs = e.getInput(i);
-			        }
-			        bufStoreIndex = 0;
-					out.update(); // this will propagate all of the updates
-			        for (int i=0; i<e.countChannels(); i++) {
-			            FloatBuffer outBufs = e.getOutput(i);
-			            int cap = outBufs.capacity();
-			            for (int j=0; j<cap; j++) {
-			                outBufs.put(j, out.getValue(i, j));
-			            }
-			        }
-					timeStep++;
-					if(stop) {
-						JJackSystem.setProcessor(null);
-					}
-				}
-			});
-		}
-	}
-	*/
-	
 	/**
 	 * Sets up the reserve of buffers. 
 	 */
@@ -370,6 +162,35 @@ public class AudioContext {
 			bufferStore.add(new float[bufferSizeInFrames]);
 		}
 		zeroBuf = new float[bufferSizeInFrames];
+	}
+	
+	/** callback from AudioIO. */
+	protected boolean update() {
+		if(lastFrameGood) {
+			bufStoreIndex = 0;
+			Arrays.fill(zeroBuf, 0f);
+			out.update(); // this will propagate all of the updates
+		}
+		//now check for dropped frames 
+		//the timeStep condition is a bit of a fiddle, 
+		//seems there's always dropped frames to being with
+		if (timeStep > 500 && checkForDroppedFrames) {
+			long expectedNanoTime = nanoLeap * (timeStep + 1);
+			long realNanoTime = System.nanoTime() - nanoStart;
+			float frameDifference = (float) (expectedNanoTime - realNanoTime)
+					/ (float) nanoLeap;
+			if (frameDifference < -1) {
+				lastFrameGood = false;
+				System.out.println("Audio dropped frame.");
+			} else
+				lastFrameGood = true;
+		}
+		timeStep++;
+		if(Thread.interrupted()) System.out.println("Thread interrupted");
+		if(logTime && timeStep % 100 == 0) {
+			System.out.println(samplesToMs(timeStep * bufferSizeInFrames) / 1000f + " (seconds), bufferStore.size()=" + bufferStore.size());
+		}
+		return lastFrameGood;
 	}
 	
 	/**
@@ -398,6 +219,7 @@ public class AudioContext {
 		Arrays.fill(buf, 0f);
 		return buf;
 	}
+	
 	/**
 	 * Gets a pointer to a buffer of length bufferSize, full of zeros. Changing the contents of this buffer would be completely disastrous. If you want a buffer of zeros that you can
 	 * actually do something with, use {@link getCleanBuf()}.
@@ -406,39 +228,14 @@ public class AudioContext {
 	public float[] getZeroBuf() {
 		return zeroBuf;
 	}
-	
-	/**
-	 * Checks if this AudioContext is running.
-	 * 
-	 * @return true if running.
-	 */
-	public boolean isRunning() {
-		return !stop;
-	}
-	
-	/**
-	 * Starts the AudioContext running in realtime.
-	 */
-	public void start() {
-		if(stop) {
-			stop = false;
-			audioThread = new Thread(new Runnable() {
-				public void run() {
-					AudioContext.this.run();
-				}
-			});
-			audioThread.setPriority(threadPriority);
-			audioThread.start();
-		}
-	}
 
 	/**
 	 * Starts the AudioContext running in non-realtime. This occurs in the current Thread. 
 	 */
 	public void runNonRealTime() {
-		if(stop) {
-			stop = false;
-			while (out != null && !stop) {
+		if(stopped) {
+			stopped = false;
+			while (out != null && !stopped) {
 				bufStoreIndex = 0;
 				Arrays.fill(zeroBuf, 0f);
 				if (!out.isPaused()) 
@@ -463,28 +260,12 @@ public class AudioContext {
 	}
 
 	/**
-	 * Interleaves a multi-channel audio buffer into a single interleaved buffer.
-	 * 
-	 * @param source the source.
-	 * @param result the result.
-	 */
-	private void interleave(float[][] source, float[] result) {
-		for (int i = 0, counter = 0; i < bufferSizeInFrames; ++i) {
-			for (int j = 0; j < audioFormat.getChannels(); ++j) {
-				result[counter++] = source[j][i];
-			}
-		}
-	}
-
-	/**
 	 * Sets the buffer size.
 	 * 
 	 * @param bufferSize the new buffer size.
 	 */
 	private void setBufferSize(int bufferSize) {
 		bufferSizeInFrames = bufferSize;
-		bufferSizeInBytes = bufferSizeInFrames * audioFormat.getFrameSize();
-		bbuf = new byte[bufferSizeInBytes];
 		setupBufs();
 	}
 
@@ -497,16 +278,6 @@ public class AudioContext {
 		return bufferSizeInFrames;
 	}
 	
-
-	/**
-	 * Gets the system buffer size for this AudioContext.
-	 * 
-	 * @return System buffer size in samples.
-	 */
-	public int getSystemBufferSize() {
-		return systemBufferSizeInFrames;
-	}
-
 	/**
 	 * Gets the sample rate for this AudioContext.
 	 * 
@@ -554,13 +325,6 @@ public class AudioContext {
 	}
 
 	/**
-	 * Stops the AudioContext if running either in realtime or non-realtime.
-	 */
-	public void stop() {
-		stop = true;
-	}
-
-	/**
 	 * Prints AudioFormat information to System.out.
 	 */
 	public void postAudioFormatInfo() {
@@ -572,19 +336,11 @@ public class AudioContext {
 		System.out.println("Big Endian: " + audioFormat.isBigEndian());
 	}
 
-	/**
-	 * Prints SourceDataLine info to System.out.
+	/** 
+	 * Prints a representation of the audio signal chain stemming upwards from the specified UGen to System.out, indented by the specified depth.
+	 * @param current UGen to start from.
+	 * @param depth depth by which to indent.
 	 */
-	public void postSourceDataLineInfo() {
-		System.out.println("----------------");
-		System.out.println("buffer: " + (sourceDataLine.getBufferSize()));
-		System.out
-				.println("spare: "
-						+ (sourceDataLine.getBufferSize() - sourceDataLine
-								.available()));
-		System.out.println("available: " + sourceDataLine.available());
-	}
-	
 	public static void printCallChain(UGen current, int depth) {
 		Set<UGen> children = current.getConnectedInputs();
 		for(int i = 0; i < depth; i++) {
@@ -596,6 +352,9 @@ public class AudioContext {
 		}
 	}
 	
+	/**
+	 * Prints the entire call chain to System.out (equivalent to AudioContext.printCallChain(this.out, 0);)
+	 */
 	public void printCallChain() {
 		AudioContext.printCallChain(out, 0);
 	}
@@ -667,7 +426,7 @@ public class AudioContext {
 	}
 	
 	/**
-	 * Tells the AudioContext to record all output for the given millisecond duration and save the recording to the given file path. This is a convenient way to make quick recordings, but may not suit every circumstance.
+	 * Tells the AudioContext to record all output for the given millisecond duration, kill the AudioContext, and save the recording to the given file path. This is a convenient way to make quick recordings, but may not suit every circumstance.
 	 * 
 	 * @param timeMS the time in milliseconds to record for.
 	 * @param filename the filename to save the recording to.
@@ -701,5 +460,39 @@ public class AudioContext {
 		out.addInput(ugen);
 		start();
 	}
+	
+	/**
+	 * Starts the AudioContext running in realtime. Only happens if not already running. Resets time.
+	 */
+	public void start() {
+		if(stopped) {
+			// calibration test stuff
+			nanoStart = System.nanoTime();
+			nanoLeap = (long) (1000000000 / (audioFormat.getSampleRate() / (float) bufferSizeInFrames));
+			lastFrameGood = true;
+			//reset time step
+			timeStep = 0;
+			stopped = false;
+			//the AudioIO is where the thread actually runs.
+			audioIO.start();
+		}
+	}
 
+	/**
+	 * Stops the AudioContext if running either in realtime or non-realtime.
+	 */
+	public void stop() {
+		stopped = true;
+		audioIO.stop();
+	}
+
+	/**
+	 * Checks if this AudioContext is running.
+	 * 
+	 * @return true if running.
+	 */
+	public boolean isRunning() {
+		return !stopped;
+	}
+	
 }

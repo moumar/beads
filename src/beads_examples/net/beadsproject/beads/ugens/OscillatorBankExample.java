@@ -31,7 +31,7 @@ public class OscillatorBankExample {
 	}
 	
 	public static void example2() {
-		AudioContext ac = new AudioContext(512, 5000);
+		AudioContext ac = new AudioContext();
 		OscPlayer ob = new OscPlayer(ac, new SineBuffer().getDefault(), 50);
 		Clock c = new Clock(ac, 1000f);
 		ac.out.addDependent(c);

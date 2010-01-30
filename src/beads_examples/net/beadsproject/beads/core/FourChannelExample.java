@@ -15,7 +15,7 @@ public class FourChannelExample {
 		
 		//expect this to crash if you don't have 4 channels!
 		final AudioContext ac = new AudioContext(AudioContext.DEFAULT_BUFFER_SIZE, 
-											AudioContext.DEFAULT_SYSTEM_BUFFER_SIZE,
+											AudioContext.defaultAudioIO(),
 											AudioContext.defaultAudioFormat(4));
 		
 		final Clock c = new Clock(ac, 500f);

@@ -19,7 +19,7 @@ public class SpectralCentroidExample {
 		Random rng = new Random();
 		System.out.println("Testing: " + SpectralCentroid.class);
 		//set up audio
-		AudioContext ac = new AudioContext(512, 5000);
+		AudioContext ac = new AudioContext();
 		//set up sound to analyse
 		OscillatorBank ob = new OscillatorBank(ac, new SineBuffer().getDefault(), NUM_OSCILLATORS);
 		float[] freqs = new float[NUM_OSCILLATORS];
