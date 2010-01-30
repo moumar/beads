@@ -28,7 +28,7 @@ import net.beadsproject.beads.data.DataBead;
 public class CrossoverFilter extends UGen implements DataBeadReceiver {
 
 	// filter coefficients
-	private float la0, la1, la2, ha0, ha1, ha2, b0, b1, b2;
+	private float la0, la1, b0, b1, b2; // la2, ha0, ha1, ha2
 	// for calculating the filter coefficients
 	private float ok, ok2;
 	// useful
@@ -132,20 +132,34 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 				for (int i = 0; i < bufferSize; i++) {
 
 					// low-pass part - two identical butterworth filters
-					ly[0] = (la0 * bi[i] + la1 * x[1] + la2 * x[2] - b1 * ly[1] - b2
+					ly[0] = (la0 * (bi[i] + x[2]) + la1 * x[1] - b1 * ly[1] - b2
 							* ly[2])
 							/ b0;
-					lo[i] = (la0 * ly[0] + la1 * ly[1] + la2 * ly[2] - b1
-							* lz[1] - b2 * lz[2])
+					lo[i] = (la0 * (ly[0] + ly[2]) + la1 * ly[1] - b1 * lz[1] - b2
+							* lz[2])
 							/ b0;
 
-					// high-pass part - two identical butterworth filters
-					hy[0] = (ha0 * bi[i] + ha1 * x[1] + ha2 * x[2] - b1 * hy[1] - b2
-							* hy[2])
+					// old low-pass part - two identical butterworth filters
+					/*
+					 * ly[0] = (la0 * bi[i] + la1 * x[1] + la2 * x[2] - b1 *
+					 * ly[1] - b2 ly[2]) / b0; lo[i] = (la0 * ly[0] + la1 *
+					 * ly[1] + la2 * ly[2] - b1 lz[1] - b2 * lz[2]) / b0;
+					 */
+
+					// optimized high-pass part - two identical butterworth
+					// filters
+					hy[0] = (bi[i] - 2 * x[1] + x[2] - b1 * hy[1] - b2 * hy[2])
 							/ b0;
-					hi[i] = (ha0 * hy[0] + ha1 * hy[1] + ha2 * hy[2] - b1
-							* hz[1] - b2 * hz[2])
+					hi[i] = (hy[0] - 2 * hy[1] + hy[2] - b1 * hz[1] - b2
+							* hz[2])
 							/ b0;
+
+					// old high-pass part - two identical butterworth filters
+					/*
+					 * hy[0] = (ha0 * bi[i] + ha1 * x[1] + ha2 * x[2] - b1 *
+					 * hy[1] - b2 hy[2]) / b0; hi[i] = (ha0 * hy[0] + ha1 *
+					 * hy[1] + ha2 * hy[2] - b1 hz[1] - b2 * hz[2]) / b0;
+					 */
 
 					// remember everything
 					x[2] = x[1];
@@ -172,18 +186,28 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 			for (int i = 0; i < bufferSize; i++) {
 
 				// low-pass part - two identical butterworth filters
-				ly0 = (la0 * bi[i] + la1 * x1 + la2 * x2 - b1 * ly1 - b2 * ly2)
+				ly0 = (la0 * (bi[i] + x2) + la1 * x1 - b1 * ly1 - b2 * ly2)
 						/ b0;
-				lo[i] = (la0 * ly0 + la1 * ly1 + la2 * ly2 - b1 * lz1 - b2
-						* lz2)
+				lo[i] = (la0 * (ly0 + ly2) + la1 * ly1 - b1 * lz1 - b2 * lz2)
 						/ b0;
 
-				// high-pass part - two identical butterworth filters
-				hy0 = (ha0 * bi[i] + ha1 * x1 + ha2 * x2 - b1 * hy1 - b2 * hy2)
-						/ b0;
-				hi[i] = (ha0 * hy0 + ha1 * hy1 + ha2 * hy2 - b1 * hz1 - b2
-						* hz2)
-						/ b0;
+				// old low-pass part - two identical butterworth filters
+				/*
+				 * ly0 = (la0 * bi[i] + la1 * x1 + la2 * x2 - b1 * ly1 - b2 *
+				 * ly2) / b0; lo[i] = (la0 * ly0 + la1 * ly1 + la2 * ly2 - b1 *
+				 * lz1 - b2 lz2) / b0;
+				 */
+
+				// optimized high-pass part - two identical butterworth filters
+				hy0 = (bi[i] - 2 * x1 + x2 - b1 * hy1 - b2 * hy2) / b0;
+				hi[i] = (hy0 - 2 * hy1 + hy2 - b1 * hz1 - b2 * hz2) / b0;
+
+				// old high-pass part - two identical butterworth filters
+				/*
+				 * hy0 = (ha0 * bi[i] + ha1 * x1 + ha2 * x2 - b1 * hy1 - b2 *
+				 * hy2) / b0; hi[i] = (ha0 * hy0 + ha1 * hy1 + ha2 * hy2 - b1 *
+				 * hz1 - b2 hz2) / b0;
+				 */
 
 				// remember everything
 				x2 = x1;
@@ -207,17 +231,16 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 	private final void calcVals() {
 
 		ok = (float) (Math.tan(pi_sr * freq));
-		ok2 = ok * ok;
+		la0 = ok * ok;
 
-		b0 = 1 + SQRT2 * ok + ok2;
+		b0 = 1 + SQRT2 * ok + la0;
 		b1 = 2 * (ok2 - 1);
-		b2 = 1 - SQRT2 * ok + ok2;
+		b2 = 1 - SQRT2 * ok + la0;
 
-		la0 = la2 = ok2;
-		la1 = 2 * ok2;
+		la1 = 2 * la0;
 
-		ha0 = ha2 = 1;
-		ha1 = -2;
+		// ha0 = ha2 = 1;
+		// ha1 = -2;
 	}
 
 	/**
