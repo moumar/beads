@@ -98,17 +98,18 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 	 */
 	public final static int HIGH_SHELF = 8;
 
-
 	/**
-	 * Indicates a Butterworth low-pass filter; only the frequency parameter is relevant.
+	 * Indicates a Butterworth low-pass filter; only the frequency parameter is
+	 * relevant.
 	 */
 	public final static int BUTTERWORTH_LP = 9;
 
 	/**
-	 * Indicates a Butterworth high-pass filter; only the frequency parameter is relevant.
+	 * Indicates a Butterworth high-pass filter; only the frequency parameter is
+	 * relevant.
 	 */
 	public final static int BUTTERWORTH_HP = 10;
-	
+
 	/**
 	 * Indicates a user-defined filter; see
 	 * {@link #setCustomType(CustomCoeffCalculator) setCustomType}. This
@@ -474,37 +475,38 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 			 * highShelf: H(s) = A * (A*s^2 + (sqrt(A)/Q)*s + 1)/(s^2 +
 			 * (sqrt(A)/Q)*s + A)
 			 * 
-			 * b0 = A*( (A+1) + (A-1)*cos(w0) + 2*sqrt(A)*alpha )
-			 * b1 =	 * -2*A*((A-1) + (A+1)*cos(w0) ) b2 = A*( (A+1) + (A-1)*cos(w0) -
+			 * b0 = A*( (A+1) + (A-1)*cos(w0) + 2*sqrt(A)*alpha ) b1 = *
+			 * -2*A*((A-1) + (A+1)*cos(w0) ) b2 = A*( (A+1) + (A-1)*cos(w0) -
 			 * 2*sqrt(A)*alpha ) a0 = (A+1) - (A-1)*cos(w0) + 2*sqrt(A)*alpha a1
 			 * = 2*( (A-1) - (A+1)*cos(w0) ) a2 = (A+1) - (A-1)*cos(w0) -
 			 * 2*sqrt(A)*alpha
 			 */
 		}
 	}
-	
+
 	private class ButterworthLPValCalculator extends ValCalculator {
 		public void calcVals() {
-			float k = (float) Math.tan(freq * pi_over_sf);
-			a0 = a2 = k * k;
-			a1 = 2 * a0;
-			b0 = 1 + SQRT2 * k + a0;
-			b1 = 2 * (a0 - 1);
-			b2 = 1 - SQRT2 * k + a0;
-		}	
+			float k = (float)Math.tan(freq * pi_over_sf);
+			b0 = b2 = k * k;
+			b1 = 2f * b0;
+			a0 = b0 + (SQRT2 * k) + 1;
+			a1 = 2f * (b0 - 1);
+			a2 = b0 - (SQRT2 * k) + 1;
+			//System.out.println(k + "^2 = " + k2);
+		}
 	}
 
 	private class ButterworthHPValCalculator extends ValCalculator {
 		public void calcVals() {
 			float k = (float) Math.tan(freq * pi_over_sf);
 			float k2p1 = k * k + 1;
-			b0 = k2p1 + SQRT2 * k ;
-			b1 = 2 * (k2p1 - 2);
-			b2 = k2p1 - SQRT2 * k;
-
-			a0 = a2 = 1;
-			a1 = -2;
-		}	
+			b0 = b2 = 1;
+			b1 = -2;
+			a0 = k2p1 + (SQRT2 * k);
+			a1 = 2f * (k2p1 - 2);
+			a2 = k2p1 - (SQRT2 * k);
+			
+		}
 	}
 
 	/**
@@ -911,6 +913,17 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 		} else {
 			return gainUGen;
 		}
+	}
+
+	/**
+	 * Gets an array of the current filter coefficients: {a0, a1, a2, b0, b1,
+	 * b2}.
+	 * 
+	 * @return The coefficient array.
+	 */
+	public float[] getCoefficients() {
+		float[] ret = { a0, a1, a2, b0, b1, b2 };
+		return ret;
 	}
 
 	/**

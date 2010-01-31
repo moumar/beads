@@ -28,11 +28,10 @@ import net.beadsproject.beads.data.DataBead;
 public class CrossoverFilter extends UGen implements DataBeadReceiver {
 
 	// filter coefficients
-	private float la0, la1, b0, b1, b2; // la2, ha0, ha1, ha2
+	private float a0, a1, a2, lb0, lb1; // lb2, hb0, hb1, hb2;
 	// for calculating the filter coefficients
-	private float ok, ok2;
+	private float k;
 	// useful
-	public static final float PI = (float) (Math.PI);
 	public static final float SQRT2 = (float) Math.sqrt(2);
 	private float sr = 41000, freq = 120, pi_sr;
 	private UGen freqUGen;
@@ -102,7 +101,7 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 			hzms = new float[channels][3];
 		}
 		sr = context.getSampleRate();
-		pi_sr = PI / sr;
+		pi_sr = (float) (Math.PI / sr);
 		setFreq(freq);
 	}
 
@@ -132,34 +131,20 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 				for (int i = 0; i < bufferSize; i++) {
 
 					// low-pass part - two identical butterworth filters
-					ly[0] = (la0 * (bi[i] + x[2]) + la1 * x[1] - b1 * ly[1] - b2
+					ly[0] = (lb0 * (bi[i] + x[2]) + lb1 * x[1] - a1 * ly[1] - a2
 							* ly[2])
-							/ b0;
-					lo[i] = (la0 * (ly[0] + ly[2]) + la1 * ly[1] - b1 * lz[1] - b2
+							/ a0;
+					lo[i] = (lb0 * (ly[0] + ly[2]) + lb1 * ly[1] - a1 * lz[1] - a2
 							* lz[2])
-							/ b0;
-
-					// old low-pass part - two identical butterworth filters
-					/*
-					 * ly[0] = (la0 * bi[i] + la1 * x[1] + la2 * x[2] - b1 *
-					 * ly[1] - b2 ly[2]) / b0; lo[i] = (la0 * ly[0] + la1 *
-					 * ly[1] + la2 * ly[2] - b1 lz[1] - b2 * lz[2]) / b0;
-					 */
+							/ a0;
 
 					// optimized high-pass part - two identical butterworth
 					// filters
-					hy[0] = (bi[i] - 2 * x[1] + x[2] - b1 * hy[1] - b2 * hy[2])
-							/ b0;
-					hi[i] = (hy[0] - 2 * hy[1] + hy[2] - b1 * hz[1] - b2
+					hy[0] = (bi[i] - 2f * x[1] + x[2] - a1 * hy[1] - a2 * hy[2])
+							/ a0;
+					hi[i] = (hy[0] - 2f * hy[1] + hy[2] - a1 * hz[1] - a2
 							* hz[2])
-							/ b0;
-
-					// old high-pass part - two identical butterworth filters
-					/*
-					 * hy[0] = (ha0 * bi[i] + ha1 * x[1] + ha2 * x[2] - b1 *
-					 * hy[1] - b2 hy[2]) / b0; hi[i] = (ha0 * hy[0] + ha1 *
-					 * hy[1] + ha2 * hy[2] - b1 hz[1] - b2 * hz[2]) / b0;
-					 */
+							/ a0;
 
 					// remember everything
 					x[2] = x[1];
@@ -186,28 +171,15 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 			for (int i = 0; i < bufferSize; i++) {
 
 				// low-pass part - two identical butterworth filters
-				ly0 = (la0 * (bi[i] + x2) + la1 * x1 - b1 * ly1 - b2 * ly2)
-						/ b0;
-				lo[i] = (la0 * (ly0 + ly2) + la1 * ly1 - b1 * lz1 - b2 * lz2)
-						/ b0;
+				ly0 = (lb0 * (bi[i] + x2) + lb1 * x1 - a1 * ly1 - a2 * ly2)
+						/ a0;
+				lo[i] = (lb0 * (ly0 + ly2) + lb1 * ly1 - a1 * lz1 - a2 * lz2)
+						/ a0;
 
-				// old low-pass part - two identical butterworth filters
-				/*
-				 * ly0 = (la0 * bi[i] + la1 * x1 + la2 * x2 - b1 * ly1 - b2 *
-				 * ly2) / b0; lo[i] = (la0 * ly0 + la1 * ly1 + la2 * ly2 - b1 *
-				 * lz1 - b2 lz2) / b0;
-				 */
-
-				// optimized high-pass part - two identical butterworth filters
-				hy0 = (bi[i] - 2 * x1 + x2 - b1 * hy1 - b2 * hy2) / b0;
-				hi[i] = (hy0 - 2 * hy1 + hy2 - b1 * hz1 - b2 * hz2) / b0;
-
-				// old high-pass part - two identical butterworth filters
-				/*
-				 * hy0 = (ha0 * bi[i] + ha1 * x1 + ha2 * x2 - b1 * hy1 - b2 *
-				 * hy2) / b0; hi[i] = (ha0 * hy0 + ha1 * hy1 + ha2 * hy2 - b1 *
-				 * hz1 - b2 hz2) / b0;
-				 */
+				// optimized high-pass part - two identical butterworth
+				// filters
+				hy0 = (bi[i] - 2 * x1 + x2 - a1 * hy1 - a2 * hy2) / a0;
+				hi[i] = (hy0 - 2 * hy1 + hy2 - a1 * hz1 - a2 * hz2) / a0;
 
 				// remember everything
 				x2 = x1;
@@ -230,17 +202,16 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 
 	private final void calcVals() {
 
-		ok = (float) (Math.tan(pi_sr * freq));
-		la0 = ok * ok;
+		k = (float) Math.tan(freq * pi_sr);
+		lb0 = k * k;
+		lb1 = 2f * lb0;
+		// lb2 = lb0;
+		// hb0 = hb2 = 1;
+		// hb1 = -2;
+		a0 = lb0 + (SQRT2 * k) + 1;
+		a1 = 2f * (lb0 - 1);
+		a2 = lb0 - (SQRT2 * k) + 1;
 
-		b0 = 1 + SQRT2 * ok + la0;
-		b1 = 2 * (ok2 - 1);
-		b2 = 1 - SQRT2 * ok + la0;
-
-		la1 = 2 * la0;
-
-		// ha0 = ha2 = 1;
-		// ha1 = -2;
 	}
 
 	/**
