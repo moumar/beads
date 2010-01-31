@@ -51,10 +51,13 @@ public class CrossFade extends UGen {
 	 * @param crossfadeTimeMS the cross fade time in milliseconds.
 	 */
 	public void fadeTo(UGen target, float crossfadeTimeMS) {
-		outgoing = incoming;
-		incoming = target;
-		crossfadeTimeSamps = context.msToSamples(crossfadeTimeMS);
-		currentTimeSamps = 0;
+		if(incoming != target) {
+			outgoing = incoming;
+			incoming = target;
+			if(incoming == null) incoming = new Static(context, 0f);
+			crossfadeTimeSamps = context.msToSamples(crossfadeTimeMS);
+			currentTimeSamps = 0;
+		}
 	}
 	
 
