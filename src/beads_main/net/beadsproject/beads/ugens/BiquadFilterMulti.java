@@ -111,6 +111,12 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 	public final static int BUTTERWORTH_HP = 10;
 
 	/**
+	 * Indicates a Butterworth bandpass filter; Q indicates ratio of center
+	 * frequency to bandwidth.
+	 */
+	public final static int BUTTERWORTH_BP = 11;
+
+	/**
 	 * Indicates a user-defined filter; see
 	 * {@link #setCustomType(CustomCoeffCalculator) setCustomType}. This
 	 * constant is not recognized by {@link #setType(int) setType}.
@@ -130,6 +136,11 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 	protected float samplingfreq, two_pi_over_sf, pi_over_sf;
 	public static final float SQRT2 = (float) Math.sqrt(2);
 
+	// for analysis
+	protected double w = 0, ampResponse = 0, phaseResponse = 0, phaseDelay = 0;
+	protected double frReal = 0, frImag = 0;
+
+	// filter memory
 	private float[] bo1m, bo2m, bi1m, bi2m;
 
 	protected ValCalculator vc;
@@ -486,13 +497,13 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 
 	private class ButterworthLPValCalculator extends ValCalculator {
 		public void calcVals() {
-			float k = (float)Math.tan(freq * pi_over_sf);
+			float k = (float) Math.tan(freq * pi_over_sf);
 			b0 = b2 = k * k;
 			b1 = 2f * b0;
 			a0 = b0 + (SQRT2 * k) + 1;
 			a1 = 2f * (b0 - 1);
 			a2 = b0 - (SQRT2 * k) + 1;
-			//System.out.println(k + "^2 = " + k2);
+			// System.out.println(k + "^2 = " + k2);
 		}
 	}
 
@@ -505,7 +516,22 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 			a0 = k2p1 + (SQRT2 * k);
 			a1 = 2f * (k2p1 - 2);
 			a2 = k2p1 - (SQRT2 * k);
-			
+
+		}
+	}
+
+	private class ButterworthBPValCalculator extends ValCalculator {
+		public void calcVals() {
+			float hbw = pi_over_sf * .5f * freq / q;
+			float root = (float) Math.sqrt(1 + 4 * q * q);
+			float k1 = (float) Math.tan(hbw * (root - 1));
+			float k2 = (float) Math.tan(hbw * (root + 1));
+			float mp1 = k1 * k2 + 1;
+			b2 = -(b0 = k2 - k1);
+			b1 = 0;
+			a0 = mp1 + b0;
+			a1 = 2 * (mp1 - 2);
+			a2 = mp1 - b0;
 		}
 	}
 
@@ -705,6 +731,9 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 				break;
 			case BUTTERWORTH_HP:
 				vc = new ButterworthHPValCalculator();
+				break;
+			case BUTTERWORTH_BP:
+				vc = new ButterworthBPValCalculator();
 				break;
 			default:
 				type = t;
@@ -924,6 +953,108 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 	public float[] getCoefficients() {
 		float[] ret = { a0, a1, a2, b0, b1, b2 };
 		return ret;
+	}
+
+	/**
+	 * Gets the current theoretical amplitude response at the specified
+	 * frequency.
+	 * 
+	 * @param freq
+	 *            The frequency to test.
+	 * @return The amplitude response.
+	 */
+	public float getAmplitudeResponse(float freq) {
+		analyzeFilter(freq);
+		return (float) ampResponse;
+	}
+
+	/**
+	 * Gets the phase response at the specified frequency.
+	 * 
+	 * @param freq
+	 *            The frequency to text.
+	 * @return The phase response in radians.
+	 */
+	public float getPhaseResponse(float freq) {
+		analyzeFilter(freq);
+		return (float) phaseResponse;
+	}
+
+	/**
+	 * Gets the phase delay at the specified frequency. Phase delay is phase
+	 * response divided by radian frequency.
+	 * 
+	 * @param freq
+	 *            The frequency to test.
+	 * @return The phase delay in seconds.
+	 */
+	public float getPhaseDelay(float freq) {
+		analyzeFilter(freq);
+		return (float) phaseDelay;
+	}
+
+	/**
+	 * Gets an estimation of the group delay at the specified frequency.
+	 * 
+	 * @param freq
+	 *            The frequency to test.
+	 * @return The group delay.
+	 */
+	public float getGroupDelay(float freq) {
+		analyzeFilter(freq - .01f);
+		double pr1 = phaseResponse;
+		double w1 = w;
+		analyzeFilter(freq + .01f);
+		double pr2 = phaseResponse;
+		double w2 = w;
+		return (float) ((pr2 - pr1) / (w1 - w2));
+	}
+
+	/**
+	 * Gets an array filled with the filter response characteristics: {frequency
+	 * response (real), frequency response (imaginary), amplitude response,
+	 * phase response, phase delay, group delay}.
+	 * 
+	 * @param freq
+	 *            The frequency to test.
+	 * @return The array.
+	 */
+	public float[] getFilterResponse(float freq) {
+		float gd = getGroupDelay(freq);
+		analyzeFilter(freq);
+		return new float[] { (float) frReal, (float) frImag,
+				(float) ampResponse, (float) phaseResponse, (float) phaseDelay,
+				gd };
+	}
+
+	/**
+	 * Does our analysis at the specified frequency.
+	 * 
+	 * @param freq
+	 *            The frequency to analyze.
+	 */
+	protected void analyzeFilter(float freq) {
+		w = -2 * freq * Math.PI / this.samplingfreq;
+		double w2 = 2 * w;
+
+		double x1 = Math.cos(w);
+		double y1 = Math.sin(w);
+		double x2 = Math.cos(w2);
+		double y2 = Math.sin(w2);
+
+		double nx = b0 + b1 * x1 + b2 * x2;
+		double ny = b1 * y1 + b2 * y2;
+		double dx = a0 + a1 * x1 + a2 * x2;
+		double dy = a1 * y1 + a2 * y2;
+
+		double md2 = dx * dx + dy * dy;
+
+		ampResponse = Math.sqrt((nx * nx + ny * ny) / md2);
+		phaseResponse = (Math.atan2(ny, nx) - Math.atan2(dy, dx));
+		phaseDelay = (phaseResponse / Math.PI / -2.0 / freq);
+
+		frReal = (nx * dx + ny * dy) / md2;
+		frImag = (ny * dx - nx * dy) / md2;
 	}
 
 	/**
