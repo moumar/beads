@@ -5,14 +5,11 @@ import net.beadsproject.beads.core.AudioIO;
 import net.beadsproject.beads.core.UGen;
 
 /**
- * AudioIO is the abstract base class for setting up interaction between
- * AudioContext and the world. It is designed to be largely controlled by
- * AudioContext. To be precise, AudioContext will create(), start(), stop() and
- * destroy() the AudioIO it is initialised with. However, certain AudioIO
- * implementations may need to be set up before being passed to AudioContext().
- * By default, AudioContext creates a JavaSoundAudioContext.
+ * A dummy AudioIO class that is purely for non-realtime use; it does not
+ * interface with any system audio.
  * 
- * @author ollie
+ * @author Benito Crawford
+ * @version 0.9.5
  * 
  */
 public class NonrealtimeIO extends AudioIO {
@@ -25,7 +22,7 @@ public class NonrealtimeIO extends AudioIO {
 		return false;
 	}
 
-	protected boolean destroy(){
+	protected boolean destroy() {
 		return true;
 	}
 
