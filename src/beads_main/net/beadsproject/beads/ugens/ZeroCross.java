@@ -1,0 +1,56 @@
+package net.beadsproject.beads.ugens;
+
+import net.beadsproject.beads.core.*;
+
+/**
+ * Outputs a signal that counts the number of zero crossings in its input signal
+ * over a specified time frame.
+ * 
+ * @author Benito Crawford
+ * @version 0.9.5
+ */
+public class ZeroCross extends UGen {
+
+	private boolean above = false;
+	private boolean[] cross;
+	private int sum = 0, index = 0, memSize;
+
+	public ZeroCross(AudioContext context, float memSizeInMS) {
+		super(context, 1, 1);
+		memSize = (int) (context.msToSamples(memSizeInMS) + 1);
+		cross = new boolean[memSize];
+	}
+
+	@Override
+	public void calculateBuffer() {
+
+		float[] bi = bufIn[0];
+		float[] bo = bufOut[0];
+
+		for (int i = 0; i < bufferSize; i++) {
+
+			if (cross[index]) {
+				sum--;
+				cross[index] = false;
+			}
+
+			if (bi[i] < 0) {
+				if (above) {
+					cross[index] = true;
+					sum++;
+					above = false;
+				}
+			} else {
+				if (!above) {
+					cross[index] = true;
+					sum++;
+					above = true;
+				}
+			}
+
+			bo[i] = sum;
+			index = (index + 1) % memSize;
+		}
+	}
+
+}
