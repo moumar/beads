@@ -111,10 +111,14 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 	public final static int BUTTERWORTH_HP = 10;
 
 	/**
-	 * Indicates a Butterworth bandpass filter; Q indicates ratio of center
-	 * frequency to bandwidth.
+	 * Indicates a Bessel low-pass filter; only frequency is relevant.
 	 */
-	public final static int BUTTERWORTH_BP = 11;
+	public final static int BESSEL_LP = 11;
+
+	/**
+	 * Indicates a Bessel high-pass filter; only frequency is relevant.
+	 */
+	public final static int BESSEL_HP = 12;
 
 	/**
 	 * Indicates a user-defined filter; see
@@ -520,6 +524,7 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 		}
 	}
 
+	// same as BP_PEAK! but less efficient...
 	private class ButterworthBPValCalculator extends ValCalculator {
 		public void calcVals() {
 			float hbw = pi_over_sf * .5f * freq / q;
@@ -532,6 +537,29 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 			a0 = mp1 + b0;
 			a1 = 2 * (mp1 - 2);
 			a2 = mp1 - b0;
+		}
+	}
+
+	private class BesselLPValCalculator extends ValCalculator {
+		public void calcVals() {
+			float w = (float)Math.tan(pi_over_sf * freq);
+			b2 = b0 = 3 * w * w;
+			b1 = 2 * b0;
+			a0 = 1 + 3 * w + b0;
+			a1 = -2 + b1;
+			a2 = 1 - 3 * w + b0;
+		}
+	}
+	
+	private class BesselHPValCalculator extends ValCalculator {
+		public void calcVals() {
+			float w = (float)Math.tan(pi_over_sf * freq);
+			float w2 = w * w;
+			b2 = b0 = 3;
+			b1 = -6;
+			a0 = w2 + 3 * w + 3;
+			a1 = 2 * w2 - 6;
+			a2 = w2 - 3 * w + 3;
 		}
 	}
 
@@ -732,8 +760,11 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 			case BUTTERWORTH_HP:
 				vc = new ButterworthHPValCalculator();
 				break;
-			case BUTTERWORTH_BP:
-				vc = new ButterworthBPValCalculator();
+			case BESSEL_LP:
+				vc = new BesselLPValCalculator();
+				break;
+			case BESSEL_HP:
+				vc = new BesselHPValCalculator();
 				break;
 			default:
 				type = t;
