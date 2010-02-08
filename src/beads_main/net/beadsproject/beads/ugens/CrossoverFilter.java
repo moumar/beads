@@ -303,6 +303,33 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 			sendData((DataBead) message);
 		}
 	}
+	
+	public CrossoverFilter drawFromLowOutput(UGen target) {
+		for(int i = 0; i < target.getIns(); i++) {
+			if(i >= channels) { break; }
+			target.addInput(i, this, i * 2);
+		}
+		return this;
+	}
+	
+	public CrossoverFilter drawFromLowOutput(int channel, UGen target, int targetInputIndex) {
+		target.addInput(targetInputIndex, this, channel * 2);
+		return this;
+	}
+	
+	public CrossoverFilter drawFromHighOutput(UGen target) {
+		for(int i = 0; i < target.getIns(); i++) {
+			if(i >= channels) { break; }
+			target.addInput(i, this, i * 2 + 1);
+		}
+		return this;
+	}
+	
+	public CrossoverFilter drawFromHighOutput(int channel, UGen target, int targetInputIndex) {
+		target.addInput(targetInputIndex, this, channel * 2 + 1);
+		return this;
+	}
+	
 
 	// Attempted implementation of true 4th-order filter, but there's a bug...
 	/*
