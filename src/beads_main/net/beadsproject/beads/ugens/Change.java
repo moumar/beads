@@ -1,6 +1,7 @@
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
+
 //import net.beadsproject.beads.ugens.Delta;
 
 /**
@@ -8,11 +9,12 @@ import net.beadsproject.beads.core.*;
  * is the same. Use {@link Delta} to find how much a signal is changing.
  * 
  * @author Benito Crawford
- * @version 0.9
+ * @version 0.9.5
  */
 public class Change extends UGen {
 
 	private float lastX = 0;
+	private int currentDirection = 0;
 
 	/**
 	 * Bare constructor.
@@ -47,12 +49,31 @@ public class Change extends UGen {
 		for (int i = 1; i < bufferSize; i++) {
 			if ((x = bi[i]) > lastX) {
 				bo[i] = 1;
+				if (currentDirection != 1) {
+					currentDirection = 1;
+					directionChange(1);
+				}
 			} else if (x < lastX) {
 				bo[i] = -1;
+				if (currentDirection != -1) {
+					currentDirection = -1;
+					directionChange(-1);
+				}
 			} else {
 				bo[i] = 0;
 			}
 			lastX = x;
 		}
 	}
+
+	/**
+	 * Called when the input signal changes direction. Does nothing by default;
+	 * can be overridden to execute code when this happens.
+	 * 
+	 * @param newDirection
+	 *            The new direction of the signal (1 or -1);
+	 */
+	public void directionChange(int newDirection) {
+	}
+
 }
