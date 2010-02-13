@@ -37,7 +37,6 @@ public class Chain extends UGen {
 
 	}
 
-
 	/**
 	 * Adds the Chain inputs to the target UGen's inputs.
 	 * 
@@ -119,6 +118,23 @@ public class Chain extends UGen {
 
 	@Override
 	public final void calculateBuffer() {
+		preFrame();
 		chainOut.update();
+		postFrame();
 	}
+
+	/**
+	 * Called before the signal chain is updated for this Chain. Does nothing by
+	 * default; can be implemented with code as needed.
+	 */
+	protected void preFrame() {
+	}
+
+	/**
+	 * Called after the signal chain is updated for this Chain. Does nothing by
+	 * default; can be implemented with code as needed.
+	 */
+	protected void postFrame() {
+	}
+
 }
