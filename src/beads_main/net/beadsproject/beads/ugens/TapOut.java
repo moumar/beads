@@ -39,7 +39,7 @@ public class TapOut extends UGen {
 
 	protected TapOut(AudioContext ac, TapIn ti) {
 		super(ac, 0, 1);
-		sampsPerMS = (float) ac.samplesToMs(1);
+		sampsPerMS = (float) ac.msToSamples(1);
 		this.ti = ti;
 		this.addDependent(ti);
 		setMode(NO_INTERP);
