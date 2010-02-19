@@ -30,7 +30,7 @@ import net.beadsproject.beads.data.*;
  * @author Benito Crawford
  * @version 0.9.5.1
  */
-public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
+public class BiquadFilterMulti extends IIRFilter implements DataBeadReceiver {
 
 	/**
 	 * Indicates a low-pass filter; coefficients are calculated from equations
@@ -982,64 +982,9 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 	 * @return The coefficient array.
 	 */
 	public float[] getCoefficients() {
-		float[] ret = { a0, a1, a2, b0, b1, b2 };
-		return ret;
+		return new float[] { a0, a1, a2, b0, b1, b2 };
 	}
 
-	/**
-	 * Gets the current theoretical amplitude response at the specified
-	 * frequency.
-	 * 
-	 * @param freq
-	 *            The frequency to test.
-	 * @return The amplitude response.
-	 */
-	public float getAmplitudeResponse(float freq) {
-		analyzeFilter(freq);
-		return (float) ampResponse;
-	}
-
-	/**
-	 * Gets the phase response at the specified frequency.
-	 * 
-	 * @param freq
-	 *            The frequency to text.
-	 * @return The phase response in radians.
-	 */
-	public float getPhaseResponse(float freq) {
-		analyzeFilter(freq);
-		return (float) phaseResponse;
-	}
-
-	/**
-	 * Gets the phase delay at the specified frequency. Phase delay is phase
-	 * response divided by radian frequency.
-	 * 
-	 * @param freq
-	 *            The frequency to test.
-	 * @return The phase delay in seconds.
-	 */
-	public float getPhaseDelay(float freq) {
-		analyzeFilter(freq);
-		return (float) phaseDelay;
-	}
-
-	/**
-	 * Gets an estimation of the group delay at the specified frequency.
-	 * 
-	 * @param freq
-	 *            The frequency to test.
-	 * @return The group delay.
-	 */
-	public float getGroupDelay(float freq) {
-		analyzeFilter(freq - .01f);
-		double pr1 = phaseResponse;
-		double w1 = w;
-		analyzeFilter(freq + .01f);
-		double pr2 = phaseResponse;
-		double w2 = w;
-		return (float) ((pr2 - pr1) / (w1 - w2));
-	}
 
 	/**
 	 * Gets an array filled with the filter response characteristics: {frequency
@@ -1050,43 +995,10 @@ public class BiquadFilterMulti extends UGen implements DataBeadReceiver {
 	 *            The frequency to test.
 	 * @return The array.
 	 */
-	public float[] getFilterResponse(float freq) {
-		float gd = getGroupDelay(freq);
-		analyzeFilter(freq);
-		return new float[] { (float) frReal, (float) frImag,
-				(float) ampResponse, (float) phaseResponse, (float) phaseDelay,
-				gd };
+	public IIRFilterAnalysis getFilterResponse(float freq) {
+		return calculateFilterResponse(new float[] {b0, b1, b2}, new float[] {a0, a1, a2}, freq, samplingfreq);
 	}
 
-	/**
-	 * Does our analysis at the specified frequency.
-	 * 
-	 * @param freq
-	 *            The frequency to analyze.
-	 */
-	protected void analyzeFilter(float freq) {
-		w = -2 * freq * Math.PI / this.samplingfreq;
-		double w2 = 2 * w;
-
-		double x1 = Math.cos(w);
-		double y1 = Math.sin(w);
-		double x2 = Math.cos(w2);
-		double y2 = Math.sin(w2);
-
-		double nx = b0 + b1 * x1 + b2 * x2;
-		double ny = b1 * y1 + b2 * y2;
-		double dx = a0 + a1 * x1 + a2 * x2;
-		double dy = a1 * y1 + a2 * y2;
-
-		double md2 = dx * dx + dy * dy;
-
-		ampResponse = Math.sqrt((nx * nx + ny * ny) / md2);
-		phaseResponse = (Math.atan2(ny, nx) - Math.atan2(dy, dx));
-		phaseDelay = (phaseResponse / Math.PI / -2.0 / freq);
-
-		frReal = (nx * dx + ny * dy) / md2;
-		frImag = (ny * dx - nx * dy) / md2;
-	}
 
 	/**
 	 * Sets a user-defined coefficient calculation algorithm. The algorithm is

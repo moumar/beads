@@ -21,7 +21,7 @@ import net.beadsproject.beads.data.*;
  * @author Benito Crawford
  * @version 0.9.5
  */
-public class LPRezFilter extends UGen implements DataBeadReceiver {
+public class LPRezFilter extends IIRFilter implements DataBeadReceiver {
 
 	protected float freq = 100;
 	protected float res = .5f, _2pi_over_sr, cosw = 0;
@@ -409,6 +409,11 @@ public class LPRezFilter extends UGen implements DataBeadReceiver {
 	public DataBeadReceiver sendData(DataBead db) {
 		setParams(db);
 		return this;
+	}
+
+	@Override
+	public IIRFilterAnalysis getFilterResponse(float freq) {
+		return calculateFilterResponse(new float[] {b0}, new float[] {1, a1, a2}, freq, context.getSampleRate());
 	}
 
 }
