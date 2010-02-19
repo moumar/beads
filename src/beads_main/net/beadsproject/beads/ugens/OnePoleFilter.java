@@ -12,8 +12,8 @@ import net.beadsproject.beads.data.*;
  * @author Benito Crawford
  * @version 0.9
  */
-public class OnePoleFilter extends UGen implements DataBeadReceiver {
-	private float freq, a0, b1, y1 = 0;
+public class OnePoleFilter extends IIRFilter implements DataBeadReceiver {
+	private float freq, b0, a1, y1 = 0;
 	private UGen freqUGen;
 	protected float samplingfreq, two_pi_over_sf;
 	protected boolean isFreqStatic;
@@ -51,7 +51,7 @@ public class OnePoleFilter extends UGen implements DataBeadReceiver {
 	}
 
 	protected void calcVals() {
-		b1 = (a0 = (float) Math.sin(two_pi_over_sf * freq)) - 1;
+		a1 = (b0 = (float) Math.sin(two_pi_over_sf * freq)) - 1;
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class OnePoleFilter extends UGen implements DataBeadReceiver {
 		if (isFreqStatic) {
 
 			for (int currsamp = 0; currsamp < bufferSize; currsamp++) {
-				bo[currsamp] = y1 = a0 * bi[currsamp] - b1 * y1;
+				bo[currsamp] = y1 = b0 * bi[currsamp] - a1 * y1;
 			}
 
 		} else {
@@ -70,9 +70,9 @@ public class OnePoleFilter extends UGen implements DataBeadReceiver {
 			freqUGen.update();
 
 			for (int currsamp = 0; currsamp < bufferSize; currsamp++) {
-				b1 = (a0 = (float) Math.sin(two_pi_over_sf
+				a1 = (b0 = (float) Math.sin(two_pi_over_sf
 						* freqUGen.getValue(0, currsamp))) - 1;
-				bo[currsamp] = y1 = a0 * bi[currsamp] - b1 * y1;
+				bo[currsamp] = y1 = b0 * bi[currsamp] - a1 * y1;
 			}
 			freq = freqUGen.getValue(0, bufferSize - 1);
 
@@ -101,7 +101,7 @@ public class OnePoleFilter extends UGen implements DataBeadReceiver {
 	 */
 	public OnePoleFilter setFreq(float freq) {
 		this.freq = freq;
-		b1 = (a0 = (float) Math.sin(two_pi_over_sf * freq)) - 1;
+		a1 = (b0 = (float) Math.sin(two_pi_over_sf * freq)) - 1;
 		isFreqStatic = true;
 		return this;
 	}
@@ -209,6 +209,12 @@ public class OnePoleFilter extends UGen implements DataBeadReceiver {
 	public DataBeadReceiver sendData(DataBead db) {
 		setParams(db);
 		return this;
+	}
+
+	@Override
+	public IIRFilterAnalysis getFilterResponse(float freq) {
+		return calculateFilterResponse(new float[] { b0 },
+				new float[] { 1, a1 }, freq, context.getSampleRate());
 	}
 
 }
