@@ -101,7 +101,7 @@ public abstract class IIRFilter extends UGen {
 	 * @param freq
 	 *            The frequency to analyze.
 	 */
-	protected static IIRFilterAnalysis analyzeFilter(float[] as, float[] bs,
+	protected static IIRFilterAnalysis analyzeFilter(float[] bs, float[] as,
 			float freq, float samplingFreq) {
 
 		double w = -2 * freq * Math.PI / samplingFreq;
@@ -117,7 +117,7 @@ public abstract class IIRFilter extends UGen {
 		}
 		if (as.length > 0) {
 			dr = as[0];
-			for (int i = 1; i < bs.length; i++) {
+			for (int i = 1; i < as.length; i++) {
 				dr += as[i] * Math.cos(w * i);
 				di += as[i] * Math.sin(w * i);
 			}
