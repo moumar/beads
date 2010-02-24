@@ -1,6 +1,8 @@
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
+import net.beadsproject.beads.data.DataBead;
+import net.beadsproject.beads.data.DataBeadReceiver;
 
 /**
  * Performs a simple linear map from one range of values to another. Can be
@@ -11,7 +13,7 @@ import net.beadsproject.beads.core.*;
  * @author Benito Crawford
  * @version 0.9.5
  */
-public class ZMap extends UGen {
+public class ZMap extends UGen implements DataBeadReceiver {
 
 	private int channels;
 	private float a = 1, b = 0;
@@ -330,6 +332,57 @@ public class ZMap extends UGen {
 	 */
 	public int getChannels() {
 		return channels;
+	}
+
+	/**
+	 * Sets the ZMap parameters with a DataBead, using the following properties:
+	 * "sourceMinimum", "sourceMaximum", "targetMinimum", "targetMaximum",
+	 * "multiplier", "shift", "clipping".
+	 * 
+	 * @param The
+	 *            parameter DataBead.
+	 * @return This ZMap instance.
+	 */
+	public DataBeadReceiver sendData(DataBead db) {
+		if (db != null) {
+			setRanges(db.getFloat("sourceMinimum", o1), db.getFloat(
+					"sourceMaximum", o2), db.getFloat("targetMinimum", n1), db
+					.getFloat("targetMaximum", n2));
+			multiplyThenAdd(db.getFloat("multiplier", a), db.getFloat("shift",
+					b));
+			Object o = db.get("clipping");
+			if (o instanceof Boolean) {
+				setClipping((Boolean) o);
+			}
+		}
+		return this;
+	}
+
+	/**
+	 * Gets a new DataBead filled with current parameter values.
+	 * 
+	 * @return The new parameter DataBead.
+	 */
+	public DataBead getParams() {
+		return getStaticParams();
+	}
+
+	/**
+	 * Gets a new DataBead filled with current parameter values.
+	 * 
+	 * @return The new parameter DataBead.
+	 */
+	public DataBead getStaticParams() {
+		DataBead db = new DataBead();
+		db.put("sourceMinimum", o1);
+		db.put("sourceMaximum", o2);
+		db.put("targetMinimum", n1);
+		db.put("targetMaximum", n2);
+		db.put("multiplier", a);
+		db.put("shift", b);
+		db.put("clipping", clip);
+
+		return db;
 	}
 
 }
