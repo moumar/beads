@@ -7,9 +7,13 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
 /**
- * RangeLimiter forces a signal within the range [-1,1].
+ * RangeLimiter forces a signal within the range [-1,1]. Use {@link Clip} for
+ * constraining to other ranges.
  * 
  * @beads.category effect
+ * @author ollie
+ * @author benito
+ * @version 0.9.5
  */
 public class RangeLimiter extends UGen {
 
@@ -17,27 +21,36 @@ public class RangeLimiter extends UGen {
 	 * Instantiates a new RangeLimiter.
 	 * 
 	 * @param context
-	 *            the AudioContext.
-	 * @param inouts
-	 *            the number of inputs (= number of outputs).
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
 	 */
-	public RangeLimiter(AudioContext context, int inouts) {
-		super(context, inouts, inouts);
+	public RangeLimiter(AudioContext context, int channels) {
+		super(context, channels, channels);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.olliebown.beads.core.UGen#calculateBuffer()
 	 */
 	@Override
 	public void calculateBuffer() {
-		for(int i = 0; i < bufferSize; i++) {
-			for(int j = 0; j < ins; j++) {
-				bufOut[j][i] = bufIn[j][i];
-				if(bufOut[j][i] > 1.0f) bufOut[j][i] = 1.0f;
-				else if(bufOut[j][i] < -1.0f) bufOut[j][i] = -1.0f;
+		float y;
+
+		for (int j = 0; j < ins; j++) {
+			float[] bi = bufIn[j];
+			float[] bo = bufOut[j];
+			for (int i = 0; i < bufferSize; i++) {
+				if ((y = bi[i]) > 1.0f) {
+					bo[i] = 1f;
+				} else if (y < -1f) {
+					bo[i] = -1f;
+				} else {
+					bo[i] = y;
+				}
 			}
 		}
 	}
 
-	
 }
