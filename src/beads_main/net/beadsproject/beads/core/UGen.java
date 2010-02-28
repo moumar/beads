@@ -617,6 +617,45 @@ public abstract class UGen extends Bead {
 	}
 	
 	/**
+	 * Disconnects the connection from the specified UGen to this one.
+	 * 
+	 * @param inputChannel
+	 *            The channel of this UGen to check.
+	 * @param sourceUGen
+	 *            The UGen to disconnect.
+	 * @param sourceOutputChannel
+	 *            The channel of the source UGen.
+	 * @return True if a connection was removed; false otherwise.
+	 */
+	@SuppressWarnings("unchecked")
+	public synchronized boolean removeConnection(int inputChannel,
+			UGen sourceUGen, int sourceOutputChannel) {
+		// Added by Benito
+		if (!noInputs) {
+			int inputCount = 0;
+			boolean ret = false;
+			// System.out.println("remove " + i);
+			ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputsAtChannel[inputChannel].clone();
+			for (BufferPointer bp : bplist) {
+				if (sourceUGen.equals(bp.ugen)
+						&& bp.index == sourceOutputChannel) {
+					removeInputAtChannel(inputChannel, bp);
+					ret = true;
+				} else {
+					inputCount++;
+				}
+			}
+			if (inputCount == 0) {
+				noInputs = true;
+				zeroIns();
+			}
+			return ret;
+		} else {
+			return false;
+		}
+	}
+	
+	/**
 	 * Clear all of this UGen's input connections.
 	 */
 	@SuppressWarnings("unchecked")
