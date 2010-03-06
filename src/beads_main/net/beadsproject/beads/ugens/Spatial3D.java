@@ -92,15 +92,18 @@ public class Spatial3D extends UGen {
 		}
 	}
 	
-	//default speaker numbering: first layout speakers 1-4 on the ground in clockwise order
-	//then layout speakers 5-8 so that they are above 1-4 respectively. Then:
-	//the x-axis follows the line joining 1 and 4
-	//the y-axis follows the line joining 1 and 2
-	//the z-axis follows the line joining 1 and 5
-	//This follows the 'right-handed' ordering of the axes: 
-	//http://en.wikipedia.org/wiki/Cartesian_coordinate_system#Orientation_and_handedness
-	public float[][] speakerPositions;
-	public float sphereDiameter;
+	/** 
+	 * Default speaker numbering: first layout speakers 1-4 on the ground in clockwise order
+	 * then layout speakers 5-8 so that they are above 1-4 respectively. Then:
+	 * the x-axis follows the line joining 1 and 4
+	 * the y-axis follows the line joining 1 and 2
+	 * the z-axis follows the line joining 1 and 5
+	 * This follows the 'right-handed' ordering of the axes: 
+	 * http://en.wikipedia.org/wiki/Cartesian_coordinate_system#Orientation_and_handedness
+	 * 
+	 */
+	private float[][] speakerPositions;
+	private float sphereDiameter;
 
 	private Map<UGen, Location> sources;
 	private List<UGen> deadSources;

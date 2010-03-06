@@ -34,7 +34,7 @@ public class OscillatorBank extends UGen {
     private int numOscillators;
     
     /** The sample rate and master gain of the OscillatorBank. */
-    private float sr, gain;
+    private float gain;
     
     /**
      * Instantiates a new OscillatorBank.
@@ -46,7 +46,6 @@ public class OscillatorBank extends UGen {
     public OscillatorBank(AudioContext context, Buffer buffer, int numOscillators) {
         super(context, 1);
         this.buffer = buffer;
-        sr = context.getSampleRate();
         setNumOscillators(numOscillators);
         gain = 1f / (float)numOscillators;
     }
@@ -169,9 +168,6 @@ public class OscillatorBank extends UGen {
         }
     }   
 
-    public static void main(String[] args) {
-    	
-    }
     
 }
 

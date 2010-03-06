@@ -27,13 +27,10 @@ public class UGenStressTest {
 		Envelope gainEnv = new Envelope(ac, 0);
 		Gain g = new Gain(ac, 1, gainEnv);
 		g.addInput(wp);
-		PanMonoToStereo pms = new PanMonoToStereo(ac);
-		pms.getPanEnvelope().setValue(1.f * j / NUM);
-		pms.addInput(g);
 		gainEnv.addSegment(2.f / (NUM * NUM), 1);
 		gainEnv.addSegment(1.5f / (NUM * NUM), 10);
-		gainEnv.addSegment(0f, 100, new KillTrigger(pms));
-		pl.addInput(pms);
+		gainEnv.addSegment(0f, 100, new KillTrigger(g));
+		pl.addInput(g);
 	}
 
 	public static void main(String[] args) {
