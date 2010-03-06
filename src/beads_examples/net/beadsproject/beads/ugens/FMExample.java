@@ -5,6 +5,10 @@ import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.buffers.SineBuffer;
+import net.beadsproject.beads.ugens.core.Envelope;
+import net.beadsproject.beads.ugens.core.Function;
+import net.beadsproject.beads.ugens.core.Gain;
+import net.beadsproject.beads.ugens.synth.WavePlayer;
 
 public class FMExample {
 	

@@ -16,7 +16,7 @@ import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
-import net.beadsproject.beads.ugens.SamplePlayer;
+import net.beadsproject.beads.ugens.sample.SamplePlayer;
 
 
 public class Analyze {

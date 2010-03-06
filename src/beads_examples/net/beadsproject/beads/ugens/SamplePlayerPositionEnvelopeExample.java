@@ -3,6 +3,8 @@ package net.beadsproject.beads.ugens;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.SampleManager;
+import net.beadsproject.beads.ugens.core.Envelope;
+import net.beadsproject.beads.ugens.sample.SamplePlayer;
 
 
 public class SamplePlayerPositionEnvelopeExample {

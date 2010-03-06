@@ -6,6 +6,9 @@ import javax.sound.sampled.LineUnavailableException;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
+import net.beadsproject.beads.ugens.core.Gain;
+import net.beadsproject.beads.ugens.effect.TapIn;
+import net.beadsproject.beads.ugens.effect.TapOut;
 
 
 public class RTInputExample {

@@ -34,7 +34,7 @@ import net.beadsproject.beads.core.AudioUtils;
  * <br /><br />
  * 
  * <p>
- * Samples are usually played with a {@link net.beadsproject.beads.ugens.SamplePlayer}. Sample data 
+ * Samples are usually played with a {@link net.beadsproject.beads.ugens.sample.SamplePlayer}. Sample data 
  * can also be accessed through the methods: 
  * {@link #getFrame(int, float[]) getFrame},
  * {@link #getFrameLinear(double, float[]) getFrameLinear}, and  
@@ -69,7 +69,7 @@ import net.beadsproject.beads.core.AudioUtils;
  * 
  * @beads.category data
  * @see SampleManager
- * @see net.beadsproject.beads.ugens.Recorder
+ * @see net.beadsproject.beads.ugens.utility.Recorder
  * @author Beads Team
  */
 public class Sample implements Runnable {

@@ -27,7 +27,20 @@ public class NonrealtimeIO extends AudioIO {
 	}
 
 	protected UGen getAudioInput(int[] channels) {
-		return null;
+		return new ThisIsNotAnInput(context, channels.length);
+	}
+	
+	private class ThisIsNotAnInput extends UGen {
+
+		public ThisIsNotAnInput(AudioContext context, int outs) {
+			super(context, outs);
+			outputInitializationRegime = OutputInitializationRegime.ZERO;
+			pause(true);
+		}
+
+		@Override
+		public void calculateBuffer() {}
+		
 	}
 
 }

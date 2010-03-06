@@ -2,9 +2,9 @@ package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.buffers.SineBuffer;
-import net.beadsproject.beads.ugens.Gain;
-import net.beadsproject.beads.ugens.MonoPlug;
-import net.beadsproject.beads.ugens.WavePlayer;
+import net.beadsproject.beads.ugens.core.Gain;
+import net.beadsproject.beads.ugens.synth.WavePlayer;
+import net.beadsproject.beads.ugens.utility.MonoPlug;
 
 public class MonoPlugExample {
 	

@@ -9,7 +9,7 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.SampleManager;
-import net.beadsproject.beads.ugens.SamplePlayer;
+import net.beadsproject.beads.ugens.sample.SamplePlayer;
 
 public class FeatureSetExample {
 

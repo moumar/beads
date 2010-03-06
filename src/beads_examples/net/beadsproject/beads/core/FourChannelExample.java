@@ -3,10 +3,10 @@ package net.beadsproject.beads.core;
 import javax.sound.sampled.AudioFormat;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.events.KillTrigger;
-import net.beadsproject.beads.ugens.Clock;
-import net.beadsproject.beads.ugens.Envelope;
-import net.beadsproject.beads.ugens.Gain;
-import net.beadsproject.beads.ugens.WavePlayer;
+import net.beadsproject.beads.ugens.core.Clock;
+import net.beadsproject.beads.ugens.core.Envelope;
+import net.beadsproject.beads.ugens.core.Gain;
+import net.beadsproject.beads.ugens.synth.WavePlayer;
 
 
 public class FourChannelExample {

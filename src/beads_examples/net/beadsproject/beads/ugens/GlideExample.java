@@ -5,6 +5,10 @@ import java.util.Random;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.data.Buffer;
+import net.beadsproject.beads.ugens.core.Clock;
+import net.beadsproject.beads.ugens.core.Gain;
+import net.beadsproject.beads.ugens.core.Glide;
+import net.beadsproject.beads.ugens.synth.WavePlayer;
 
 
 public class GlideExample {

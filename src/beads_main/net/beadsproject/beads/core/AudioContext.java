@@ -13,9 +13,9 @@ import javax.sound.sampled.AudioFormat;
 import net.beadsproject.beads.core.io.JavaSoundAudioIO;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
-import net.beadsproject.beads.ugens.DelayTrigger;
-import net.beadsproject.beads.ugens.Gain;
-import net.beadsproject.beads.ugens.Recorder;
+import net.beadsproject.beads.ugens.core.Gain;
+import net.beadsproject.beads.ugens.utility.DelayTrigger;
+import net.beadsproject.beads.ugens.utility.Recorder;
 
 /**
  * AudioContext provides the core audio set up for running audio in a Beads

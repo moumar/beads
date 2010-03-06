@@ -9,7 +9,7 @@ package net.beadsproject.beads.core;
  */
 public abstract class AudioIO {
 
-	AudioContext context;
+	protected AudioContext context;
 	
 	protected boolean prepare() {return true;}
 	protected abstract boolean create();

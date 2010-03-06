@@ -2,6 +2,8 @@ package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.buffers.SineBuffer;
+import net.beadsproject.beads.ugens.core.Gain;
+import net.beadsproject.beads.ugens.synth.WavePlayer;
 
 
 public class HowManyWavePlayers {
