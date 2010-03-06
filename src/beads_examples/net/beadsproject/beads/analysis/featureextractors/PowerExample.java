@@ -5,8 +5,8 @@ import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.TimeStamp;
 import net.beadsproject.beads.data.buffers.SineBuffer;
-import net.beadsproject.beads.ugens.core.Gain;
-import net.beadsproject.beads.ugens.synth.WavePlayer;
+import net.beadsproject.beads.ugens.Gain;
+import net.beadsproject.beads.ugens.WavePlayer;
 
 public class PowerExample {
 	

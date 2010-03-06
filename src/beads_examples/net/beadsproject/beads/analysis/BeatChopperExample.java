@@ -16,9 +16,9 @@ import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.SampleManager;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
 import net.beadsproject.beads.events.KillTrigger;
-import net.beadsproject.beads.ugens.core.Gain;
-import net.beadsproject.beads.ugens.sample.SamplePlayer;
-import net.beadsproject.beads.ugens.utility.DelayTrigger;
+import net.beadsproject.beads.ugens.DelayTrigger;
+import net.beadsproject.beads.ugens.Gain;
+import net.beadsproject.beads.ugens.SamplePlayer;
 
 public class BeatChopperExample {
 	

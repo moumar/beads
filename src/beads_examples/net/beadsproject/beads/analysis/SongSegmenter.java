@@ -13,9 +13,9 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.TimeStamp;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
-import net.beadsproject.beads.ugens.sample.SamplePlayer;
-import net.beadsproject.beads.ugens.utility.DelayTrigger;
-import net.beadsproject.beads.ugens.utility.Recorder;
+import net.beadsproject.beads.ugens.DelayTrigger;
+import net.beadsproject.beads.ugens.Recorder;
+import net.beadsproject.beads.ugens.SamplePlayer;
 
 /**
  * Segments a song, then reorders the segments from longest to shortest...

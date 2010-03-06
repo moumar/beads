@@ -1,7 +1,5 @@
 package net.beadsproject.beads.data.buffers;
 
-import java.util.Arrays;
-
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.BufferFactory;
 

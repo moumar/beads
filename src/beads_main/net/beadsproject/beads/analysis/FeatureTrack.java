@@ -4,7 +4,6 @@
 package net.beadsproject.beads.analysis;
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -13,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
 import net.beadsproject.beads.core.TimeStamp;
 
 /**

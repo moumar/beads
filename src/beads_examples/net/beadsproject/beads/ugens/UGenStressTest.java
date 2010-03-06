@@ -7,11 +7,6 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.events.KillTrigger;
-import net.beadsproject.beads.ugens.core.Clock;
-import net.beadsproject.beads.ugens.core.Envelope;
-import net.beadsproject.beads.ugens.core.Gain;
-import net.beadsproject.beads.ugens.synth.WavePlayer;
-import net.beadsproject.beads.ugens.utility.PolyLimit;
 
 /**
  * Smashes the system by adding and removing many ugens ...

@@ -3,8 +3,6 @@ package net.beadsproject.beads.ugens;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.buffers.SineBuffer;
-import net.beadsproject.beads.ugens.core.Function;
-import net.beadsproject.beads.ugens.synth.WavePlayer;
 
 
 public class DoingMathExample {

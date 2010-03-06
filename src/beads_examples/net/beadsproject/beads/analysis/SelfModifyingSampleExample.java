@@ -8,8 +8,8 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.TimeStamp;
 import net.beadsproject.beads.data.SampleManager;
-import net.beadsproject.beads.ugens.core.Clock;
-import net.beadsproject.beads.ugens.sample.SamplePlayer;
+import net.beadsproject.beads.ugens.Clock;
+import net.beadsproject.beads.ugens.SamplePlayer;
 
 
 public class SelfModifyingSampleExample {

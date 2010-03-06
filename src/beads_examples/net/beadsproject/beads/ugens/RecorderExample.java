@@ -7,10 +7,6 @@ import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.buffers.SawBuffer;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
-import net.beadsproject.beads.ugens.core.Envelope;
-import net.beadsproject.beads.ugens.synth.WavePlayer;
-import net.beadsproject.beads.ugens.utility.DelayTrigger;
-import net.beadsproject.beads.ugens.utility.Recorder;
 
 /**
  * Demonstration of recording into a sample, and playing it back.

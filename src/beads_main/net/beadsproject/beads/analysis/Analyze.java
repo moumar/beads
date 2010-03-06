@@ -16,7 +16,7 @@ import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
-import net.beadsproject.beads.ugens.sample.SamplePlayer;
+import net.beadsproject.beads.ugens.SamplePlayer;
 
 
 public class Analyze {
@@ -37,6 +37,7 @@ public class Analyze {
 		return sample(s, extractors, defaultSettings);
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static FeatureSet sample(Sample s, List<String> extractors, AnalysisSettings settings) {
 		FeatureSet results = new FeatureSet();
 		FeatureTrack lowLevel = new FeatureTrack();

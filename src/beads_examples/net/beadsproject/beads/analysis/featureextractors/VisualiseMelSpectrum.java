@@ -12,7 +12,7 @@ import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.TimeStamp;
 import net.beadsproject.beads.core.UGen;
-import net.beadsproject.beads.ugens.core.Gain;
+import net.beadsproject.beads.ugens.Gain;
 
 public class VisualiseMelSpectrum {
 

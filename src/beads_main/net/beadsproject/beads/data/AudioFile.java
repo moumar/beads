@@ -245,6 +245,7 @@ public class AudioFile {
 			}
 			else
 			{
+				@SuppressWarnings("unused")
 				long skipped = decodedStream.skip(nChannels*numBytes*frames);
 				//System.out.printf("skip want: %db, got %db\n",nChannels*numBytes*frames,skipped);
 			}

@@ -12,11 +12,11 @@ import java.util.Set;
 
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.events.KillTrigger;
-import net.beadsproject.beads.ugens.core.Clock;
-import net.beadsproject.beads.ugens.core.Envelope;
-import net.beadsproject.beads.ugens.core.Gain;
-import net.beadsproject.beads.ugens.synth.WavePlayer;
-import net.beadsproject.beads.ugens.utility.DelayTrigger;
+import net.beadsproject.beads.ugens.Clock;
+import net.beadsproject.beads.ugens.DelayTrigger;
+import net.beadsproject.beads.ugens.Envelope;
+import net.beadsproject.beads.ugens.Gain;
+import net.beadsproject.beads.ugens.WavePlayer;
 
 /**
  * A UGen is the main base class for implementing signal generation and processing units (unit generators). UGens can have any number of audio input and output channels, which adopt the audio format of the {@link AudioContext} used to construct the UGen. Any UGen output can be connected to any other UGen input, using {@link #addInput(int, UGen, int)} (or use {@link #addInput(UGen)} to connect all outputs of one UGen to all inputs of another). UGens are constructed using an
@@ -547,16 +547,16 @@ public abstract class UGen extends Bead {
 		return connectedInputs;
 	}
 	
-	private static Hashtable<Class, Hashtable<String, Method>> envelopeGetterMethods = new Hashtable<Class, Hashtable<String,Method>>();
+	private static Hashtable<Class<?>, Hashtable<String, Method>> envelopeGetterMethods = new Hashtable<Class<?>, Hashtable<String,Method>>();
 	
 	private void findEnvelopeGetterMethods() {
-		Class c = getClass();
+		Class<?> c = getClass();
 		if(!envelopeGetterMethods.containsKey(c)) {
 			Hashtable<String, Method> methodTable = new Hashtable<String, Method>();
 			Method[] methods = c.getMethods();
 			for(Method m : methods) {
 				String name = m.getName();
-				if(name.startsWith("get") && name.endsWith("Envelope") && m.getReturnType().equals(UGen.class)) {
+				if(name.startsWith("get") && name.endsWith("UGen") && m.getReturnType().equals(UGen.class)) {
 					String envelopeName = name.substring(3, 3).toLowerCase() + name.substring(4, name.length() - 8);
 					methodTable.put(envelopeName, m);
 				}
@@ -587,7 +587,6 @@ public abstract class UGen extends Bead {
 	
 	private synchronized void removeInputAtChannel(int channel, BufferPointer bp) {
 		inputsAtChannel[channel].remove(bp);
-		//System.out.println("input removed, channel=" + channel + " total=" + inputsAtChannel[channel].size());
 	}	
 	
 	/**
@@ -600,7 +599,6 @@ public abstract class UGen extends Bead {
 		if (!noInputs) {
 				int inputCount = 0;
 				for (int i = 0; i < inputsAtChannel.length; i++) {
-					//System.out.println("remove " + i);
 					ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputsAtChannel[i].clone();
 					for (BufferPointer bp : bplist) {
 						if (sourceUGen.equals(bp.ugen)) {
@@ -634,7 +632,6 @@ public abstract class UGen extends Bead {
 		if (!noInputs) {
 			int inputCount = 0;
 			boolean ret = false;
-			// System.out.println("remove " + i);
 			ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputsAtChannel[inputChannel].clone();
 			for (BufferPointer bp : bplist) {
 				if (sourceUGen.equals(bp.ugen)
@@ -728,7 +725,7 @@ public abstract class UGen extends Bead {
 	}
 	
 	/**
-	 * Gets the value of the buffer, assuming that the buffer only has one value. This is mainly a convenience method for use with {@link net.beadsproject.beads.ugens.core.Static Static} type UGens. It is equivalent to {@link #getValue(0, 0)}.
+	 * Gets the value of the buffer, assuming that the buffer only has one value. This is mainly a convenience method for use with {@link net.beadsproject.beads.ugens.Static Static} type UGens. It is equivalent to {@link #getValue(0, 0)}.
 	 * 
 	 * @return the value.
 	 */
@@ -750,7 +747,7 @@ public abstract class UGen extends Bead {
 	}
 	
 	/**
-	 * Gets the value as a double. Only overridden by certain classes that generate info in doubles. Gets the value of the buffer, assuming that the buffer only has one value. This is mainly a convenience method for use with {@link net.beadsproject.beads.ugens.core.Static Static} type UGens. It is equivalent to {@link #getValue(0, 0)}.
+	 * Gets the value as a double. Only overridden by certain classes that generate info in doubles. Gets the value of the buffer, assuming that the buffer only has one value. This is mainly a convenience method for use with {@link net.beadsproject.beads.ugens.Static Static} type UGens. It is equivalent to {@link #getValue(0, 0)}.
 	 * 
 	 * @return the value.
 	 */
@@ -759,7 +756,7 @@ public abstract class UGen extends Bead {
 	}
 	
 	/**
-	 * Sets the value of {@link #bufOut}. This is mainly a convenience method for use with {@link net.beadsproject.beads.ugens.core.Static Static} and {@link net.beadsproject.beads.ugens.core.Envelope Envelope} type UGens.
+	 * Sets the value of {@link #bufOut}. This is mainly a convenience method for use with {@link net.beadsproject.beads.ugens.Static Static} and {@link net.beadsproject.beads.ugens.Envelope Envelope} type UGens.
 	 * 
 	 * @param value the new value.
 	 */

@@ -5,8 +5,6 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.buffers.SineBuffer;
-import net.beadsproject.beads.ugens.core.Clock;
-import net.beadsproject.beads.ugens.synth.OscillatorBank;
 
 public class OscillatorBankExample {
 	

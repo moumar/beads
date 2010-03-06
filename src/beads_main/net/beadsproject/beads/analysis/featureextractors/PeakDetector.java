@@ -1,8 +1,8 @@
 package net.beadsproject.beads.analysis.featureextractors;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+
 import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.analysis.SegmentListener;
 import net.beadsproject.beads.analysis.SegmentMaker;

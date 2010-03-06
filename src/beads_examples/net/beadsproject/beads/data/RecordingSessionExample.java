@@ -9,7 +9,7 @@ import javax.swing.JLabel;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
-import net.beadsproject.beads.ugens.utility.Recorder;
+import net.beadsproject.beads.ugens.Recorder;
 
 /**
  * Record audio from microphone, then output it into a file.

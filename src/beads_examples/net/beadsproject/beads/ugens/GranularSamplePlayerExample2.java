@@ -8,8 +8,7 @@ import javax.swing.JPanel;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.SampleManager;
-import net.beadsproject.beads.ugens.sample.GranularSamplePlayer;
-import net.beadsproject.beads.ugens.sample.SamplePlayer.LoopType;
+import net.beadsproject.beads.ugens.SamplePlayer.LoopType;
 
 
 public class GranularSamplePlayerExample2 {

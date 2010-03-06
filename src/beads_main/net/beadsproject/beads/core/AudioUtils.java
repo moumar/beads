@@ -6,7 +6,6 @@
 package net.beadsproject.beads.core;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -362,7 +361,7 @@ public final class AudioUtils {
 		} catch(Exception e) {
 			File f = new File(s);
 			try {
-				url = f.toURL();
+				url = f. toURI().toURL();
 			} catch (MalformedURLException e1) {
 				e1.printStackTrace();
 			}
