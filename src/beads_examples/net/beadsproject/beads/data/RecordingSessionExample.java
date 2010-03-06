@@ -8,7 +8,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 
 import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.ugens.RTInput;
+import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.ugens.Recorder;
 
 /**
@@ -22,7 +22,7 @@ public class RecordingSessionExample {
 		final AudioContext ac = new AudioContext();
 		
 		// read input from microphone
-		RTInput input = new RTInput(ac);
+		UGen input = ac.getAudioInput(new int[] {0});
 		  
 		// set up a recorder
 		final Sample s = new Sample(ac.getAudioFormat(),1000);

@@ -3,14 +3,16 @@ package net.beadsproject.beads.analysis.featureextractors;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
 import net.beadsproject.beads.analysis.SegmentListener;
 import net.beadsproject.beads.analysis.segmenters.ShortFrameSegmenter;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.TimeStamp;
+import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.ugens.Gain;
-import net.beadsproject.beads.ugens.RTInput;
 
 public class VisualiseMelSpectrum {
 
@@ -35,7 +37,7 @@ public class VisualiseMelSpectrum {
 		ps.addListener(ms);
 		
 		//connect audio
-		RTInput in = new RTInput(ac);
+		UGen in = ac.getAudioInput(new int[] {0});
 		sfs.addInput(in);
 		ac.out.addDependent(sfs);	//<-- sfs must be triggered
 		//listen to input
