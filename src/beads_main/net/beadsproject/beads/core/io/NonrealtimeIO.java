@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.core.io;
 
 import net.beadsproject.beads.core.AudioContext;

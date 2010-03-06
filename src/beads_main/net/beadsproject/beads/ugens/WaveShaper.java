@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
@@ -24,6 +27,7 @@ import net.beadsproject.beads.data.DataBeadReceiver;
  * DataBead.
  * </p>
  * 
+ * @beads.category synth
  * @author Benito Crawford
  * @version 0.9.5
  */

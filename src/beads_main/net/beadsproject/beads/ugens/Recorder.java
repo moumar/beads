@@ -31,7 +31,7 @@ import net.beadsproject.beads.data.Sample;
  * that specify how it behaves. If necessary you can modify the parameters on a per-recorder basis. See
  * {@link #setResizingParameters(double, double)}.
  * 
- * @beads.category input
+ * @beads.category utilities
  *  
  */
 public class Recorder extends UGen {

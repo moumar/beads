@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.AudioContext;
@@ -7,8 +10,8 @@ import net.beadsproject.beads.core.UGen;
  * 
  * Simple UGen that ramps between given values over a given duration (e.g., for portamento).
  * 
- * @author ollie
  * @beads.category control
+ * @author ollie
  */
 public class Glide extends UGen {
 

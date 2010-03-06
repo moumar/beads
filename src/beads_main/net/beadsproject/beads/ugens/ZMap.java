@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
@@ -10,6 +13,7 @@ import net.beadsproject.beads.data.DataBeadReceiver;
  * specifying a multiplier and shift (addition) value. Optionally, the signal
  * can be clipped to the specified range.
  * 
+ * @beads.category lowlevel
  * @author Benito Crawford
  * @version 0.9.5
  */

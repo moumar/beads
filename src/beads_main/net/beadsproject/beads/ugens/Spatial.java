@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import java.io.File;
@@ -13,7 +16,6 @@ import java.util.Scanner;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
-// TODO: Auto-generated Javadoc
 /**
  * A mixer for a speaker config in any number of dimensions (we haven't tested D>3 yet). 
  * Add sources (UGens) and control their locations using other UGens. Locations are changed on a per-channel basis,
@@ -31,6 +33,7 @@ import net.beadsproject.beads.core.UGen;
  * the y-axis follows the line joining 1 and 2
  * the z-axis follows the line joining 1 and 5
  * 
+ * @beads.category utilities
  * @author ollie
  *
  */

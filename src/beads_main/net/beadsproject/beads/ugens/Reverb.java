@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
@@ -8,6 +11,7 @@ import net.beadsproject.beads.data.*;
  * early reflections and late reverb levels. If specified, creates a
  * de-correlated multi-channel effect.
  * 
+ * @beads.category effect
  * @author Benito Crawford
  * @version 0.9.5
  */

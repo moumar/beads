@@ -10,6 +10,7 @@ import net.beadsproject.beads.core.UGen;
  * 
  * TODO: non-linear fades.
  * 
+ * @beads.category utilities
  * @author ollie
  *
  */

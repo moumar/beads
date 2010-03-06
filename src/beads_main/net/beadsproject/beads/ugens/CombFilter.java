@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import java.util.Arrays;
@@ -11,6 +14,7 @@ import net.beadsproject.beads.data.DataBead;
  * <p>
  * y(n) = a * x(n) + g * x(n - d) - h * y(n - d)
  * 
+ * @beads.category filter
  * @author Benito Crawford
  * @version 0.9.1
  */

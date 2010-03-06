@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.data.buffers;
 
 import java.util.Arrays;
@@ -15,7 +18,6 @@ public class MeanFilter extends BufferFactory {
 
 	@Override
 	public Buffer generateBuffer(int bufferSize) {
-		// TODO Auto-generated method stub
 		Buffer b = new Buffer(bufferSize);
 		Arrays.fill(b.buf,1.f/bufferSize);
 		return b;
@@ -23,7 +25,6 @@ public class MeanFilter extends BufferFactory {
 
 	@Override
 	public String getName() {
-		// TODO Auto-generated method stub
 		return "MeanFilter";
 	}
 

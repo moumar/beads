@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.UGen;
@@ -27,6 +30,7 @@ import net.beadsproject.beads.ugens.BiquadFilterMulti;
  * BiquadFilterMulti can also implement a user-defined filter algorithm by
  * calling {@link #setCustomType(CustomCoeffCalculator)}.
  * 
+ * @beads.category filter
  * @author Benito Crawford
  * @version 0.9.5
  */

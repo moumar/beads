@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
@@ -19,6 +22,7 @@ import net.beadsproject.beads.data.*;
  * <li>{@link #RAMPED_NOISE} - for random-length ramps between random values.</li>
  * </ul>
  * 
+ * @beads.category synth
  * @author Benito Crawford
  * @version 0.9.1
  * 

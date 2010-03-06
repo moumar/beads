@@ -12,6 +12,7 @@ import net.beadsproject.beads.data.*;
  * static values, or by UGens. Use {@link RangeLimiter} to strictly (and more
  * efficiently) constrain a signal in the range [-1,1].
  * 
+ * @beads.category lowlevel
  * @author Benito Crawford
  * @version 0.9.5
  * 

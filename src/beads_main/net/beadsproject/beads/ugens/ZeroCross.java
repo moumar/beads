@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
@@ -6,6 +9,7 @@ import net.beadsproject.beads.core.*;
  * Counts and outputs as a signal the number of zero crossings in its input
  * signal over a specified time frame.
  * 
+ * @beads.category lowlevel
  * @author Benito Crawford
  * @version 0.9.5
  */

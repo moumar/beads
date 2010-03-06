@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
@@ -8,6 +11,7 @@ import net.beadsproject.beads.core.*;
  * Outputs 1 if the input signal is increasing; -1 if it is decreasing; 0 if it
  * is the same. Use {@link Delta} to find how much a signal is changing.
  * 
+ * @beads.category lowlevel
  * @author Benito Crawford
  * @version 0.9.5
  */

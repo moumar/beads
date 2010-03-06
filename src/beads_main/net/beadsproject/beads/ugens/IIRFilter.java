@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
@@ -7,6 +10,7 @@ import net.beadsproject.beads.core.*;
  * response (IIR) filters. IIR filters built on this class should implement
  * {@link #getFilterResponse(float)} appropriately.
  * 
+ * @beads.category filter
  * @author Benito Crawford
  * @version 0.9.5
  */

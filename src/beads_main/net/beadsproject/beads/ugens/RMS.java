@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
@@ -8,6 +11,7 @@ import net.beadsproject.beads.core.*;
  * summing the squares of each channel and dividing by the square root of the
  * number of channels.
  * 
+ * @beads.category lowlevel
  * @author Benito Crawford
  * @version 0.9.5
  */

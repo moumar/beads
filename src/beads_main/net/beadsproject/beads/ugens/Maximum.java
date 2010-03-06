@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
@@ -5,6 +8,7 @@ import net.beadsproject.beads.core.*;
 /**
  * For each sample, outputs the maximum of its two inputs.
  * 
+ * @beads.category lowlevel
  * @author Benito Crawford
  * @version 0.9
  */

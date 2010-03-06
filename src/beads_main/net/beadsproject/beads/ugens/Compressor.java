@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
@@ -20,6 +23,7 @@ import net.beadsproject.beads.data.*;
  * <li>{@link #setSideChain(UGen) side-chain} - the input audio</li>
  * </ul>
  * 
+ * @beads.category dynamics
  * @author Benito Crawford
  * @version 0.9.5
  */

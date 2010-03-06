@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
@@ -11,6 +14,7 @@ import net.beadsproject.beads.data.*;
  * completely to the right, and 0 results in center panning. It uses an array to
  * approximate square roots for efficiency.
  * 
+ * @beads.category utilities
  * @author Benito Crawford
  * @version 0.9.1
  */

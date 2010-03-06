@@ -1,9 +1,14 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
 
 /**
  * Outputs the change in the input signal from the previous sample to the current one.
+ * 
+ * @beads.category lowlevel
  * @author Benito Crawford
  * @version 0.9
  */

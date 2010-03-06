@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
@@ -21,6 +24,7 @@ import net.beadsproject.beads.data.DataBeadReceiver;
  * useful as crossover filters. A 4th-order version is equivalent to cascading
  * two identical 2nd-order Butterworth filters.
  * 
+ * @beads.category filter
  * @author Benito Crawford
  * @version 0.9.5
  * 

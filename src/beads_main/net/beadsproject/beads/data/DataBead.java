@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.data;
 
 import net.beadsproject.beads.core.*;
@@ -136,7 +139,7 @@ public class DataBead extends Bead implements Map<String, Object> {
 				//set it
 				m.invoke(o, theArg);
 			} catch (Exception e) {
-				e.printStackTrace(); 	//could potentially just ignore
+				//ignore exceptions
 			}
 		}
 	}
