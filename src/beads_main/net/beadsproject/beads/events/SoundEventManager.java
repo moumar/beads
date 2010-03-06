@@ -1,4 +1,4 @@
-package net.beadsproject.beads.play;
+package net.beadsproject.beads.events;
 
 import java.beans.XMLDecoder;
 import java.io.File;
