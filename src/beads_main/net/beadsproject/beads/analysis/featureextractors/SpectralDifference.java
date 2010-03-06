@@ -7,6 +7,8 @@ import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.core.TimeStamp;
 
 /**
+ * SpectralDifference calculates the spectral difference between one frame and the next.
+ * 
  * @beads.category analysis
  */
 public class SpectralDifference extends FeatureExtractor<Float, float[]> {

@@ -1,12 +1,9 @@
 package net.beadsproject.beads.analysis;
 import java.io.File;
-import java.util.Arrays;
 import java.util.Random;
 
 import javax.sound.sampled.AudioFileFormat;
 
-import net.beadsproject.beads.analysis.AudioAnalyser;
-import net.beadsproject.beads.analysis.SegmentListener;
 import net.beadsproject.beads.analysis.featureextractors.PeakDetector;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.TimeStamp;
@@ -87,7 +84,7 @@ public class MusicRemixer {
 						SamplePlayer sp = Math.random() < 0.8f ? new GranularSamplePlayer(ac,segment) : new SamplePlayer(ac,segment);		
 //						sp.setKillOnEnd(true);
 						float rate = (float)Math.random() * 0.2f + 0.9f;
-						sp.getRateEnvelope().setValue(rate);
+						sp.getRateUGen().setValue(rate);
 						Envelope gainEnv = new Envelope(ac, 0f);
 						Gain g = new Gain(ac, 2, gainEnv);
 //						sp.setKillListener(new AudioContextStopTrigger(ac));

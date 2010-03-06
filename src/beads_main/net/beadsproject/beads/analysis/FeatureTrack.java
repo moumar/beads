@@ -190,8 +190,6 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 //					new CloneNotSupportedException("Must implement clone handling in FeatureTrack for Class " + features.getClass()).printStackTrace();
 					ff.add(e.getName(), features);
 				}
-				
-				
 				//how about ff.add(..., features.getClass().cast(features).clone())? - ben
 				//doesn't work, since clone is not an available method - ollie
 			} 

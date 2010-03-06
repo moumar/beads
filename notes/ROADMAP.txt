@@ -17,9 +17,9 @@ The fewer stars, the further down the road it is.
 --------
 Package:
 --------
-***Start using version numbers.
+***Start using version numbers - STARTING FROM V0.
 **Clean up examples and tests, integrate with webpage.
-***Anything that doesn't make it into V1.0, mark as experimental or keep out of main package.
+***Anything that doesn't make it into V1.0, mark as experimental or keep out of main package - DONE.
 **Provide some well documented higher level examples / tutorials including: generative music (no input), simple tools manipulated by 2D mouse input, simple step sequencer, mp3 library mashup.
 Start using Trac or Bugzilla.
 
@@ -47,8 +47,8 @@ UGens:
 ***Profile UGen call chain code and seek speed-ups. In particular, What data structures are fastest? What tricks to avoid unnecesary computation? Can we get the bufferSize down to 64?
 ***Decide on Concurrency policy.
 ***Provide setParams() method in UGen.
-***Make addInput() return 'this'.
-***Rename all getter and setter methods in existing UGens (deprecate where necessary), and make the setters return 'this'.
+***Make addInput() return 'this' - CANCELLED.
+***Rename all getter and setter methods in existing UGens (deprecate where necessary) - DONE - and make the setters return 'this' - CANCELLED.
 **Rename Static to Constant.
 Rename Envelope to Breakpoint or Line?
 Work out what to do with doubles (e.g., Clock uses an array of doubles to provide precise time data). Perhaps go entirely to doubles, or devise a generic holder.
@@ -61,7 +61,7 @@ Tidy UGens into sub-packages.
 ----------------
 Data and Events:
 ----------------
-***Finalise DataBead and SoundEvent.
+***Finalise DataBead and SoundEvent - DONE.
 **Finalise Pattern.
 Benito's ideas about Instrument, DrumInstrument, PitchedInstrument?
 Consider whether IntegerBead, FloatBead, etc. are still required.
