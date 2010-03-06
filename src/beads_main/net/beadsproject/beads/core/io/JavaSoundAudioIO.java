@@ -229,8 +229,7 @@ public class JavaSoundAudioIO extends AudioIO {
 
 	@Override
 	protected UGen getAudioInput(int[] channels) {
-		// TODO not properly implemented, this does not respond to channels arg.
-		return new JavaSoundRTInput(getContext(), getContext().getAudioFormat());
+		return new JavaSoundRTInput(getContext(), getContext().getAudioFormat(), channels);
 	}
 
 	/**
@@ -254,6 +253,8 @@ public class JavaSoundAudioIO extends AudioIO {
 
 		private boolean isBigEndian;
 		private int channels;
+		private int maxChannel;
+		private int[] channelsToServe;
 
 		/**
 		 * Instantiates a new RTInput.
@@ -263,11 +264,16 @@ public class JavaSoundAudioIO extends AudioIO {
 		 * @param audioFormat
 		 *            the AudioFormat.
 		 */
-		JavaSoundRTInput(AudioContext context, AudioFormat audioFormat) {
+		JavaSoundRTInput(AudioContext context, AudioFormat audioFormat, int[] channelsToServe) {
 			super(context, audioFormat.getChannels());
 			this.audioFormat = audioFormat;
 			isBigEndian = audioFormat.isBigEndian();
-			channels = audioFormat.getChannels();
+			this.channelsToServe = channelsToServe;
+			maxChannel = 0;
+			for(int i = 0; i < channelsToServe.length; i++) {
+				if(channelsToServe[i] > maxChannel) maxChannel = channelsToServe[i];
+			}
+			channels = channelsToServe.length;
 			javaSoundInitialized = false;
 		}
 
@@ -312,7 +318,7 @@ public class JavaSoundAudioIO extends AudioIO {
 			targetDataLine.read(bbuf, 0, bbuf.length);
 
 			int ib = 0;
-
+			//TODO corrent implementation of channels
 			if (isBigEndian) {
 				for (int i = 0; i < bufferSize; ++i) {
 					for (int j = 0; j < channels; ++j) {
