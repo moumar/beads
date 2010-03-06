@@ -572,7 +572,8 @@ public class AudioFile {
 	  * THIS CODE IS FROM jlGui PlayerUI.java.
 	  * jlGui can be obtained at: http://www.javazoom.net/jlgui/jlgui.html
 	  */
-    public long getTimeLengthEstimation(Map properties)
+    @SuppressWarnings("unchecked")
+	public long getTimeLengthEstimation(Map properties)
     {
         long milliseconds = -1;
         int byteslength = -1;
