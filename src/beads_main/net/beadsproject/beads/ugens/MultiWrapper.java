@@ -1,8 +1,12 @@
 /*
  * This file is part of Beads. See http://www.beadsproject.net for all information.
  */
-package net.beadsproject.beads.core;
+package net.beadsproject.beads.ugens;
 
+import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.Bead;
+import net.beadsproject.beads.core.Chain;
+import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.*;
 
 /**
@@ -103,7 +107,7 @@ public class MultiWrapper extends Chain implements DataBeadReceiver {
 			// hook the ins of the channel UGen to the appropriate output of
 			// mwIn
 			for (int j = 0; j < insPerChannel; j++) {
-				if (j < ugens[i].ins) {
+				if (j < ugens[i].getIns()) {
 					this.drawFromChainInput(i * insPerChannel + j, ugens[i], j);
 				}
 			}
@@ -111,7 +115,7 @@ public class MultiWrapper extends Chain implements DataBeadReceiver {
 			// hook the outs of the channel UGen to the appropriate input
 			// of mwOut
 			for (int j = 0; j < outsPerChannel; j++) {
-				if (j < ugens[i].outs) {
+				if (j < ugens[i].getOuts()) {
 					this.addToChainOutput(i * outsPerChannel + j, ugens[i], j);
 				}
 			}
