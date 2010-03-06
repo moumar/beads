@@ -55,8 +55,7 @@ public class JavaSoundAudioIO extends AudioIO {
 	/**
 	 * Initialises JavaSound.
 	 */
-	@Override
-	public boolean create() {
+	private boolean create() {
 		AudioFormat audioFormat = getContext().getAudioFormat();
 		getDefaultMixerIfNotAlreadyChosen();
 		if (mixer == null) {
@@ -159,8 +158,7 @@ public class JavaSoundAudioIO extends AudioIO {
 	}
 
 	/** Shuts down JavaSound elements, SourceDataLine and Mixer. */
-	@Override
-	protected boolean destroy() {
+	private boolean destroy() {
 		sourceDataLine.drain();
 		sourceDataLine.stop();
 		sourceDataLine.close();
