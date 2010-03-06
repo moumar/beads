@@ -88,8 +88,22 @@ public class AudioContext {
 	}
 
 	/**
+	 * Creates a new AudioContext with default audio format and 
+	 * buffer size and the specified {@link AudioIO}. The default audio format is 44.1Khz,
+	 * 16 bit, stereo, signed, bigEndian.
+	 * 
+	 * @param bufferSizeInFrames
+	 *            the buffer size in samples.
+	 * @param systemBufferSizeInFrames
+	 *            the system buffer size in samples.
+	 */
+	public AudioContext(AudioIO ioSystem) {
+		this(DEFAULT_BUFFER_SIZE, ioSystem, defaultAudioFormat(2));
+	}
+	
+	/**
 	 * Creates a new AudioContext with default audio format and the specified
-	 * buffer size and system buffer size. The default audio format is 44.1Khz,
+	 * buffer size and {@link AudioIO}. The default audio format is 44.1Khz,
 	 * 16 bit, stereo, signed, bigEndian.
 	 * 
 	 * @param bufferSizeInFrames
@@ -102,7 +116,6 @@ public class AudioContext {
 		this(bufferSizeInFrames, ioSystem, defaultAudioFormat(2));
 	}
 
-	//TODO - note - Benito added this constructor
 	/**
 	 * Creates a new AudioContext with the default system buffer size and the
 	 * specified audio format and buffer size.

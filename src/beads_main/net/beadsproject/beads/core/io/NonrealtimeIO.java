@@ -22,7 +22,10 @@ public class NonrealtimeIO extends AudioIO {
 	}
 
 	protected boolean start() {
-		return false;
+		while(context.isRunning()) {
+			update();
+		}
+		return true;
 	}
 
 	protected boolean destroy() {

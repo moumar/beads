@@ -223,7 +223,6 @@ public class JavaSoundAudioIO extends AudioIO {
 						}
 					}
 				}
-
 				sourceDataLine.write(bbuf, 0, bbuf.length);
 			}
 
