@@ -1,5 +1,6 @@
 package net.beadsproject.beads.core;
 
+
 /**
  * Organizes a series of connected UGens into one unit. It allows for users to
  * define a custom UGen purely from other UGens, without programming the

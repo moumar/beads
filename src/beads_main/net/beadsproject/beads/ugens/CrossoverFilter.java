@@ -1,8 +1,8 @@
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
-import net.beadsproject.beads.data.DataBeadReceiver;
 import net.beadsproject.beads.data.DataBead;
+import net.beadsproject.beads.data.DataBeadReceiver;
 
 /**
  * A multi-channel 4th-order Linkwitz-Riley crossover filter. For each input

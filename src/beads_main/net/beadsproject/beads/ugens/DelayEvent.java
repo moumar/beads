@@ -60,7 +60,7 @@ public abstract class DelayEvent extends UGen {
 	 */
 	public DelayEvent(AudioContext context, double delay, boolean fireAfter) {
 		super(context, 0, 0);
-		context.out.addDependent(this);
+//		context.out.addDependent(this); //Ollie - I don't think this should be automatic
 		sampleDelay = (long) context.msToSamples(delay);
 		reset();
 		firesAfter(fireAfter);

@@ -5,7 +5,8 @@ import net.beadsproject.beads.core.UGen;
 
 /**
  * CrossFade is used to quickly crossfade between elements. Add it to the signal chain and
- * simply call {@link #fadeTo(UGen, float)} to fade to a new {@link #UGen} over a given duration.
+ * simply call {@link #fadeTo(UGen, float)} to fade to a new {@link #UGen} over a given duration. 
+ * Note that UGen has it's own simpler crossFade method.
  * 
  * TODO: non-linear fades.
  * 

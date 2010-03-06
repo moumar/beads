@@ -3,7 +3,6 @@
  */
 package net.beadsproject.beads.ugens;
 
-import java.util.Arrays;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
