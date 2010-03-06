@@ -2,13 +2,12 @@ package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
-import net.beadsproject.beads.data.buffers.SineBuffer;
 
 /**
  * 
  * Simple UGen that ramps between given values over a given duration (e.g., for portamento).
  * 
- * @author ben
+ * @author ollie
  * @beads.category control
  */
 public class Glide extends UGen {
@@ -21,27 +20,54 @@ public class Glide extends UGen {
 	private boolean gliding;
 	private boolean nothingChanged;
 	
+	/**
+	 * Creates a new Glide with the specified AudioContext, initial value and glide time in milliseconds.
+	 * @param context 
+	 * 				the AudioContext.
+	 * @param currentValue 
+	 * 				the initial value.
+	 * @param glideTimeMS 
+	 * 				the glide time in milliseconds.
+	 */
 	public Glide(AudioContext context, float currentValue, float glideTimeMS) {
-		this(context, currentValue);
-		setGlideTime(glideTimeMS);
-	}
-	
-	public Glide(AudioContext context, float currentValue) {
 		super(context, 1);
 		this.currentValue = currentValue;
-		glideTime = (int)context.msToSamples(100f);
 		countSinceGlide = 0;
 		gliding = false;
 		nothingChanged = false;
 		outputInitializationRegime = OutputInitializationRegime.RETAIN;
 		outputPauseRegime = OutputPauseRegime.RETAIN;
 		bufOut[0] = new float[bufferSize];
+		setGlideTime(glideTimeMS);
 	}
 	
+	/**
+	 * Creates a new Glide with the specified AudioContext, initial value. Uses the 
+	 * default glide time of 100 milliseconds.
+	 * @param context 
+	 * 				the AudioContext.
+	 * @param currentValue 
+	 * 				the initial value.
+	 */
+	public Glide(AudioContext context, float currentValue) {
+		this(context, currentValue, 100);
+	}
+	
+	/**
+	 * Creates a new Glide with the specified AudioContext. Uses the 
+	 * default inital value of zero and glide time of 100 milliseconds.
+	 * @param context 
+	 * 				the AudioContext.
+	 */
 	public Glide(AudioContext context) {
 		this(context, 0f);
 	}
 
+	/** 
+	 * Sets the target glide value. From its current value Glide immediately interpolates
+	 * its way to that value over the specified glideTime.
+	 * @param targetValue the target value.
+	 */
 	public void setValue(float targetValue) {
 		this.targetValue = targetValue;
 		gliding = true;
@@ -50,6 +76,10 @@ public class Glide extends UGen {
 		previousValue = currentValue;
 	}
 	
+	/**
+	 * Resets the Glide's current value to the specified value immediately.
+	 * @param targetValue the target value.
+	 */
 	public void setValueImmediately(float targetValue) {
 		currentValue = targetValue;
 		gliding = false;
@@ -57,10 +87,18 @@ public class Glide extends UGen {
 		countSinceGlide = 0;
 	}
 	
+	/**
+	 * Sets the glide time in milliseconds immediately.
+	 * @param msTime glide time in milliseconds.
+	 */
 	public void setGlideTime(float msTime) {
 		glideTime = (int)context.msToSamples(msTime);
 	}
 	
+	/**
+	 * Gets the glide time in milliseconds.
+	 * @return the glide time in milliseconds.
+	 */
 	public float getGlideTime() {
 		return (float)context.samplesToMs(glideTime);
 	}

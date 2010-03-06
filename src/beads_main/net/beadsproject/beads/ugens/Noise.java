@@ -9,7 +9,7 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.buffers.NoiseBuffer;
 
 /**
- * Noise generates white noise.
+ * Noise generates white noise. It uses a long buffer of sampled noise.
  * 
  * @beads.category synth
  * @author ollie

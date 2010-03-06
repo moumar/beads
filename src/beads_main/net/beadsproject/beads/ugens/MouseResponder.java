@@ -7,7 +7,7 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
 /**
- * A MouseResponder is a way of getting mouse input to control audio rate data.
+ * A MouseResponder is a way of getting mouse input to control audio rate data. The mouse doesn't generate audio rate data, but it is interpolated.
  * 
  * @beads.category control
  */

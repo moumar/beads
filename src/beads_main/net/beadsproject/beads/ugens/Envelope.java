@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.core.AudioUtils;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.UGen;
 

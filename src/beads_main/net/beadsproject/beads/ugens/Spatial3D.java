@@ -14,13 +14,13 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
 /**
- * An Octophonic mixer. Add sources with locations and change the locations. Locations are changed on a per-channel basis,
+ * A mixer for a 3D speaker config. Add sources with locations and change the locations. Locations are changed on a per-channel basis,
  * so that multichannel files can be located in the octophonic mixer independently. 
  * 
  * @author ollie
  *
  */
-public class OctophonicMixer extends UGen {
+public class Spatial3D extends UGen {
 
 	private class Location {
 		
@@ -109,7 +109,7 @@ public class OctophonicMixer extends UGen {
 								//1 is linear
 								//speakers will not play a sound that is further than 1 diameter away from them
 	
-	public OctophonicMixer(AudioContext context) {
+	public Spatial3D(AudioContext context) {
 		this(context, new float[][] {
 			{0,0,0},
 			{0,1,0},
@@ -123,11 +123,11 @@ public class OctophonicMixer extends UGen {
 		);
 	}
 
-	public OctophonicMixer(AudioContext context, float[][] locations) {
+	public Spatial3D(AudioContext context, float[][] locations) {
 		this(context, locations, (float)Math.sqrt(3f));
 	}
 	
-	public OctophonicMixer(AudioContext context, float[][] locations, float sphereDiameter) {
+	public Spatial3D(AudioContext context, float[][] locations, float sphereDiameter) {
 		super(context, locations.length);
 		setSpeakerPositions(locations);
 		setSphereDiameter(sphereDiameter);
