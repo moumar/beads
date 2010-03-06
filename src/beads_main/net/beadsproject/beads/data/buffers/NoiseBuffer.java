@@ -7,7 +7,7 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.BufferFactory;
 
 /**
- * A buffer of random floats.
+ * Creates a {@link Buffer} of random floats.
  * 
  * @author ben
  *

@@ -42,7 +42,7 @@
 			</classpath>
 			<compilerarg value="-Xlint:unchecked" />
 		</javac>
-		<javac srcdir="src/beads_experimental" destdir="${buildmain}" debug="off">
+		<javac srcdir="src/beads_analysis" destdir="${buildmain}" debug="off">
 			<classpath>
 				<pathelement location="dependencies/tritonus_share.jar" />
 			</classpath>

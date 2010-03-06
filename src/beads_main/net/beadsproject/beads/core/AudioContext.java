@@ -92,10 +92,7 @@ public class AudioContext {
 	 * buffer size and the specified {@link AudioIO}. The default audio format is 44.1Khz,
 	 * 16 bit, stereo, signed, bigEndian.
 	 * 
-	 * @param bufferSizeInFrames
-	 *            the buffer size in samples.
-	 * @param systemBufferSizeInFrames
-	 *            the system buffer size in samples.
+	 * @param ioSystem the AudioIO system.
 	 */
 	public AudioContext(AudioIO ioSystem) {
 		this(DEFAULT_BUFFER_SIZE, ioSystem, defaultAudioFormat(2));
@@ -108,8 +105,7 @@ public class AudioContext {
 	 * 
 	 * @param bufferSizeInFrames
 	 *            the buffer size in samples.
-	 * @param systemBufferSizeInFrames
-	 *            the system buffer size in samples.
+	 * @param ioSystem the AudioIO system.
 	 */
 	public AudioContext(int bufferSizeInFrames, AudioIO ioSystem) {
 		// use almost entirely default settings
@@ -120,6 +116,8 @@ public class AudioContext {
 	 * Creates a new AudioContext with the default system buffer size and the
 	 * specified audio format and buffer size.
 	 * 
+	 * @param bufferSizeInFrames
+	 *            the buffer size in samples.
 	 * @param audioFormat
 	 *            the audio format, which specifies sample rate, bit depth,
 	 *            number of channels, signedness and byte order.
@@ -146,13 +144,12 @@ public class AudioContext {
 	 * 
 	 * @param bufferSizeInFrames
 	 *            the buffer size in samples.
-	 * @param systemBufferSizeInFrames
-	 *            the system buffer size in samples.
+	 * @param ioSystem the AudioIO system.
 	 * @param audioFormat
 	 *            the audio format, which specifies sample rate, bit depth,
 	 *            number of channels, signedness and byte order.
 	 */
-	public AudioContext(int bufferSizeInFrames, AudioIO audioIO,
+	public AudioContext(int bufferSizeInFrames, AudioIO ioSystem,
 			AudioFormat audioFormat) {
 		// set up basic stuff
 		checkForDroppedFrames = true;
@@ -166,7 +163,7 @@ public class AudioContext {
 		// set up the default root UGen
 		out = new Gain(this, audioFormat.getChannels());
 		// bind to AudioIO
-		this.audioIO = audioIO;
+		this.audioIO = ioSystem;
 		this.audioIO.context = this;
 		this.audioIO.prepare();
 	}
@@ -273,7 +270,7 @@ public class AudioContext {
 	 * Gets a pointer to a buffer of length bufferSize, full of zeros. Changing
 	 * the contents of this buffer would be completely disastrous. If you want a
 	 * buffer of zeros that you can actually do something with, use {@link
-	 * getCleanBuf()}.
+	 * #getCleanBuf()}.
 	 * 
 	 * @return buffer of size bufSize, all zeros.
 	 */

@@ -353,7 +353,7 @@ public class Spatial extends UGen {
 	}
 	
 	/** 
-	 * This overrides {@UGen #addInput(UGen)} by adding a new 'source' sound to the spatialisation.
+	 * This overrides {@link #addInput(UGen)} by adding a new 'source' sound to the spatialisation.
 	 */
 	public void addInput(UGen source) {
 		Location location = new Location(source);

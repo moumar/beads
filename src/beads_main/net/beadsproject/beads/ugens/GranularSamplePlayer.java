@@ -283,7 +283,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 	
 	/**
 	 * @deprecated Use {@link #getRandomPanUGen()} instead.
-	 * @return
+	 * @return the random pan envelope.
 	 */
 	@Deprecated
 	public UGen getRandomPanEnvelope() {

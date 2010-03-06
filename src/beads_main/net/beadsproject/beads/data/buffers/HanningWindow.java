@@ -7,7 +7,7 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.BufferFactory;
 
 /**
- * A {@link BufferFactory} that generates Hanning windows.
+ * Creates a {@link Buffer} of a Hanning window.
  * 
  * @see Buffer BufferFactory
  * @author ollie

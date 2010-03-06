@@ -63,8 +63,6 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 	 * 
 	 * @param context
 	 *            The audio context.
-	 * @param channels
-	 *            The number of channels.
 	 */
 	public CrossoverFilter(AudioContext context) {
 		this(context, 1, 800);

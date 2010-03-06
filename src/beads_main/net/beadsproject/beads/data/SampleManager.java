@@ -11,13 +11,12 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+
 import javax.sound.sampled.UnsupportedAudioFileException;
-import net.beadsproject.beads.analysis.FeatureSet;
 
 /**
  * SampleManager provides a static repository for {@link Sample} data and provides methods to organise samples into groups.
@@ -35,8 +34,6 @@ public class SampleManager {
 	/** List of group names mapped to group directories, groups only in this list if from same directory. */
 	private final static Map<String, String> groupDirs = new TreeMap<String, String>();
 
-	private final static Map<Sample, FeatureSet> featureSets = new Hashtable<Sample, FeatureSet>();
-	
 	private final static Set<SampleGroupListener> listeners = new HashSet<SampleGroupListener>();
 	
 	private static boolean verbose = true;
@@ -77,7 +74,7 @@ public class SampleManager {
 	 * been loaded, it will not be loaded again, but will simply be retrieved
 	 * from the static repository.
 	 * 
-	 * @param fn the file path.
+	 * @param is the InputStream.
 	 * 
 	 * @return the sample.
 	 */
@@ -138,7 +135,7 @@ public class SampleManager {
 	 * Like {@link SampleManager#sample(String)} but with the option to specify the name with which this {@link Sample} is indexed.
 	 * 
 	 * @param ref the name with which to index this Sample.
-	 * @param fn the file path.
+	 * @param is the InputStream.
 	 * 
 	 * @return the sample.
 	 * @throws IOException 
@@ -339,7 +336,6 @@ public class SampleManager {
 	 */
 	public static void removeSample(String sampleName) {
 		if(samples.containsKey(sampleName)) {
-			featureSets.remove(samples.get(sampleName));
 			samples.remove(sampleName);
 		}
 	}
@@ -440,42 +436,6 @@ public class SampleManager {
 		SampleManager.verbose = verbose;
 	}
 	
-	/**
-	 * Sets the FeatureSet for the given Sample.
-	 * @param s the Sample.
-	 * @param fs the FeatureSet.
-	 */
-	public static void setFeaturesForSample(Sample s, FeatureSet fs) {
-		featureSets.put(s, fs);
-	}
-
-	/**
-	 * Gets the FeatureSet for a given Sample. The method first checks to see if the FeatureSet
-	 * is already stored in memory. If not it looks for a file with the same file name as the 
-	 * Sample (including the file type), but with the suffix ".features". Once loaded, the FeatureSet
-	 * is stored in memory.
-	 * 
-	 * @param sample the Sample to search for features of.
-	 * @return the FeatureSet.
-	 */
-	public static FeatureSet featuresForSample(Sample sample) {
-		if(featureSets.containsKey(sample)) {
-			return featureSets.get(sample);
-		} 
-		FeatureSet set = FeatureSet.forSample(sample);
-		if(set != null) {
-			featureSets.put(sample, set);
-			if(verbose) System.out.println("Loaded features for " + sample.getFileName());
-		}
-		return set;
-	}
-
-	public static void featuresForGroup(String groupName) {
-		ArrayList<Sample> theSamples = groups.get(groupName);
-		for(Sample s : theSamples) {
-			featuresForSample(s);
-		}
-	}
 	
 	//TODO not implemented in above yet!
 	public static interface SampleGroupListener {

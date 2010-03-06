@@ -209,7 +209,7 @@ public class WavePlayer extends UGen {
 	 * Gets the phase envelope.
 	 * 
 	 * @return the phase envelope.
-	 * @deprecated Use {@link #getPhaseController()}.
+	 * @deprecated Use {@link #getPhaseUGen()}.
 	 */
 	@Deprecated
 	public UGen getPhaseEnvelope() {

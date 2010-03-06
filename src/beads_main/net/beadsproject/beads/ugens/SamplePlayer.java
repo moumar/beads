@@ -376,7 +376,7 @@ public class SamplePlayer extends UGen {
 	 * Sets the rate envelope (this method is provided so that SamplePlayer and GranularSamplePlayer can 
 	 * be used interchangeably).
 	 * 
-	 * @deprecated: use {@link #setPitch(UGen)} instead.
+	 * @deprecated use {@link #setPitch(UGen)} instead.
 	 * 
 	 * @param rateEnvelope the new rate envelope.
 	 */

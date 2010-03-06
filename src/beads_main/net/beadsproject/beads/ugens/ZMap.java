@@ -343,8 +343,8 @@ public class ZMap extends UGen implements DataBeadReceiver {
 	 * "sourceMinimum", "sourceMaximum", "targetMinimum", "targetMaximum",
 	 * "multiplier", "shift", "clipping".
 	 * 
-	 * @param The
-	 *            parameter DataBead.
+	 * @param db 
+	 * 			The parameter DataBead.
 	 * @return This ZMap instance.
 	 */
 	public DataBeadReceiver sendData(DataBead db) {

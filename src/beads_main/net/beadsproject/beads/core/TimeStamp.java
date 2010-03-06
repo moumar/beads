@@ -24,7 +24,7 @@ public class TimeStamp {
 	private long timeSamples;
 	
 	/**
-	 * Instantiates a new TimeStamp with the given time step, context and buffer index. Use {@link AudioContext.generateTimeStamp()} to generate a
+	 * Instantiates a new TimeStamp with the given time step, context and buffer index. Use {@link AudioContext#generateTimeStamp(int)} to generate a
 	 * TimeStamp for the current time.
 	 * 
 	 * @param context the AudioContext.

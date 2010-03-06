@@ -9,7 +9,7 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.BufferFactory;
 
 /**
- * The convolution of the MeanFilter with data gives the mean.
+ * Creates a {@link Buffer} of the constant 1/bufferSize over [0,1]. The convolution of the MeanFilter with data gives the mean.
  * 
  * @author ben
  *
