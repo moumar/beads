@@ -51,7 +51,7 @@ public class FeatureManager {
 	}
 	
 	/**
-	 * Removes the features assosciated with the given {@link Sample}.
+	 * Removes the features associated with the given {@link Sample}.
 	 * 
 	 * @param s the Sample.
 	 */
