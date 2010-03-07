@@ -15,7 +15,7 @@ import net.beadsproject.beads.data.*;
  * @author Benito Crawford
  * @version 0.9.5
  */
-public class Reverb extends Chain implements DataBeadReceiver {
+public class Reverb extends UGenChain implements DataBeadReceiver {
 	private float size, damping, earlyLevel, lateLevel;
 	private Gain earlyGain, lateGain;
 	private AllpassFilter eAPF1, eAPF2, eAPF3, lAPF1, lAPF2, lAPF3, lAPF4;

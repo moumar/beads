@@ -34,8 +34,11 @@ public class AudioContext {
 	/** The audio IO device. */
 	private AudioIO audioIO;
 
-	/** The audio format. */
-	private AudioFormat audioFormat;
+	/** The output audio format. */
+	private AudioFormat outputAudioFormat;
+	
+	/** The input audio format. */
+	private AudioFormat inputAudioFormat;
 
 	/** The stop flag. */
 	private boolean stopped;
@@ -113,7 +116,7 @@ public class AudioContext {
 	}
 
 	/**
-	 * Creates a new AudioContext with the default system buffer size and the
+	 * Creates a new AudioContext with the default AudioIO and the
 	 * specified audio format and buffer size.
 	 * 
 	 * @param bufferSizeInFrames
@@ -127,8 +130,8 @@ public class AudioContext {
 	}
 
 	/**
-	 * Creates a new AudioContext with default buffer size, default system
-	 * buffer size and the specified audio format.
+	 * Creates a new AudioContext with default buffer size, default AudioIO 
+	 * and the specified audio format.
 	 * 
 	 * @param audioFormat
 	 *            the audio format, which specifies sample rate, bit depth,
@@ -139,8 +142,7 @@ public class AudioContext {
 	}
 
 	/**
-	 * Creates a new AudioContext with the specified buffer size, system buffer
-	 * size and audio format.
+	 * Creates a new AudioContext with the specified buffer size, AudioIO and audio format.
 	 * 
 	 * @param bufferSizeInFrames
 	 *            the buffer size in samples.
@@ -157,7 +159,8 @@ public class AudioContext {
 		maxReserveBufs = 50;
 		stopped = true;
 		// set audio format
-		this.audioFormat = audioFormat;
+		this.outputAudioFormat = audioFormat;
+		this.inputAudioFormat = audioFormat;
 		// set buffer size
 		setBufferSize(bufferSizeInFrames);
 		// set up the default root UGen
@@ -209,9 +212,7 @@ public class AudioContext {
 			out.update(); // this will propagate all of the updates
 		}
 		// now check for dropped frames
-		// the timeStep condition is a bit of a fiddle,
-		// seems there's always dropped frames to being with
-		if (timeStep > 500 && checkForDroppedFrames) {
+		if (checkForDroppedFrames) {
 			long expectedNanoTime = nanoLeap * (timeStep + 1);
 			long realNanoTime = System.nanoTime() - nanoStart;
 			float frameDifference = (float) (expectedNanoTime - realNanoTime)
@@ -227,8 +228,7 @@ public class AudioContext {
 			System.out.println("Thread interrupted");
 		if (logTime && timeStep % 100 == 0) {
 			System.out.println(samplesToMs(timeStep * bufferSizeInFrames)
-					/ 1000f + " (seconds), bufferStore.size()="
-					+ bufferStore.size());
+					/ 1000f + " (seconds)");
 		}
 		return lastFrameGood;
 	}
@@ -341,7 +341,7 @@ public class AudioContext {
 	 * @return sample rate in samples per second.
 	 */
 	public float getSampleRate() {
-		return audioFormat.getSampleRate();
+		return outputAudioFormat.getSampleRate();
 	}
 
 	/**
@@ -350,7 +350,25 @@ public class AudioContext {
 	 * @return AudioFormat used by this AudioContext.
 	 */
 	public AudioFormat getAudioFormat() {
-		return audioFormat;
+		return outputAudioFormat;
+	}
+	
+	/**
+	 * Gets the input AudioFormat for this AudioContext.
+	 * 
+	 * @return AudioFormat used by this AudioContext for input.
+	 */
+	public AudioFormat getInputAudioFormat() {
+		return inputAudioFormat;
+	}
+	
+	/**
+	 * Set the input AudioFormat for this AudioContext.
+	 * 
+	 * @param inputAudioFormat AudioFormat used by this AudioContext for input.
+	 */
+	public void setInputAudioFormat(AudioFormat inputAudioFormat) {
+		this.inputAudioFormat = inputAudioFormat;
 	}
 
 	/**
@@ -363,10 +381,10 @@ public class AudioContext {
 	 *         properties coming from the original AudioFormat.
 	 */
 	public AudioFormat getAudioFormat(int numChannels) {
-		AudioFormat newFormat = new AudioFormat(audioFormat.getEncoding(),
-				audioFormat.getSampleRate(), audioFormat.getSampleSizeInBits(),
-				numChannels, audioFormat.getFrameSize(), audioFormat
-						.getFrameRate(), audioFormat.isBigEndian());
+		AudioFormat newFormat = new AudioFormat(outputAudioFormat.getEncoding(),
+				outputAudioFormat.getSampleRate(), outputAudioFormat.getSampleSizeInBits(),
+				numChannels, outputAudioFormat.getFrameSize(), outputAudioFormat
+						.getFrameRate(), outputAudioFormat.isBigEndian());
 		return newFormat;
 	}
 
@@ -387,12 +405,12 @@ public class AudioContext {
 	 * Prints AudioFormat information to System.out.
 	 */
 	public void postAudioFormatInfo() {
-		System.out.println("Sample Rate: " + audioFormat.getSampleRate());
-		System.out.println("Channels: " + audioFormat.getChannels());
+		System.out.println("Sample Rate: " + outputAudioFormat.getSampleRate());
+		System.out.println("Channels: " + outputAudioFormat.getChannels());
 		System.out
-				.println("Frame size in Bytes: " + audioFormat.getFrameSize());
-		System.out.println("Encoding: " + audioFormat.getEncoding());
-		System.out.println("Big Endian: " + audioFormat.isBigEndian());
+				.println("Frame size in Bytes: " + outputAudioFormat.getFrameSize());
+		System.out.println("Encoding: " + outputAudioFormat.getEncoding());
+		System.out.println("Big Endian: " + outputAudioFormat.isBigEndian());
 	}
 
 	/**
@@ -432,7 +450,7 @@ public class AudioContext {
 	 * @return number of samples.
 	 */
 	public double msToSamples(double msTime) {
-		return msTime * (audioFormat.getSampleRate() / 1000.0);
+		return msTime * (outputAudioFormat.getSampleRate() / 1000.0);
 	}
 
 	/**
@@ -444,7 +462,7 @@ public class AudioContext {
 	 * @return duration in milliseconds.
 	 */
 	public double samplesToMs(double sampleTime) {
-		return (sampleTime / audioFormat.getSampleRate()) * 1000.0;
+		return (sampleTime / outputAudioFormat.getSampleRate()) * 1000.0;
 	}
 
 	/**
@@ -553,7 +571,7 @@ public class AudioContext {
 		if (stopped) {
 			// calibration test stuff
 			nanoStart = System.nanoTime();
-			nanoLeap = (long) (1000000000 / (audioFormat.getSampleRate() / (float) bufferSizeInFrames));
+			nanoLeap = (long) (1000000000 / (outputAudioFormat.getSampleRate() / (float) bufferSizeInFrames));
 			lastFrameGood = true;
 			// reset time step
 			timeStep = 0;

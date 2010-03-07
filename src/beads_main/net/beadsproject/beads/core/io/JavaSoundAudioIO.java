@@ -30,6 +30,9 @@ public class JavaSoundAudioIO extends AudioIO {
 
 	/** The source data line. */
 	private SourceDataLine sourceDataLine;
+	
+	/** The target data line. */
+	private TargetDataLine targetDataLine;
 
 	/** The system buffer size in frames. */
 	private int systemBufferSizeInFrames;
@@ -40,8 +43,15 @@ public class JavaSoundAudioIO extends AudioIO {
 	/** The priority of the audio thread. */
 	private int threadPriority;
 
-	/** The current byte buffer. */
-	private byte[] bbuf;
+	/** The current output byte buffer. */
+	private byte[] bbufOut;
+	
+	/** The current input byte buffer. */
+	private byte[] bbufIn;
+	
+	/** Used to determine whether inputs need configuring. */
+	private boolean hasInput;
+	
 
 	public JavaSoundAudioIO() {
 		this(DEFAULT_SYSTEM_BUFFER_SIZE);
@@ -55,21 +65,20 @@ public class JavaSoundAudioIO extends AudioIO {
 	/**
 	 * Initialises JavaSound.
 	 */
-	private boolean create() {
+	private boolean setupOutputJavaSound() {
 		AudioFormat audioFormat = getContext().getAudioFormat();
-		getDefaultMixerIfNotAlreadyChosen();
-		if (mixer == null) {
-			return false;
-		}
 		DataLine.Info info = new DataLine.Info(SourceDataLine.class,
 				audioFormat);
 		try {
-			sourceDataLine = (SourceDataLine) mixer.getLine(info);
+			sourceDataLine = (SourceDataLine) AudioSystem.getLine(info);
 			if (systemBufferSizeInFrames < 0)
 				sourceDataLine.open(audioFormat);
 			else
 				sourceDataLine.open(audioFormat, systemBufferSizeInFrames
 						* audioFormat.getFrameSize());
+			System.out.println("JavaSoundAudioIO: Chosen output is "
+					+ sourceDataLine.getLineInfo()
+					+ ", buffer size in bytes: " + systemBufferSizeInFrames);
 		} catch (LineUnavailableException ex) {
 			System.out
 					.println(getClass().getName() + " : Error getting line\n");
@@ -77,17 +86,26 @@ public class JavaSoundAudioIO extends AudioIO {
 		return true;
 	}
 
-	/**
-	 * Gets the JavaSound mixer being used by this AudioContext.
-	 * 
-	 * @return the requested mixer.
-	 */
-	private void getDefaultMixerIfNotAlreadyChosen() {
-		if (mixer == null) {
-			selectMixer(0);
+	private void setupInputJavaSound() {
+		AudioFormat audioFormat = context.getInputAudioFormat();
+		DataLine.Info info = new DataLine.Info(TargetDataLine.class,
+				audioFormat);
+		try {
+			int inputBufferSize = systemBufferSizeInFrames * audioFormat.getFrameSize();
+			targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
+			targetDataLine.open(audioFormat, inputBufferSize);
+			if (targetDataLine == null)
+				System.out.println("no line");
+			else
+				System.out.println("JavaSoundAudioIO: Chosen input is "
+						+ targetDataLine.getLineInfo()
+						+ ", buffer size in bytes: " + inputBufferSize);
+		} catch (LineUnavailableException ex) {
+			System.out.println(getClass().getName()
+					+ " : Error getting line\n");
 		}
 	}
-
+	
 	/**
 	 * Presents a choice of mixers on the commandline.
 	 */
@@ -174,7 +192,10 @@ public class JavaSoundAudioIO extends AudioIO {
 		audioThread = new Thread(new Runnable() {
 			public void run() {
 				// create JavaSound stuff only when needed
-				create();
+				setupOutputJavaSound();
+				if(hasInput) {
+					setupInputJavaSound();
+				}
 				// start the update loop
 				runRealTime();
 				// return from above method means context got stopped, so now
@@ -192,23 +213,27 @@ public class JavaSoundAudioIO extends AudioIO {
 		AudioContext context = getContext();
 		AudioFormat audioFormat = context.getAudioFormat();
 		int bufferSizeInFrames = context.getBufferSize();
-		bbuf = new byte[bufferSizeInFrames * audioFormat.getFrameSize()];
 		boolean isBigEndian = audioFormat.isBigEndian();
 		int channels = audioFormat.getChannels();
-		// float[] interleavedOutput = new float[audioFormat.getChannels() *
-		// bufferSizeInFrames];
+		bbufOut = new byte[bufferSizeInFrames * audioFormat.getFrameSize()];
 		sourceDataLine.start();
+		if(hasInput) {
+			bbufIn = new byte[bufferSizeInFrames * context.getInputAudioFormat().getFrameSize()];
+			targetDataLine.start();
+		}
 		while (context.isRunning()) {
-			boolean goodFrame = update(); // this propagates update call to
-			// context
+			if(hasInput && targetDataLine.available() > bbufIn.length) {
+				targetDataLine.read(bbufIn, 0, bbufIn.length);
+			} 
+			boolean goodFrame = update(); // this propagates update call to context
 			if (goodFrame) {
 				if (isBigEndian) {
 					for (int i = 0, counter = 0; i < bufferSizeInFrames; ++i) {
 						for (int j = 0; j < channels; ++j) {
 							short y = (short) (32767. * Math.min(Math.max(
 									context.out.getValue(j, i), -1.0f), 1.0f));
-							bbuf[counter++] = (byte) ((y >> 8) & 0xFF);
-							bbuf[counter++] = (byte) (y & 0xFF);
+							bbufOut[counter++] = (byte) ((y >> 8) & 0xFF);
+							bbufOut[counter++] = (byte) (y & 0xFF);
 						}
 					}
 				} else {
@@ -216,44 +241,35 @@ public class JavaSoundAudioIO extends AudioIO {
 						for (int j = 0; j < channels; ++j) {
 							short y = (short) (32767. * Math.min(Math.max(
 									context.out.getValue(j, i), -1.0f), 1.0f));
-							bbuf[counter++] = (byte) (y & 0xFF);
-							bbuf[counter++] = (byte) ((y >> 8) & 0xFF);
+							bbufOut[counter++] = (byte) (y & 0xFF);
+							bbufOut[counter++] = (byte) ((y >> 8) & 0xFF);
 						}
 					}
 				}
-				sourceDataLine.write(bbuf, 0, bbuf.length);
+				sourceDataLine.write(bbufOut, 0, bbufOut.length);
 			}
-
 		}
 	}
-
+	
 	@Override
-	protected UGen getAudioInput(int[] channels) {
-		return new JavaSoundRTInput(getContext(), getContext().getAudioFormat(), channels);
+	protected synchronized UGen getAudioInput(int[] channels) {
+		if(targetDataLine == null) {
+			if(context.isRunning()) {
+				setupInputJavaSound();
+				targetDataLine.start();
+				bbufIn = new byte[context.getBufferSize() * context.getInputAudioFormat().getFrameSize()];
+			} else {
+				hasInput = true;
+			}
+		}
+		return new JavaSoundRTInput(context, channels);
 	}
 
 	/**
 	 * JavaSoundRTInput gathers audio from the JavaSound audio input device.
-	 * 
-	 * @beads.category input
 	 */
 	private class JavaSoundRTInput extends UGen {
 
-		/** The audio format. */
-		private AudioFormat audioFormat;
-
-		/** The target data line. */
-		private TargetDataLine targetDataLine;
-
-		/** Flag to tell whether JavaSound has been initialised. */
-		private boolean javaSoundInitialized;
-
-		// private float[] interleavedSamples;
-		private byte[] bbuf;
-
-		private boolean isBigEndian;
-		private int channels;
-		private int maxChannel;
 		private int[] channelsToServe;
 
 		/**
@@ -264,45 +280,9 @@ public class JavaSoundAudioIO extends AudioIO {
 		 * @param audioFormat
 		 *            the AudioFormat.
 		 */
-		JavaSoundRTInput(AudioContext context, AudioFormat audioFormat, int[] channelsToServe) {
-			super(context, audioFormat.getChannels());
-			this.audioFormat = audioFormat;
-			isBigEndian = audioFormat.isBigEndian();
+		JavaSoundRTInput(AudioContext context, int[] channelsToServe) {
+			super(context, channelsToServe.length);
 			this.channelsToServe = channelsToServe;
-			maxChannel = 0;
-			for(int i = 0; i < channelsToServe.length; i++) {
-				if(channelsToServe[i] > maxChannel) maxChannel = channelsToServe[i];
-			}
-			channels = channelsToServe.length;
-			javaSoundInitialized = false;
-		}
-
-		/**
-		 * Set up JavaSound. Requires that JavaSound has been set up in
-		 * AudioContext.
-		 */
-		public void initJavaSound() {
-			DataLine.Info info = new DataLine.Info(TargetDataLine.class,
-					audioFormat);
-			try {
-				int inputBufferSize = 5000;
-				targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
-				targetDataLine.open(audioFormat, inputBufferSize);
-				if (targetDataLine == null)
-					System.out.println("no line");
-				else
-					System.out.println("CHOSEN INPUT: "
-							+ targetDataLine.getLineInfo()
-							+ ", buffer size in bytes: " + inputBufferSize);
-			} catch (LineUnavailableException ex) {
-				System.out.println(getClass().getName()
-						+ " : Error getting line\n");
-			}
-			targetDataLine.start();
-			javaSoundInitialized = true;
-			// interleavedSamples = new float[bufferSize *
-			// audioFormat.getChannels()];
-			bbuf = new byte[bufferSize * audioFormat.getFrameSize()];
 		}
 
 		/*
@@ -312,26 +292,23 @@ public class JavaSoundAudioIO extends AudioIO {
 		 */
 		@Override
 		public void calculateBuffer() {
-			if (!javaSoundInitialized) {
-				initJavaSound();
-			}
-			targetDataLine.read(bbuf, 0, bbuf.length);
-
-			int ib = 0;
-			//TODO corrent implementation of channels
-			if (isBigEndian) {
-				for (int i = 0; i < bufferSize; ++i) {
-					for (int j = 0; j < channels; ++j) {
-						bufOut[j][i] = ((bbuf[ib] << 8) | (bbuf[ib + 1] & 0xFF)) / 32768.0F;
-						ib += 2;
+			int ib;
+			int offset = 0;
+			if (context.getInputAudioFormat().isBigEndian()) {
+				for (int i = 0; i < bufferSize; i++) {
+					for (int j = 0; j < channelsToServe.length; j++) {
+						ib = (channelsToServe[j] + offset) * 2;
+						bufOut[j][i] = ((bbufIn[ib] << 8) | (bbufIn[ib + 1] & 0xFF)) / 32768.0F;
 					}
+					offset += context.getInputAudioFormat().getChannels();
 				}
 			} else {
-				for (int i = 0; i < bufferSize; ++i) {
-					for (int j = 0; j < channels; ++j) {
-						bufOut[j][i] = ((bbuf[ib] & 0xFF) | (bbuf[ib + 1] << 8)) / 32768.0F;
-						ib += 2;
+				for (int i = 0; i < bufferSize; i++) {
+					for (int j = 0; j < channelsToServe.length; j++) {
+						ib = (channelsToServe[j] + offset) * 2;
+						bufOut[j][i] = ((bbufIn[ib] & 0xFF) | (bbufIn[ib + 1] << 8)) / 32768.0F;
 					}
+					offset += context.getInputAudioFormat().getChannels();
 				}
 			}
 

@@ -71,9 +71,6 @@ public abstract class UGen extends Bead {
 	private long timeTakenLastUpdate;
 	private long timeTemp;
 	
-	private UGen inputProxy;
-	private UGen outputProxy;
-	
 	/** Used to determine how a UGen sets its outputs up before calculateBuffer() is called. */
 	protected enum OutputInitializationRegime {ZERO, NULL, JUNK, RETAIN};
 	protected OutputInitializationRegime outputInitializationRegime;
@@ -118,7 +115,7 @@ public abstract class UGen extends Bead {
 		outputPauseRegime = OutputPauseRegime.ZERO;
 		timerMode = false;
 		timeTemp = 0;
-		inputProxy = outputProxy = null;
+//		inputProxy = outputProxy = null;
 		setIns(ins);
 		setOuts(outs);
 		setContext(context);
@@ -343,23 +340,10 @@ public abstract class UGen extends Bead {
 				}
 				lastTimeStep = context.getTimeStep(); // do this first to break call chain loops
 				pullInputs();
-				//proxy option
-				if(inputProxy != null && outputProxy != null) {
-					inputProxy.bufIn = bufIn;
-					inputProxy.initializeOuts();
-					inputProxy.calculateBuffer();
-					if(outputProxy != inputProxy) {
-						outputProxy.bufIn = inputProxy.bufOut;
-						outputProxy.initializeOuts();
-						outputProxy.calculateBuffer();
-					} 
-					bufOut = outputProxy.bufOut;
-				} else {
-					//this sets up the output buffers - default behaviour is to use dirty buffers from the AudioContexts
-					//buffer reserve. Override this function to get another behaviour.
-					initializeOuts();
-					calculateBuffer();
-				}
+				//this sets up the output buffers - default behaviour is to use dirty buffers from the AudioContexts
+				//buffer reserve. Override this function to get another behaviour.
+				initializeOuts();
+				calculateBuffer();
 				if(timerMode) {
 					timeTakenLastUpdate = System.nanoTime() - timeTemp;
 				}
@@ -367,32 +351,6 @@ public abstract class UGen extends Bead {
 			//by the time we get here, we might have been paused. If so then initialize outs using the pause regime.
 			if(isPaused()) setOutsToPause();
 		} 
-	}
-	
-	/**
-	 * Highly experimental! Don't use. 
-	 * @param ugen
-	 */
-	public void setInputProxy(UGen ugen) {
-		inputProxy = ugen;
-		if(outs == 0) outputProxy = inputProxy;
-	}
-
-	/**
-	 * Highly experimental! Don't use. 
-	 * @param ugen
-	 */
-	public void setOutputProxy(UGen ugen) {
-		outputProxy = ugen;
-		if(ins == 0) inputProxy = ugen;
-	}
-
-	/**
-	 * Highly experimental! Don't use. 
-	 * @param ugen
-	 */
-	public void setProxy(UGen ugen) {
-		inputProxy = outputProxy = ugen;
 	}
 
 	/**

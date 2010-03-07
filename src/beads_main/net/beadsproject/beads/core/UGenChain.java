@@ -5,6 +5,7 @@ package net.beadsproject.beads.core;
 
 
 
+
 /**
  * Organizes a series of connected UGens into one unit. It allows for users to
  * define a custom UGen purely from other UGens, without programming the
@@ -13,11 +14,11 @@ package net.beadsproject.beads.core;
  * @author Benito Crawford
  * @version 0.9.5
  */
-public class Chain extends UGen {
+public class UGenChain extends UGen {
 
 	private UGen chainIn, chainOut;
 
-	public Chain(AudioContext context, int ins, int outs) {
+	public UGenChain(AudioContext context, int ins, int outs) {
 		super(context, ins, outs);
 
 		// This grabs the inputs from this Chain instance, so they can be used

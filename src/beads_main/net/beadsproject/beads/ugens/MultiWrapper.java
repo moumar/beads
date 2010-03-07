@@ -5,20 +5,22 @@ package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
-import net.beadsproject.beads.core.Chain;
 import net.beadsproject.beads.core.UGen;
+import net.beadsproject.beads.core.UGenChain;
 import net.beadsproject.beads.data.*;
 
 /**
  * A generalized multi-channel wrapper for UGens. Can either be used to treat an
  * existing array of UGens as one, big, multi-channel UGen, or to create a
- * multi-channel UGen from newly created UGens. (Best description ever.)
+ * multi-channel UGen from newly created UGens. 
+ * 
+ * <p>In the simple case, it just wraps N one-channel UGens into one N-channel UGen.
  * 
  * @author Benito Crawford
  * @version 0.9.5
  * 
  */
-public class MultiWrapper extends Chain implements DataBeadReceiver {
+public class MultiWrapper extends UGenChain implements DataBeadReceiver {
 	private UGen[] ugens;
 	private int channels, insPerChannel, outsPerChannel;
 
@@ -180,6 +182,7 @@ public class MultiWrapper extends Chain implements DataBeadReceiver {
 				((DataBeadReceiver) ugens[i]).sendData(db);
 			} else {
 				ugens[i].message(db);
+				//Ollie - TODO - should we use db.configureObject(ugens[i]) here?
 			}
 		}
 		return this;
