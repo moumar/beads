@@ -61,7 +61,7 @@ public class UsingAudioContext {
 	
 	public static class AudioInput {
 		public static void main(String[] args) {
-			//use the default AudioIO: JavaSoundAudioIO
+			//using the default AudioIO (JavaSoundAudioIO)
 			AudioContext ac = new AudioContext();
 			ac.out.setGain(0.1f);
 			/*

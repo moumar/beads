@@ -37,9 +37,11 @@ public abstract class AudioIO {
 	protected abstract boolean start();
 	
 	/**
-	 * Stops the AudioIO.
+	 * Stops the AudioIO. Note this is not usually needed because the more usual way
+	 * for the system to stop is simply to check {@link AudioContext#isRunning()} at
+	 * each time step.
 	 * 
-	 * @return true, if successful
+	 * @return true, if successful.
 	 */
 	protected boolean stop() {return true;}
 	
