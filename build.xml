@@ -116,7 +116,7 @@
 	<target name="clean" description="clean up">
 		<delete dir="${build}/beads" />
 		<delete dir="${build}/doc" />
-		<delete dir="${build}/processing" />
+		<delete dir="${build}/beads_processing" />
 		<delete dir="${build}/ref" />
 		<delete dir="${build}/tmp" />
 	</target>
