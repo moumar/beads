@@ -3,6 +3,8 @@
  */
 package net.beadsproject.beads.events;
 
+import java.util.Map;
+
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.DataBead;
 
@@ -25,6 +27,6 @@ public interface SoundEvent {
 	 * @param parameters additional data.
 	 * @return a {@link UGen} which is the root of the SoundEvent.
 	 */
-	public UGen play(UGen output, DataBead parameters);
+	public UGen play(UGen output, Map<String, Object> parameters);
 	
 }
