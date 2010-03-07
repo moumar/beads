@@ -17,7 +17,7 @@ import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.Function;
 import net.beadsproject.beads.ugens.Gain;
-import net.beadsproject.beads.ugens.QuadrophonicMixer;
+import net.beadsproject.beads.ugens.Spatial;
 
 /**
  * The Class SongPart. 
@@ -77,7 +77,7 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 	
 	public void setupPanner(int destChannels, int sourceChannels) {
 		if(destChannels == 4) {
-			QuadrophonicMixer mixer = new QuadrophonicMixer(context);
+			Spatial mixer = new Spatial(context, 2);
 			addInput(mixer);
 			UGen[][] positionControllers = new UGen[sourceChannels][2];
 			if(sourceChannels == 2) {
