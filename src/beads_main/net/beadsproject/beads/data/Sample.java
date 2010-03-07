@@ -1099,7 +1099,6 @@ public class Sample implements Runnable {
 		}
 	}
 
-
 	public float getLength() {
 		return length;
 	}
@@ -1201,82 +1200,90 @@ public class Sample implements Runnable {
 			if (nFrames==AudioSystem.NOT_SPECIFIED)
 			{
 				// TODO: Do a quick run through and guess the length?
-				System.out.println("BufferedSample needs to know the length of the audio file it uses, but cannot determine the length.");
-				System.exit(1);
-			}
-	
-			TimedRegime tr = (TimedRegime) bufferingRegime;
-			
-			// initialise params
-			
-			// if region size is greated than audio length then we clip the region size...
-			// but we still keep it as a timed regime, with 0 lookback and 0 lookahead
-			r_regionSize = (int)Math.ceil(((tr.regionSize/1000.) * audioFile.getDecodedFormat().getSampleRate()));
-			if (r_regionSize>nFrames)
-			{
-				r_regionSize = (int) nFrames;
-				r_lookahead = 0;
-				r_lookback = 0;
-				numberOfRegions = 1;
-			}
+				System.out.println(
+						"Sample cannot determine the length of the audio file for buffering. \n" +
+						"Continuing by loading the entire sample."
+				);
+				
+				setBufferingRegime(Regime.newTotalRegime());
+				loadEntireSample();	
+				System.gc();
+			}		
 			else
-			{			
-				// lookahead, lookback is always a multiple of regionSize
-				if (tr.lookAhead<=0)
+			{	
+				TimedRegime tr = (TimedRegime) bufferingRegime;
+				
+				// initialise params
+				
+				// if region size is greated than audio length then we clip the region size...
+				// but we still keep it as a timed regime, with 0 lookback and 0 lookahead
+				r_regionSize = (int)Math.ceil(((tr.regionSize/1000.) * audioFile.getDecodedFormat().getSampleRate()));
+				if (r_regionSize>nFrames)
+				{
+					r_regionSize = (int) nFrames;
 					r_lookahead = 0;
-				else
-					r_lookahead = 1 + (int) ((tr.lookAhead-1)/tr.regionSize);
-				
-				if (tr.lookBack<=0)
 					r_lookback = 0;
+					numberOfRegions = 1;
+				}
 				else
-					r_lookback = 1 + (int) ((tr.lookBack-1)/tr.regionSize);
+				{			
+					// lookahead, lookback is always a multiple of regionSize
+					if (tr.lookAhead<=0)
+						r_lookahead = 0;
+					else
+						r_lookahead = 1 + (int) ((tr.lookAhead-1)/tr.regionSize);
+					
+					if (tr.lookBack<=0)
+						r_lookback = 0;
+					else
+						r_lookback = 1 + (int) ((tr.lookBack-1)/tr.regionSize);
+					
+					numberOfRegions = 1 + (int) (nFrames / r_regionSize);
+					
+					// numberOfRegions = (int)(Math.ceil((double) nFrames / r_regionSize));
+					//r_lookahead = (int)Math.ceil(((tr.lookAhead/1000.) * audioFile.getDecodedFormat().getSampleRate())/r_regionSize);
+					//r_lookback = (int)Math.ceil(((tr.lookBack/1000.) * audioFile.getDecodedFormat().getSampleRate())/r_regionSize);
+				}
 				
-				numberOfRegions = 1 + (int) (nFrames / r_regionSize);
+				if (tr.memory==-1) 
+					r_memory = Long.MAX_VALUE;			
+				else 
+					r_memory = tr.memory;	
+				regionSizeInBytes = r_regionSize * 2 * nChannels;			
+		
+				// the last region may contain 0 to (regionSize-1) samples	
+				numberOfRegionsLoaded = 0;
+		
+				if (bufferingRegime.storeInNativeBitDepth)
+				{
+					regions = new byte[numberOfRegions][];
+					Arrays.fill(regions,null);
+				}
+				else
+				{
+					f_regions = new float[numberOfRegions][][];
+					Arrays.fill(f_regions,null);
+				}
+		
+				regionAge = new long[numberOfRegions];
+				Arrays.fill(regionAge,0);
+		
+				// initialise region thread stuff
+				regionQueue = new ConcurrentLinkedQueue<Integer>();
+				regionQueued = new boolean[numberOfRegions];
+				regionLocks = new Lock[numberOfRegions];
+				for (int j=0;j<regionLocks.length;j++)
+				{
+					regionLocks[j] = new ReentrantLock();
+					regionQueued[j] = false;
+				}
 				
-				// numberOfRegions = (int)(Math.ceil((double) nFrames / r_regionSize));
-				//r_lookahead = (int)Math.ceil(((tr.lookAhead/1000.) * audioFile.getDecodedFormat().getSampleRate())/r_regionSize);
-				//r_lookback = (int)Math.ceil(((tr.lookBack/1000.) * audioFile.getDecodedFormat().getSampleRate())/r_regionSize);
+				timeAtLastAgeUpdate = 0;
+				isScheduled = false;
+				
+				if (regionMaster==null)
+					regionMaster = Executors.newFixedThreadPool(1, new ThreadFactory(){public Thread newThread(Runnable r){Thread t = new Thread(r); t.setDaemon(true); return t;}});
 			}
-			
-			if (tr.memory==-1) 
-				r_memory = Long.MAX_VALUE;			
-			else 
-				r_memory = tr.memory;	
-			regionSizeInBytes = r_regionSize * 2 * nChannels;			
-	
-			// the last region may contain 0 to (regionSize-1) samples	
-			numberOfRegionsLoaded = 0;
-	
-			if (bufferingRegime.storeInNativeBitDepth)
-			{
-				regions = new byte[numberOfRegions][];
-				Arrays.fill(regions,null);
-			}
-			else
-			{
-				f_regions = new float[numberOfRegions][][];
-				Arrays.fill(f_regions,null);
-			}
-	
-			regionAge = new long[numberOfRegions];
-			Arrays.fill(regionAge,0);
-	
-			// initialise region thread stuff
-			regionQueue = new ConcurrentLinkedQueue<Integer>();
-			regionQueued = new boolean[numberOfRegions];
-			regionLocks = new Lock[numberOfRegions];
-			for (int j=0;j<regionLocks.length;j++)
-			{
-				regionLocks[j] = new ReentrantLock();
-				regionQueued[j] = false;
-			}
-			
-			timeAtLastAgeUpdate = 0;
-			isScheduled = false;
-			
-			if (regionMaster==null)
-				regionMaster = Executors.newFixedThreadPool(1, new ThreadFactory(){public Thread newThread(Runnable r){Thread t = new Thread(r); t.setDaemon(true); return t;}});
 		}
 	}
 
@@ -1653,12 +1660,12 @@ public class Sample implements Runnable {
 			data = newBuf;
 		}
 	
-		nFrames = sampleBufferSize / (2*nChannels);
+		this.nFrames = sampleBufferSize / (2*nChannels);
+		this.length = 1000f * nFrames / audioFormat.getSampleRate();
 	
 		if (!bufferingRegime.storeInNativeBitDepth)
 		{
-			// copy and deinterleave entire data
-	
+			// copy and deinterleave entire data	
 			f_sampleData = new float[nChannels][(int) nFrames];
 			float[] interleaved = new float[(int) (nChannels*nFrames)];
 			AudioUtils.byteToFloat(interleaved, data, isBigEndian);	
