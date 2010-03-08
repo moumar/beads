@@ -1,4 +1,4 @@
-package net.beadsproject.beads.data;
+package net.beadsproject.beads.ugens;
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
@@ -24,7 +24,7 @@ public class UsingRecordToFile {
 			 */			
 			final float THREE_SECONDS = 3000f;
 			final String SAMPLE = "audio/1234.aif";
-			final String OUTPUT_FILE = "audio/output.wav";
+			final String OUTPUT_FILE = "output/output.wav";
 			
 			final AudioContext ac = new AudioContext();
 			Sample loop = SampleManager.sample(SAMPLE);
@@ -32,7 +32,7 @@ public class UsingRecordToFile {
 			sp.setLoopType(SamplePlayer.LoopType.LOOP_BACKWARDS);			
 			ac.out.addInput(sp);
 			
-			final RecordToFile rtf = new RecordToFile(ac, loop.getNumChannels(), DeleteFileAndGetNewOne(OUTPUT_FILE), AudioFileFormat.Type.WAVE);
+			final RecordToFile rtf = new RecordToFile(ac, loop.getNumChannels(), DeleteFileAndGetNewOne(OUTPUT_FILE));
 			rtf.addInput(sp);
 			ac.out.addDependent(rtf);						
 			
@@ -58,11 +58,14 @@ public class UsingRecordToFile {
 		public static void main(String[] args) throws IOException {
 			/*
 			 * Try to record simultaneously into all the supported audio formats on this machine.
-			 * 
-			 */			
+			 * Currently, any unsupported formats will generate garbage files.
+			 */
+			System.out.println("This example demonstrates how RecordToFile will support different file formats in the future.\n" +
+					"Currently, however, it only supports .wav files, and so the other outputted files may contain junk.\n");
+			
 			final float THREE_SECONDS = 3000f;
 			final String SAMPLE = "audio/1234.aif";
-			final String OUTPUT_PREFIX = "audio/output_all_types";
+			final String OUTPUT_PREFIX = "output/output_all_types";
 			
 			final AudioContext ac = new AudioContext();
 			Sample loop = SampleManager.sample(SAMPLE);

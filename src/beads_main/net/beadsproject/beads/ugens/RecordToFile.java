@@ -23,7 +23,7 @@ import net.beadsproject.beads.data.SampleManager;
  * 
  * You must {@link #kill() kill} this object when finished to finalise the writing of the file header.
  * 
- * IMPORTANT NOTE: At the moment only WAVE files seem to work. 
+ * IMPORTANT NOTE: At the moment only the WAVE (*.wav) type is supported.
  * 
  * @beads.category utilities
  * @author bp
@@ -61,6 +61,12 @@ public class RecordToFile extends UGen {
 	public RecordToFile(AudioContext context, int numberOfChannels, File file, AudioFileFormat.Type type) throws IOException {
 		super(context,numberOfChannels,0);
 		
+		if (type!=AudioFileFormat.Type.WAVE)
+		{
+			System.out.printf("RecordToFile: AudioFileFormat.%s is unsupported. (Only WAVE is currently supported.) \n" +
+					"Beads will continue to use the type specified but it may not output sensible audio data.\n", type.toString());
+		}		
+		
 		this.file = file;
 		this.type = type;
 		
@@ -79,6 +85,22 @@ public class RecordToFile extends UGen {
 				audioFormat, 
 				AudioSystem.NOT_SPECIFIED, 
 				file);				
+	}
+	
+	/**
+	 * Instantiates a recorder for file recording. Uses the .wav format.
+	 * 
+	 * @param context 
+	 * 				The AudioContext 	
+	 * @param numberOfChannels 
+	 * 				The number of channels
+	 * @param file
+	 * 				The file to output to. Extension should be .wav.
+	 * @throws IOException if the audio format is not supported on this machine.
+	 * 				
+	 */
+	public RecordToFile(AudioContext context, int numberOfChannels, File file) throws IOException {
+		this(context,numberOfChannels,file,AudioFileFormat.Type.WAVE);
 	}
 	
 	@Override
