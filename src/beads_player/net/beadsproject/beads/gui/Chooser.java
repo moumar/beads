@@ -246,7 +246,7 @@ public class Chooser implements InterfaceElement {
 			}
 		};
 		SampleManager.addGroupListener(new SampleManager.SampleGroupListener() {
-			public void changed() {
+			public void changed(String group) {
 				c.refreshList();	
 			}
 		});

@@ -174,7 +174,7 @@ public class SampleManager {
 				group.add(sampleList[i]);
 		}
 		for(SampleGroupListener l : listeners) {
-			l.changed();
+			l.changed(groupName);
 		}
 		return group;
 	}
@@ -263,7 +263,7 @@ public class SampleManager {
 			}
 		}
 		for(SampleGroupListener l : listeners) {
-			l.changed();
+			l.changed(groupName);
 		}
 		return group;
 	}
@@ -363,7 +363,7 @@ public class SampleManager {
 		groups.remove(groupName);
 		groupDirs.remove(groupName);
 		for(SampleGroupListener l : listeners) {
-			l.changed();
+			l.changed(groupName);
 		}
 	}
 
@@ -436,10 +436,20 @@ public class SampleManager {
 		SampleManager.verbose = verbose;
 	}
 	
-	
-	//TODO not implemented in above yet!
+	/**
+	 * Interface for notificaiton of changes to a group. Add yourself to listen to 
+	 * group changes using {@link SampleManager#addGroupListener(SampleGroupListener)}.
+	 * 
+	 * @author ollie
+	 *
+	 */
 	public static interface SampleGroupListener {
-		public void changed();
+		
+		/**
+		 * Called when {@link SampleManager} makes changes to a group.
+		 * @param group the name of the affected group.
+		 */
+		public void changed(String group);
 	}
 	
 	

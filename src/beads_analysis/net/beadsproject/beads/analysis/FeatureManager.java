@@ -7,6 +7,17 @@ import java.util.Map;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.SampleManager;
 
+/**
+ * A static class for managing audio feature data. Features are stored in a Map indexed by the {@link Sample}s they
+ * refer to. FeatureManager can look for feature files associated with {@link Sample}s. 
+ * 
+ * A danger to be aware of is the fact that FeatureManager is not well coupled to {@link SampleManager}, so if you wish
+ * to remove {@link Sample}s you'll have to make sure you also manually remove entries in FeatureManager, otherwise
+ * the {@link Sample} data will not be freed. This might be addressed in future versions.
+ * 
+ * @author ollie
+ *
+ */
 public class FeatureManager {
 	
 	private final static Map<Sample, FeatureSet> featureSets = new Hashtable<Sample, FeatureSet>();
