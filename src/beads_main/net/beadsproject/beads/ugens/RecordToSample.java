@@ -8,9 +8,9 @@ import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Sample;
 
 /**
- * Recorder records audio into a writeable {@link Sample}.
+ * RecordToSample records audio into a writeable {@link Sample}.
  * 
- * A Recorder has three different modes, which dictate 
+ * RecordToSample has three different modes, which dictate 
  * how it behaves when the end of the sample is reached:
  * <ul>
  * <li>FINITE (the default): The recorder kills itself.</li>
@@ -34,7 +34,7 @@ import net.beadsproject.beads.data.Sample;
  * @beads.category utilities
  *  
  */
-public class Recorder extends UGen {
+public class RecordToSample extends UGen {
 
     /** The Sample to record into. */
     private Sample sample;
@@ -73,7 +73,7 @@ public class Recorder extends UGen {
 	
         
     /**
-	 * Instantiates a new Recorder.
+	 * Instantiates a new RecordToSample.
 	 * 
 	 * @param context
 	 *            the AudioContext.
@@ -81,12 +81,12 @@ public class Recorder extends UGen {
 	 *            the Sample.
      * @throws Exception if sample is not writeable.
 	 */
-    public Recorder(AudioContext context, Sample sample) throws Exception {
+    public RecordToSample(AudioContext context, Sample sample) throws Exception {
         this(context, sample, Mode.FINITE);
     }
     
     /**
-	 * Instantiates a new Recorder.
+	 * Instantiates a new RecordToSample.
 	 * 
 	 * @param context
 	 *            the AudioContext.
@@ -96,13 +96,13 @@ public class Recorder extends UGen {
 	 *            the Recording Mode to use.
      * @throws Exception if sample is not writeable.
 	 */
-    public Recorder(AudioContext context, Sample sample, Mode mode) throws Exception {
+    public RecordToSample(AudioContext context, Sample sample, Mode mode) throws Exception {
         this(context, sample.getNumChannels());
         this.mode = mode;
         setSample(sample);
     }
     
-    public Recorder(AudioContext context, int numChannels) {
+    public RecordToSample(AudioContext context, int numChannels) {
     	super(context, numChannels, 0);
     	mode = Mode.FINITE;
         sample = null;

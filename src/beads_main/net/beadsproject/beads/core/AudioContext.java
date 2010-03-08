@@ -15,7 +15,7 @@ import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
 import net.beadsproject.beads.ugens.DelayTrigger;
 import net.beadsproject.beads.ugens.Gain;
-import net.beadsproject.beads.ugens.Recorder;
+import net.beadsproject.beads.ugens.RecordToSample;
 
 /**
  * AudioContext provides the core audio set up for running audio in a Beads
@@ -532,14 +532,14 @@ public class AudioContext {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 * 
-	 * @see Recorder recorder
+	 * @see RecordToSample recorder
 	 * @see Sample sample
 	 **/
 	public void record(double timeMS, String filename) throws IOException {
 		Sample s = new Sample(getAudioFormat(), (int) timeMS);
-		Recorder r;
+		RecordToSample r;
 		try {
-			r = new Recorder(this, s);
+			r = new RecordToSample(this, s);
 			r.addInput(out);
 			out.addDependent(r);
 			r.start();

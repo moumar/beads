@@ -10,5 +10,6 @@
 	<classpathentry kind="lib" path="dependencies/tritonus_share.jar"/>
 	<classpathentry kind="lib" path="dependencies/jl1.0.1.jar"/>
 	<classpathentry kind="lib" path="dependencies/tools.jar"/>
+	<classpathentry kind="lib" path="dependencies/tritonus_aos-0.3.6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

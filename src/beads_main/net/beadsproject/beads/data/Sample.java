@@ -72,7 +72,7 @@ import net.beadsproject.beads.core.AudioUtils;
  * 
  * @beads.category data
  * @see SampleManager
- * @see net.beadsproject.beads.ugens.Recorder
+ * @see net.beadsproject.beads.ugens.RecordToSample
  * @author Beads Team
  */
 public class Sample implements Runnable {
