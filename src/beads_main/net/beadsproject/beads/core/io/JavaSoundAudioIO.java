@@ -192,6 +192,9 @@ public class JavaSoundAudioIO extends AudioIO {
 		audioThread = new Thread(new Runnable() {
 			public void run() {
 				// create JavaSound stuff only when needed
+				if(mixer == null) {
+					selectMixer(0);
+				}
 				setupOutputJavaSound();
 				if(hasInput) {
 					setupInputJavaSound();
