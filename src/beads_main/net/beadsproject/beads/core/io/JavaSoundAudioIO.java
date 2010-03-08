@@ -181,8 +181,10 @@ public class JavaSoundAudioIO extends AudioIO {
 		sourceDataLine.stop();
 		sourceDataLine.close();
 		sourceDataLine = null;
-		mixer.close();
-		mixer = null;
+		if(mixer != null) {
+			mixer.close();
+			mixer = null;
+		}
 		return true;
 	}
 
