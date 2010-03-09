@@ -16,14 +16,35 @@ import net.beadsproject.beads.core.UGen;
  */
 public class Mult extends UGen {
 
-	private float multiplier;
+	private float multiplier = 1;
 	private UGen multiplierUGen;
 
+	/**
+	 * Constructor for a Mult object with a static multiplier value.
+	 * 
+	 * @param context
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
+	 * @param multiplier
+	 *            The multiplier value.
+	 */
 	public Mult(AudioContext context, int channels, float multiplier) {
 		super(context, channels, channels);
 		setMultiplier(multiplier);
 	}
 
+	/**
+	 * Constructor for a Mult object with a UGen controlling the multiplier
+	 * value.
+	 * 
+	 * @param context
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
+	 * @param multiplierUGen
+	 *            The UGen controlling the multiplier value.
+	 */
 	public Mult(AudioContext context, int channels, UGen multiplierUGen) {
 		super(context, channels, channels);
 		setMultiplier(multiplierUGen);
@@ -66,16 +87,35 @@ public class Mult extends UGen {
 		}
 	}
 
+	/**
+	 * Gets the current multiplier value.
+	 * 
+	 * @return The multiplier.
+	 */
 	public float getMultiplier() {
 		return multiplier;
 	}
 
+	/**
+	 * Sets the multiplier to a static float value.
+	 * 
+	 * @param multiplier
+	 *            The new multiplier value.
+	 * @return This Mult instance.
+	 */
 	public Mult setMultiplier(float multiplier) {
 		this.multiplier = multiplier;
 		multiplierUGen = null;
 		return this;
 	}
 
+	/**
+	 * Sets a UGen to control the multiplier value.
+	 * 
+	 * @param multiplierUGen
+	 *            The multiplier UGen.
+	 * @return This Mult instance.
+	 */
 	public Mult setMultiplier(UGen multiplierUGen) {
 		if (multiplierUGen == null) {
 			setMultiplier(multiplier);
@@ -87,6 +127,11 @@ public class Mult extends UGen {
 		return this;
 	}
 
+	/**
+	 * Gets the multiplier UGen controller.
+	 * 
+	 * @return The multipler UGen controller.
+	 */
 	public UGen getMultiplierUGen() {
 		return multiplierUGen;
 	}

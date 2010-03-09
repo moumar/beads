@@ -20,16 +20,36 @@ public class Add extends UGen {
 	private UGen adderUGen;
 	private float adder = 0;
 
+	/**
+	 * Constructor for an Add object that sets a UGen to control the value to
+	 * add.
+	 * 
+	 * @param context
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
+	 * @param adderUGen
+	 *            The adder UGen controller.
+	 */
 	public Add(AudioContext context, int channels, UGen adderUGen) {
 		super(context, channels, channels);
 		setAdder(adderUGen);
 	}
 
+	/**
+	 * Constructor for an Add object that sets a static adder value.
+	 * 
+	 * @param context
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
+	 * @param adder
+	 *            The value to add.
+	 */
 	public Add(AudioContext context, int channels, float adder) {
 		super(context, channels, channels);
 		setAdder(adder);
 	}
-
 
 	/*
 	 * (non-Javadoc)
@@ -67,16 +87,35 @@ public class Add extends UGen {
 		}
 	}
 
+	/**
+	 * Gets the current adder value.
+	 * 
+	 * @return The adder value.
+	 */
 	public float getAdder() {
 		return adder;
 	}
 
+	/**
+	 * Sets the adder to a static float value.
+	 * 
+	 * @param adder
+	 *            The new adder value.
+	 * @return This Add instance.
+	 */
 	public Add setAdder(float adder) {
 		this.adder = adder;
 		adderUGen = null;
 		return this;
 	}
 
+	/**
+	 * Sets a UGen to control the adder value.
+	 * 
+	 * @param adderUGen
+	 *            The adder UGen controller.
+	 * @return This Add instance.
+	 */
 	public Add setAdder(UGen adderUGen) {
 		if (adderUGen == null) {
 			setAdder(adder);
@@ -88,6 +127,11 @@ public class Add extends UGen {
 		return this;
 	}
 
+	/**
+	 * Gets the adder UGen controller.
+	 * 
+	 * @return The adder UGen controller.
+	 */
 	public UGen getAdderUGen() {
 		return adderUGen;
 	}
