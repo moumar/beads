@@ -1,31 +1,28 @@
-/*
- * This file is part of Beads. See http://www.beadsproject.net for all information.
- */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
-import net.beadsproject.beads.core.UGen;
 
 /**
  * A DelayTrigger waits for a specified duration and then notifies a receiver.
- *
+ * 
  * @beads.category utilities
  * @author ollie
+ * @author Benito Crawford
+ * @version 0.9.5
  */
-public class DelayTrigger extends UGen {
+public class DelayTrigger extends DelayEvent {
 
-	/** The duration of the delay in samples. */
-	private long sampleDelay;
-	
-	/** The current count in samples. */
-	private long count;
-	
-	/** The Bead that responds to is DelayTrigger. */
+	/** The Bead that responds to this DelayMessage. */
 	private Bead receiver;
-	
+
+	/** The message to send; is set by default to this DelayMessage. */
+	private Bead message;
+
 	/**
-	 * Instantiates a new DelayTrigger with the specified millisecond delay and receiver.
+	 * Instantiates a new DelayTrigger with the specified millisecond delay and
+	 * receiver. By default, a DelayTrigger object will send itself as the
+	 * message.
 	 * 
 	 * @param context
 	 *            the AudioContext.
@@ -35,55 +32,39 @@ public class DelayTrigger extends UGen {
 	 *            the receiver.
 	 */
 	public DelayTrigger(AudioContext context, double delay, Bead receiver) {
-		super(context, 0, 0);
-		sampleDelay = (long)context.msToSamples(delay);
-		reset();
+		super(context, delay);
 		this.receiver = receiver;
-	}
-	
-	/**
-	 * Reset timer to zero.
-	 */
-	public void reset() {
-		count = 0;
+		this.message = this;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.olliebown.beads.core.UGen#calculateBuffer()
+	/**
+	 * Instantiates a new DelayTrigger with the specified millisecond delay,
+	 * receiver, and message.
+	 * 
+	 * @param context
+	 *            The audio context.
+	 * @param delay
+	 *            The delay in milliseconds.
+	 * @param receiver
+	 *            The receiver.
 	 */
+	public DelayTrigger(AudioContext context, double delay, Bead receiver,
+			Bead message) {
+		super(context, delay);
+		this.receiver = receiver;
+		this.message = message;
+	}
+
 	@Override
-	public void calculateBuffer() {
-		if(sampleDelay - count > bufferSize) {
-			count += bufferSize;
-		} else {
-			if(receiver != null) {
-				receiver.message(this);
-			}
-			kill();
+	public void trigger() {
+		if (receiver != null) {
+			receiver.message(message);
 		}
+		kill();
 	}
 
 	/**
-	 * Gets the sample delay.
-	 * 
-	 * @return the sample delay in milliseconds.
-	 */
-	public double getSampleDelay() {
-		return context.samplesToMs(sampleDelay);
-	}
-
-	/**
-	 * Sets the sample delay. This may cause the DelayTrigger to trigger immediately.
-	 * 
-	 * @param sampleDelay
-	 *            the new sample delay in milliseconds.
-	 */
-	public void setSampleDelay(float sampleDelay) {
-		this.sampleDelay = (long)context.msToSamples(sampleDelay);
-	}
-
-	/**
-	 * Gets this DelayTrigger's receiver.
+	 * Gets this DelayMessage's receiver.
 	 * 
 	 * @return the receiver.
 	 */
@@ -92,22 +73,36 @@ public class DelayTrigger extends UGen {
 	}
 
 	/**
-	 * Sets this DelayTrigger's receiver.
+	 * Sets this DelayMessage's receiver.
 	 * 
 	 * @param receiver
 	 *            the new receiver.
+	 * @return This DelayMessage instance.
 	 */
-	public void setReceiver(Bead receiver) {
+	public DelayTrigger setReceiver(Bead receiver) {
 		this.receiver = receiver;
+		return this;
 	}
 
 	/**
-	 * Gets the current count.
+	 * Gets the message Bead that will be sent when the DelayMessage fires.
 	 * 
-	 * @return the count in milliseconds.
+	 * @return The message Bead.
 	 */
-	public double getCount() {
-		return context.samplesToMs(count);
+	public Bead getMessage() {
+		return message;
 	}
-	
+
+	/**
+	 * Sets the message to send when the DelayMessage fires.
+	 * 
+	 * @param message
+	 *            The message Bead.
+	 * @return This DelayMessage instance.
+	 */
+	public DelayTrigger setMessage(Bead message) {
+		this.message = message;
+		return this;
+	}
+
 }
