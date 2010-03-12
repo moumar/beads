@@ -324,7 +324,11 @@ public abstract class UGen extends Bead {
 					}
 				}
 			} 
-		} 
+		}  else if(ins != 0) {
+			for (int i = 0; i < inputsAtChannel.length; i++) {
+				bufIn[i] = context.getZeroBuf();
+			}
+		}
 	}
 
 	/**
@@ -680,6 +684,18 @@ public abstract class UGen extends Bead {
 	 */
 	public float getValue(int i, int j) {
 		return bufOut[i][j];
+	}
+	
+	/**
+	 * Gets an entire output buffer from a specific channel at a given time step. Note that output buffers are swapped
+	 * every time step, so this float[] will only be valid between the time this UGen in updated 
+	 * and the beginning of the next update cycle. It's your job to make sure you're calling this
+	 * at a sensible time.
+	 * @param i the output channel.
+	 * @return a buffer of output data.
+	 */
+	public float[] getOutBuffer(int i) {
+		return bufOut[i];
 	}
 	
 	/**
