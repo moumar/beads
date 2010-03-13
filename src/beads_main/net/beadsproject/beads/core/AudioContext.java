@@ -66,7 +66,6 @@ public class AudioContext {
 
 	/** Used for testing for dropped frames. */
 	private long nanoLeap;
-	private long nanoStart;
 	private boolean lastFrameGood;
 
 	/**
@@ -206,26 +205,20 @@ public class AudioContext {
 
 	/** callback from AudioIO. */
 	protected boolean update() {
-		if (lastFrameGood) {
-			bufStoreIndex = 0;
-			Arrays.fill(zeroBuf, 0f);
-			out.update(); // this will propagate all of the updates
-		}
-		// now check for dropped frames
-		if (checkForDroppedFrames) {
-			long expectedNanoTime = nanoLeap * (timeStep + 1);
-			long realNanoTime = System.nanoTime() - nanoStart;
-			float frameDifference = (float) (expectedNanoTime - realNanoTime)
-					/ (float) nanoLeap;
-			if (frameDifference < -1) {
-				lastFrameGood = false;
-				System.out.println("Audio dropped frame.");
-			} else
-				lastFrameGood = true;
-		}
+		long timeBefore = System.nanoTime();
+		bufStoreIndex = 0;
+		Arrays.fill(zeroBuf, 0f);
+		out.update(); // this will propagate all of the updates
 		timeStep++;
-		if (Thread.interrupted())
+		long timeAfter = System.nanoTime();
+		lastFrameGood = (timeAfter - timeBefore) < nanoLeap;
+		// now check for dropped frames
+		if (checkForDroppedFrames && !lastFrameGood) {
+			System.out.println("Audio Dropped Frame");
+		}
+		if (Thread.interrupted()) {
 			System.out.println("Thread interrupted");
+		}
 		if (logTime && timeStep % 100 == 0) {
 			System.out.println(samplesToMs(timeStep * bufferSizeInFrames)
 					/ 1000f + " (seconds)");
@@ -570,8 +563,7 @@ public class AudioContext {
 	public void start() {
 		if (stopped) {
 			// calibration test stuff
-			nanoStart = System.nanoTime();
-			nanoLeap = (long) (1000000000 / (outputAudioFormat.getSampleRate() / (float) bufferSizeInFrames));
+			nanoLeap = (long) (1000000000 * ((float) bufferSizeInFrames / outputAudioFormat.getSampleRate()));
 			lastFrameGood = true;
 			// reset time step
 			timeStep = 0;

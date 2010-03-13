@@ -227,9 +227,7 @@ public class JavaSoundAudioIO extends AudioIO {
 			targetDataLine.start();
 		}
 		while (context.isRunning()) {
-			if(hasInput && targetDataLine.available() > bbufIn.length) {
-				targetDataLine.read(bbufIn, 0, bbufIn.length);
-			} 
+			
 			boolean goodFrame = update(); // this propagates update call to context
 			if (goodFrame) {
 				if (isBigEndian) {
@@ -252,6 +250,9 @@ public class JavaSoundAudioIO extends AudioIO {
 					}
 				}
 				sourceDataLine.write(bbufOut, 0, bbufOut.length);
+				if(hasInput) { 
+					targetDataLine.read(bbufIn, 0, bbufIn.length);
+				}
 			}
 		}
 	}

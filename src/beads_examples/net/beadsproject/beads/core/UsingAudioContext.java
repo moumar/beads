@@ -1,10 +1,14 @@
 package net.beadsproject.beads.core;
 
+import java.io.File;
+import java.io.IOException;
+
 import net.beadsproject.beads.core.io.NonrealtimeIO;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
 import net.beadsproject.beads.ugens.DelayTrigger;
 import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.Noise;
+import net.beadsproject.beads.ugens.RecordToFile;
 
 public class UsingAudioContext {
 
@@ -71,6 +75,33 @@ public class UsingAudioContext {
 			 */
 			UGen input = ac.getAudioInput(new int[] {0});
 			ac.out.addInput(input);
+			//go
+			ac.start();
+		}
+	}
+	
+	public static class AudioInputRecord {
+		public static void main(String[] args) throws IOException {
+			//using the default AudioIO (JavaSoundAudioIO)
+			final AudioContext ac = new AudioContext();
+			/*
+			 * Now get an audio input.
+			 * 
+			 * The array specified which input channels you want.
+			 */
+			final RecordToFile rtf1 = new RecordToFile(ac, 1, new File("audio/temp.wav"));
+			UGen input = ac.getAudioInput(new int[] {0});
+			rtf1.addInput(input);
+			ac.out.addDependent(rtf1);
+			DelayTrigger dt = new DelayTrigger(ac, 5000f, new Bead() {
+				public void messageReceived(Bead message) {
+					System.out.println("kill");
+					rtf1.kill();
+					ac.stop();
+					System.exit(1);
+				}
+			});
+			ac.out.addDependent(dt);
 			//go
 			ac.start();
 		}
