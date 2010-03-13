@@ -231,7 +231,6 @@ public class AudioFile {
 				if (!audioInfo.containsKey("mp3.vbr") || (Boolean)audioInfo.get("mp3.vbr"))
 				{
 					System.out.println("Beads does not currently support seeking on variable bit rate mp3s.");			
-					//TODO throw an error here rather than System.exit();
 				}							
 				
 				/* test method, _read_ n frames */
@@ -258,7 +257,6 @@ public class AudioFile {
 				//System.out.printf("skip want: %db, got %db\n",nChannels*numBytes*frames,skipped);
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		nTotalFramesRead += frames;
@@ -577,7 +575,6 @@ public class AudioFile {
 		return numFramesJustRead;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public Map<String,Object> getFileProperties()
 	{
 		if (audioInfo!=null)

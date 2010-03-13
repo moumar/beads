@@ -9,7 +9,6 @@ import java.util.Map;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.DocErrorReporter;
-import com.sun.javadoc.PackageDoc;
 import com.sun.javadoc.RootDoc;
 import com.sun.javadoc.Tag;
 
@@ -37,8 +36,8 @@ public class BeadsDoclet {
 			Map<String,LinkedList<ClassDoc>> categoryMap = new HashMap<String,LinkedList<ClassDoc>>();
 			int totalEntries = 0; // total number of entries that we will print
 			for (int i = 0; i < classes.length; i++) {
-				PackageDoc pd = classes[i].containingPackage();
-				// System.out.printf("class %s in package %s\n", classes[i].name(), pd.name());
+//				PackageDoc pd = classes[i].containingPackage();
+//				System.out.printf("class %s in package %s\n", classes[i].name(), pd.name());
 				
 				// categories
 				Tag[] tags = classes[i].tags("beads.category");
@@ -107,7 +106,6 @@ public class BeadsDoclet {
 		{
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
