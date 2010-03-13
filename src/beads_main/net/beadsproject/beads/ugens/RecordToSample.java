@@ -64,8 +64,8 @@ public class RecordToSample extends UGen {
     private Mode mode;
     
     /** Resizing parameters - in ms.*/
-    private double doubleUpTime = 30000;
-	private double constantResizeLength = 30000;
+    private double doubleUpTime = 0;
+	private double constantResizeLength = 10000;
 	
 	// computed from the above..
 	private long doubleUpFrame; 
@@ -167,7 +167,7 @@ public class RecordToSample extends UGen {
      * @see com.olliebown.beads.core.UGen#calculateBuffer()
      */
     @Override
-    public void calculateBuffer() {   
+    public void calculateBuffer() { 
     	if(sample != null) {
 	    	long nFrames = sample.getNumFrames();
 	    	if ((position + bufferSize) >= nFrames)

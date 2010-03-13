@@ -183,6 +183,22 @@ public class AudioContext {
 	}
 
 	/**
+	 * Returns a UGen which can be used to grab audio from the audio input, as
+	 * specified by the AudioIO. This method returns a UGen with one out for
+	 * each input channel of the audio input device. For access to specific channels
+	 * see {@link #getAudioInput(int[])}.
+	 * 
+	 * @return a UGen which can be used to access audio input.
+	 */
+	public UGen getAudioInput() {
+		int[] chans = new int[inputAudioFormat.getChannels()];
+		for(int i = 0; i < chans.length; i++) {
+			chans[i] = i;
+		}
+		return audioIO.getAudioInput(chans);
+	}
+
+	/**
 	 * produces the default AudioIO which is a JavaSoundAudioIO with noargs
 	 * constructor.
 	 * 

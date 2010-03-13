@@ -66,13 +66,13 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 		interfaceElements.add(s);
 		//set up mixing stuff (more interface elements in setupPanner())
 		controllableGain = new Gain(context, sourceChannels);
-		controllableGain.setGainEnvelope(s);
+		controllableGain.setGain(s);
 		if(destChannels == sourceChannels) {
 			addInput(controllableGain);
 		} else {
 			setupPanner(destChannels, sourceChannels);
 		}
-		setGainEnvelope(new Envelope(context, 0f));
+		setGain(new Envelope(context, 0f));
 	}
 	
 	public void setupPanner(int destChannels, int sourceChannels) {
@@ -146,14 +146,14 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 	}
 	
 	public void enter() {
-		((Envelope)getGainEnvelope()).lock(false);
-		getGainEnvelope().setValue(1f);
+		((Envelope)getGainUGen()).lock(false);
+		getGainUGen().setValue(1f);
 	}
 
 	public void exit() {
-		((Envelope)getGainEnvelope()).clear();
-		((Envelope)getGainEnvelope()).addSegment(0f, 500f, new PauseTrigger(this));
-		((Envelope)getGainEnvelope()).lock(true);
+		((Envelope)getGainUGen()).clear();
+		((Envelope)getGainUGen()).addSegment(0f, 500f, new PauseTrigger(this));
+		((Envelope)getGainUGen()).lock(true);
 	}
 	
 	public final String toString() {

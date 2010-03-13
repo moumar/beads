@@ -5,22 +5,17 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.swing.JComponent;
-import javax.swing.JScrollPane;
 
-import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.play.InterfaceElement;
 import net.beadsproject.beads.ugens.SamplePlayer;
