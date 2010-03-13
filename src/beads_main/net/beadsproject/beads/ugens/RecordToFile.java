@@ -9,14 +9,12 @@ import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 
-import org.tritonus.share.sampled.AudioSystemShadow;
-import org.tritonus.share.sampled.file.AudioOutputStream;
-
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.AudioUtils;
 import net.beadsproject.beads.core.UGen;
-import net.beadsproject.beads.data.Sample;
-import net.beadsproject.beads.data.SampleManager;
+
+import org.tritonus.share.sampled.AudioSystemShadow;
+import org.tritonus.share.sampled.file.AudioOutputStream;
 
 /**
  * RecordToFile records audio into a file.
@@ -34,14 +32,8 @@ public class RecordToFile extends UGen {
 	/** The stream the input is output to. */
 	private AudioOutputStream audioOutputStream;
 	
-	/** The file object the constructor was called with */
-	private File file;
-	
 	/** The audio format of the output file. */
 	private AudioFormat audioFormat;
-	
-	/** The output file type. */
-	private AudioFileFormat.Type type;
 	
 	/**
 	 * Instantiates a recorder for file recording.
@@ -59,16 +51,11 @@ public class RecordToFile extends UGen {
 	 * 				
 	 */
 	public RecordToFile(AudioContext context, int numberOfChannels, File file, AudioFileFormat.Type type) throws IOException {
-		super(context,numberOfChannels,0);
-		
-		if (type!=AudioFileFormat.Type.WAVE)
-		{
+		super(context,numberOfChannels,0);	
+		if (type!=AudioFileFormat.Type.WAVE) {
 			System.out.printf("RecordToFile: AudioFileFormat.%s is unsupported. (Only WAVE is currently supported.) \n" +
 					"Beads will continue to use the type specified but it may not output sensible audio data.\n", type.toString());
 		}		
-		
-		this.file = file;
-		this.type = type;
 		
 		audioFormat = new AudioFormat(
 				AudioFormat.Encoding.PCM_SIGNED,
@@ -106,38 +93,30 @@ public class RecordToFile extends UGen {
 	@Override
 	public void calculateBuffer() {
 		// INV: bufIn[0] exists
-		
 		int length = bufIn[0].length;
 		byte bytes[] = new byte[(int) (getIns()*length*2)];
-		
-		if (getIns() > 1)
-		{
+		if (getIns() > 1) {
 			float interleaved[] = new float[(int) (getIns()*length)];
 			AudioUtils.interleave(bufIn, getIns(), length, 0, interleaved);
 			AudioUtils.floatToByte(bytes, interleaved, false);
 		}
-		else
-		{		
+		else {		
 			AudioUtils.floatToByte(bytes, bufIn[0], false);
 		}
-		
 		try {
 			int numBytesWritten = audioOutputStream.write(bytes, 0, bytes.length);
-			if (DEBUG)
+			if(DEBUG)
 				System.out.printf("Wrote %d bytes\n",numBytesWritten);
 		} catch (IOException e) {			
 			e.printStackTrace();			
-		}		
-		
-		if (DEBUG)			
-		{	
+		}	
+		if(DEBUG) {	
 			long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 			System.out.printf("%dm mem used\n", usedMem/(1024*1024));
 		}
 	}
 	
-	public void kill()
-	{
+	public void kill() {
 		super.kill();
 		try {
 			audioOutputStream.close();

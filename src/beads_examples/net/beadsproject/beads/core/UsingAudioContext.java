@@ -71,7 +71,7 @@ public class UsingAudioContext {
 			/*
 			 * Now get an audio input.
 			 * 
-			 * The array specified which input channels you want.
+			 * The array specifies which input channels you want access to.
 			 */
 			UGen input = ac.getAudioInput(new int[] {0});
 			ac.out.addInput(input);
@@ -84,12 +84,10 @@ public class UsingAudioContext {
 		public static void main(String[] args) throws IOException {
 			//using the default AudioIO (JavaSoundAudioIO)
 			final AudioContext ac = new AudioContext();
-			/*
-			 * Now get an audio input.
-			 * 
-			 * The array specified which input channels you want.
-			 */
+			//a little recorder tool which streams straight to a file.
+			//this must be killed in order for the raw audio file to get wav header.
 			final RecordToFile rtf1 = new RecordToFile(ac, 1, new File("audio/temp.wav"));
+			//the audio input. The array specified which input channels you want.
 			UGen input = ac.getAudioInput(new int[] {0});
 			rtf1.addInput(input);
 			ac.out.addDependent(rtf1);
