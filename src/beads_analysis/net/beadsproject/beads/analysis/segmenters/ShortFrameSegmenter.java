@@ -36,6 +36,9 @@ public class ShortFrameSegmenter extends AudioSegmenter {
 	/** The previous TimeStamp. */
 	private TimeStamp lastTimeStamp;
 	
+	/** The TimeStamp of the AudioContext at t=0. */
+	private TimeStamp beginningTimeStamp;
+	
 	/** The window function used to scale the chunks. */
 	private Buffer window;
 	
@@ -50,7 +53,6 @@ public class ShortFrameSegmenter extends AudioSegmenter {
 		hopSize = chunkSize;
 		window = new HanningWindow().getDefault();
 		count = 0;
-		lastTimeStamp = context.generateTimeStamp(0);
 		setupBuffers();
 	}
 	
@@ -115,6 +117,10 @@ public class ShortFrameSegmenter extends AudioSegmenter {
 	 */
 	@Override
 	public void calculateBuffer() {
+		if(beginningTimeStamp == null) {
+			lastTimeStamp = context.generateTimeStamp(0);
+			beginningTimeStamp = context.generateTimeStamp(0);
+		}
 		for(int i = 0; i < bufferSize; i++) {
 			for(int j = 0; j < chunks.length; j++) {
 				int pos = count - j * hopSize;
@@ -127,7 +133,9 @@ public class ShortFrameSegmenter extends AudioSegmenter {
 			if(count % hopSize == 0) {
 				TimeStamp nextTimeStamp = context.generateTimeStamp(i);
 				int chunkIndex = count / hopSize - 1;
-				segment(lastTimeStamp, nextTimeStamp, chunks[chunkIndex]);
+				segment(TimeStamp.subtract(context, lastTimeStamp, beginningTimeStamp), 
+						TimeStamp.subtract(context, nextTimeStamp, beginningTimeStamp), 
+						chunks[chunkIndex]);
 				lastTimeStamp = nextTimeStamp;
 			}
 			count %= cycleLen;

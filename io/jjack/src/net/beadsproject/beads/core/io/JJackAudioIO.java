@@ -51,7 +51,8 @@ public class JJackAudioIO extends AudioIO {
 		JJackAudioProcessor p = new JJackAudioProcessor() {
 			private static final long serialVersionUID = 1L;
 			@Override
-			public void process(JJackAudioEvent frame) {
+			public synchronized void process(JJackAudioEvent frame) {
+				long startTime = System.currentTimeMillis();
 				try {
 					//grab the buffers
 					FloatBuffer[] inBuffer = frame.getInputs();
@@ -59,8 +60,6 @@ public class JJackAudioIO extends AudioIO {
 					//turn inputs into float[][] arrays
 					for(int i = 0; i < inBuffer.length; i++) {
 						inBuffer[i].get(jjackInputs[i]);
-						for(int j = 0; j < inBuffer[i].capacity(); j++) {
-						}
 					}
 					//get the input audio data into the input ring buffer
 					for(int i = 0; i < jjBufSize; i++) { //iterate through length of buffer
@@ -87,9 +86,7 @@ public class JJackAudioIO extends AudioIO {
 							}
 							//keep beadsInputIndex updated
 							beadsInputIndex += context.getBufferSize();
-							if(beadsInputIndex >= RING_BUFFER_SIZE) {
-								beadsInputIndex = 0;
-							}
+							beadsInputIndex %= RING_BUFFER_SIZE;
 							//reset counter
 							timeSinceUpdate = 0;
 							//flag that first update is done
@@ -115,6 +112,7 @@ public class JJackAudioIO extends AudioIO {
 				} catch(Exception e) {
 					e.printStackTrace();
 				}
+				System.out.println(System.currentTimeMillis() - startTime);
 			}
 		};
 		//now set up the JJack system

@@ -2,6 +2,7 @@ package net.beadsproject.beads.gui;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -154,6 +155,15 @@ public class SampleView implements InterfaceElement {
 		this.sample = sample;
 		clearSnapPoints();
 		calculateOverview();
+	}
+	
+
+	//TODO a nice feature would be to redraw a specified region rather than the whole thing
+	public synchronized void redraw() {
+		if(component != null) {
+			calculateOverview();
+			component.repaint();
+		}
 	}
 
 	public Sample getSample() {
@@ -322,5 +332,6 @@ public class SampleView implements InterfaceElement {
 	public interface SampleViewListener {
 		public void selectionChanged(double startTimeMS, double endTimeMS);
 	}
+
 
 }

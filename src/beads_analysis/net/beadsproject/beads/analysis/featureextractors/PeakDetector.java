@@ -33,6 +33,7 @@ public class PeakDetector extends FeatureExtractor<Float, Float> implements Segm
 	private BeadArray listeners;
 	private List<SegmentListener> segmentListeners;
 	private TimeStamp lastStartTime;
+	private double resetDelay; //milliseconds
 
 	private float valueAtOnset = 0;
 	private float threshold = 0;
@@ -48,7 +49,8 @@ public class PeakDetector extends FeatureExtractor<Float, Float> implements Segm
 	private final int W = 3;
 	private final int WM = 3; // multiplier
 	private final int M = W + WM * W + 1;
-	private float alpha = 0.9f;
+	private float alpha = 0.9f; //Ollie - description of alpha would be handy, look like a kind of momentum value for changing threshold
+	//The lower alpha, the more rapidly changeable?
 
 	public PeakDetector() {
 		super();
@@ -59,6 +61,7 @@ public class PeakDetector extends FeatureExtractor<Float, Float> implements Segm
 		baseThreshold = 0.1f;
 		valueAtOnset = 0;
 		threshold = 0;
+		resetDelay = 100;
 	}
 	
 	public void setThreshold(float thresh) {
@@ -67,6 +70,10 @@ public class PeakDetector extends FeatureExtractor<Float, Float> implements Segm
 
 	public void setAlpha(float alpha) {
 		this.alpha = alpha;
+	}
+	
+	public void setResetDelay(float resetDelay) {
+		this.resetDelay = resetDelay;
 	}
 
 	/**
@@ -124,7 +131,7 @@ public class PeakDetector extends FeatureExtractor<Float, Float> implements Segm
 		// 2. lastMValues[M-1-W] > lastMValues[M-1-..]..lastMValues[M-1]
 		// 3. lastMValues[M-1-W] > average of lastMValues[M-1-.. .. M-1]
 		float lastValue = lastValues[M - 1 - W];
-		if (lastValue > threshold) {
+		if (lastValue > threshold && endTime.since(lastStartTime) > resetDelay) {
 			boolean passedTest2 = true;
 			for (int i = M - 1 - 2 * W; i <= M - 1; i++) {
 				if (i == M - 1 - W)

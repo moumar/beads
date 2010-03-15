@@ -1,6 +1,7 @@
 package net.beadsproject.beads.play;
 
 import java.awt.Color;
+import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 
@@ -9,10 +10,12 @@ import javax.swing.JComponent;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.events.PauseTrigger;
 import net.beadsproject.beads.gui.BeadsColors;
+import net.beadsproject.beads.gui.BeadsKeys;
 import net.beadsproject.beads.gui.BeadsPanel;
 import net.beadsproject.beads.gui.LevelMeter;
 import net.beadsproject.beads.gui.Slider;
 import net.beadsproject.beads.gui.Slider2D;
+import net.beadsproject.beads.gui.BeadsKeys.KeyboardListener;
 import net.beadsproject.beads.ugens.Clock;
 import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.Function;
@@ -39,6 +42,8 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 	protected Environment environment;
 	
 	private Color color;
+	
+	private BeadsKeys.KeyboardListener kl;
 	
 	public SongPart(String name, Environment environment) {
 		this(name, environment, environment.ac.getAudioFormat().getChannels(), 2);
@@ -73,6 +78,23 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 			setupPanner(destChannels, sourceChannels);
 		}
 		setGain(new Envelope(context, 0f));
+		//set up key listener
+		kl = new BeadsKeys.KeyboardListener() {
+			public void keyReleased(int keyCode) {
+				if(panel != null && panel.getTopLevelAncestor() != null &&
+						panel.getTopLevelAncestor().hasFocus()) {
+					SongPart.this.keyReleased(keyCode);
+				}
+			}
+			public void keyPressed(int keyCode) {
+				if(panel != null && panel.getTopLevelAncestor() != null &&
+						panel.getTopLevelAncestor().hasFocus()) {
+					SongPart.this.keyPressed(keyCode);
+				}
+			}
+		};
+		BeadsKeys.addListener(kl);
+		
 	}
 	
 	public void setupPanner(int destChannels, int sourceChannels) {
@@ -160,6 +182,11 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 		return getName() + " (" + getClass().getSimpleName() + ")";
 	}
 	
+	public void kill() {
+		super.kill();
+		BeadsKeys.removeListener(kl);
+	}
+	
 	public Clock getClock() {
 		return clock;
 	}
@@ -176,5 +203,14 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 	public void setColor(Color color) {
 		this.color = color;
 	}
+
+	//key listener methods
+	public void keyPressed(int keyCode) {		
+	}
+
+	public void keyReleased(int keyCode) {		
+	}
+
+	
 	
 }

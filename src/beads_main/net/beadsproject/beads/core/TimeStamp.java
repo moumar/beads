@@ -36,6 +36,20 @@ public class TimeStamp {
 		this.timeStep = timeStep;
 		this.index = index;
 	}
+	
+	/**
+	 * Instantiates a new TimeStamp with the given time step, context and buffer index. Use {@link AudioContext#generateTimeStamp(int)} to generate a
+	 * TimeStamp for the current time.
+	 * 
+	 * @param context the AudioContext.
+	 * @param timeStep the time step.
+	 * @param index the index.
+	 */
+	public TimeStamp(AudioContext context, long timeInSamples) {
+		this.context = context;
+		timeStep = timeInSamples / context.getBufferSize();
+		index = (int)(timeInSamples % context.getBufferSize());
+	}
 
 	/**
 	 * Gets the time of the TimeStamp in milliseconds.
@@ -82,4 +96,9 @@ public class TimeStamp {
 		}
 		return false;
 	}
+	
+	public static TimeStamp subtract(AudioContext ac, TimeStamp a, TimeStamp b) {
+		return new TimeStamp(ac, a.getTimeSamples() - b.getTimeSamples());
+	}
+
 }

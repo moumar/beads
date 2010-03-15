@@ -100,6 +100,11 @@ public class UsingAudioContext {
 				}
 			});
 			ac.out.addDependent(dt);
+			//add some sound
+			Noise n = new Noise(ac);
+			Gain g = new Gain(ac, 1, 0.1f);
+			g.addInput(n);
+			ac.out.addInput(g);
 			//go
 			ac.start();
 		}
