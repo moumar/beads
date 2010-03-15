@@ -71,7 +71,7 @@ public class UsingAudioContext {
 			/*
 			 * Now get an audio input.
 			 * 
-			 * The array specifies which input channels you want access to.
+			 * The array specifies which inpDut channels you want access to.
 			 */
 			UGen input = ac.getAudioInput(new int[] {0});
 			ac.out.addInput(input);
