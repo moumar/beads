@@ -219,6 +219,10 @@ public class Chooser implements InterfaceElement {
 		}
 	}
 	
+	public int getChoiceIndex() {
+		return choice;
+	}
+	
 	public void clear() {
 		elements.clear();
 	}
@@ -262,7 +266,9 @@ public class Chooser implements InterfaceElement {
 				String groupName = groupChooser.getChoice();
 				ArrayList<Sample> samples = SampleManager.getGroup(groupName);
 				for(Sample s : samples) {
-					add(s.getSimpleFileName());
+					String name = s.getSimpleFileName();
+					if(name == null) name = "Untitled";
+					add(name);
 				}
 				repaint();
 			}

@@ -25,7 +25,7 @@ import net.beadsproject.beads.core.UGen;
 public class JavaSoundAudioIO extends AudioIO {
 
 	/** The default system buffer size. */
-	public static final int DEFAULT_OUTPUT_BUFFER_SIZE = 5000;
+	public static final int DEFAULT_OUTPUT_BUFFER_SIZE = 2000;
 
 	/** The mixer. */
 	private Mixer mixer;
@@ -73,7 +73,7 @@ public class JavaSoundAudioIO extends AudioIO {
 				audioFormat);
 		try {
 			int inputBufferSize = systemBufferSizeInFrames * audioFormat.getFrameSize();
-			sourceDataLine = (SourceDataLine) AudioSystem.getLine(info);
+			sourceDataLine = (SourceDataLine) mixer.getLine(info);
 			if (systemBufferSizeInFrames < 0)
 				sourceDataLine.open(audioFormat);
 			else
@@ -197,9 +197,9 @@ public class JavaSoundAudioIO extends AudioIO {
 		audioThread = new Thread(new Runnable() {
 			public void run() {
 				// create JavaSound stuff only when needed
-//				if(mixer == null) {
-//					selectMixer(0);
-//				}
+				if(mixer == null) {
+					selectMixer(0);
+				}
 				setupOutputJavaSound();
 				if(hasInput && targetDataLine == null) {
 					setupInputJavaSound();

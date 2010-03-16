@@ -382,6 +382,7 @@ public class Sample implements Runnable {
 		bufferingRegime = Regime.newTotalRegime();
 		isBigEndian = true;
 		isScheduled = false;
+		
 	}
 
 	/**
@@ -1052,6 +1053,7 @@ public class Sample implements Runnable {
 	 * @return the file path.
 	 */
 	public String getFileName() {
+		if(audioFile == null) return null;
 		return audioFile.getName();
 	}
 
@@ -1062,7 +1064,9 @@ public class Sample implements Runnable {
 	 * @return the file name.
 	 */
 	public String getSimpleFileName() {
-		String[] nameParts = getFileName().split("/");
+		String fileName = getFileName();
+		if(fileName == null) return null;
+		String[] nameParts = fileName.split("/");
 		return nameParts[nameParts.length - 1];
 	}
 

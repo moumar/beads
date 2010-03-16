@@ -170,8 +170,9 @@ public class SampleManager {
 			group = groups.get(groupName);
 		}
 		for (int i = 0; i < sampleList.length; i++) {
-			if (!group.contains(sampleList[i]))
+			if (!group.contains(sampleList[i])) {
 				group.add(sampleList[i]);
+			}
 		}
 		for(SampleGroupListener l : listeners) {
 			l.changed(groupName);

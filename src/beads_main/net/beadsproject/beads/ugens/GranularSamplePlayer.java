@@ -114,9 +114,21 @@ public class GranularSamplePlayer extends SamplePlayer {
 	/**
 	 * Gets the pitch envelope.
 	 * 
+	 * @deprecated use {@link #getPitchUGen()}.
 	 * @return the pitch envelope.
 	 */
+	@Deprecated
 	public UGen getPitchEnvelope() {
+		return pitchEnvelope;
+	}
+	
+
+	/**
+	 * Gets the pitch UGen.
+	 * 
+	 * @return the pitch UGen.
+	 */
+	public UGen getPitchUGen() {
 		return pitchEnvelope;
 	}
 
