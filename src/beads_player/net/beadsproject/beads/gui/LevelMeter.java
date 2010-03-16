@@ -86,7 +86,7 @@ public class LevelMeter implements InterfaceElement {
 					while(true) {
 						component.repaint();
 						try {
-							sleep(50);
+							sleep(100);
 						} catch(Exception e) {
 							e.printStackTrace();
 						}

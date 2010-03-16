@@ -97,7 +97,7 @@ public class BeadsGui {
 		BeadsPanel ci = new BeadsPanel();
 		ci.add(tempoSlider.getComponent());
 		Slider slider2 = new Slider(env.ac, "gain", 0f, 2f, 1f);
-		((Gain)env.ac.out).setGainEnvelope(slider2);
+		((Gain)env.ac.out).setGain(slider2);
 		ci.add(slider2.getComponent());
 		ci.titledBorder("Master Controls");
 		TimeGraph tg = new TimeGraph(4);
@@ -141,7 +141,9 @@ public class BeadsGui {
 		final Readout r = new Readout("time", "");
 		clock.addMessageListener(new Bead() {
 			public void messageReceived(Bead message) {
-				r.setText(clock.getBeatCount() + " " + clock.getCount());
+				if(clock.isBeat()) {
+					r.setText(clock.getBeatCount() + " " + clock.getCount());
+				}
 			}
 		});
 		ci.add(r.getComponent());
@@ -154,7 +156,6 @@ public class BeadsGui {
 		environmentFrame.setResizable(true);
 		environmentFrame.setVisible(true);
 		environmentFrame.pack();
-		env.ac.start();
 	}
 
 	public void repack() {

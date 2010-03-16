@@ -182,7 +182,7 @@ public class Slider extends Envelope implements InterfaceElement {
 	public void calculateBuffer() {
 		super.calculateBuffer();
 		value = myBufOut[0];
-		if(component != null) component.repaint();
+		if(component != null && context.getTimeStep() % 4 == 0) component.repaint();
 	}
 	
 	/**

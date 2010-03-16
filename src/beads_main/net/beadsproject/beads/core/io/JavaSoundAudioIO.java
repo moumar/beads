@@ -25,7 +25,7 @@ import net.beadsproject.beads.core.UGen;
 public class JavaSoundAudioIO extends AudioIO {
 
 	/** The default system buffer size. */
-	public static final int DEFAULT_OUTPUT_BUFFER_SIZE = 3000;
+	public static final int DEFAULT_OUTPUT_BUFFER_SIZE = 5000;
 
 	/** The mixer. */
 	private Mixer mixer;
@@ -61,7 +61,7 @@ public class JavaSoundAudioIO extends AudioIO {
 
 	public JavaSoundAudioIO(int systemBufferSize) {
 		this.systemBufferSizeInFrames = systemBufferSize;
-		setThreadPriority((int)(Thread.MAX_PRIORITY * 0.9));
+		setThreadPriority((int)(Thread.MAX_PRIORITY));
 	}
 
 	/**
@@ -93,7 +93,8 @@ public class JavaSoundAudioIO extends AudioIO {
 		DataLine.Info info = new DataLine.Info(TargetDataLine.class,
 				audioFormat);
 		try {
-			int inputBufferSize = systemBufferSizeInFrames * audioFormat.getFrameSize();
+			//hackety hack
+			int inputBufferSize = 2 * systemBufferSizeInFrames * audioFormat.getFrameSize();
 			targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
 			targetDataLine.open(audioFormat, inputBufferSize);
 			if (targetDataLine == null)
@@ -236,8 +237,13 @@ public class JavaSoundAudioIO extends AudioIO {
 //		int count = 0;
 
 //		System.out.println("SLEEPING AT START");
+		/*
+		 * This allows the audio inputs to buffer up some input data.
+		 * At present this is rather crude, stepping us straight into the 
+		 * middle of the buffered space, introducing some io latency.
+		 */
 		try {
-			Thread.sleep(targetDataLine.getBufferSize() / 4);
+			Thread.sleep((long)context.samplesToMs(sourceDataLine.getBufferSize() / 2));
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -269,15 +275,7 @@ public class JavaSoundAudioIO extends AudioIO {
 			/////////////////////////////////////////////////
 			
 			
-			////// INPUT ///////
-			
-			if(hasInput) { 
-//				if(targetDataLine.available() < bbufIn.length) {
-//					System.out.println("Input Blocking");
-//				}
-				targetDataLine.read(bbufIn, 0, bbufIn.length);
-			}
-			
+
 			/////// UPDATE ///////
 			
 			update(); // this propagates update call to context
@@ -307,6 +305,16 @@ public class JavaSoundAudioIO extends AudioIO {
 //				System.out.println("Output Blocking");
 //			}
 			sourceDataLine.write(bbufOut, 0, bbufOut.length);
+			
+			////// INPUT ///////
+			
+			if(hasInput) { 
+//				if(targetDataLine.available() < bbufIn.length) {
+//					System.out.println("Input Blocking");
+//				}
+				targetDataLine.read(bbufIn, 0, bbufIn.length);
+			}
+			
 		}
 	}
 	

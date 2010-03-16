@@ -52,7 +52,7 @@ public class JJackAudioIO extends AudioIO {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public synchronized void process(JJackAudioEvent frame) {
-				long startTime = System.currentTimeMillis();
+//				long startTime = System.currentTimeMillis();
 				try {
 					//grab the buffers
 					FloatBuffer[] inBuffer = frame.getInputs();
@@ -112,7 +112,7 @@ public class JJackAudioIO extends AudioIO {
 				} catch(Exception e) {
 					e.printStackTrace();
 				}
-				System.out.println(System.currentTimeMillis() - startTime);
+//				System.out.println(System.currentTimeMillis() - startTime);
 			}
 		};
 		//now set up the JJack system
@@ -135,8 +135,8 @@ public class JJackAudioIO extends AudioIO {
 		return true;
 	}
 		
-	private boolean doUpdate() {
-		return super.update();
+	private void doUpdate() {
+		super.update();
 	}
 	
 	private class JJackRTInput extends UGen {

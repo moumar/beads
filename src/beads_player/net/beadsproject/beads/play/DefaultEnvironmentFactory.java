@@ -19,11 +19,11 @@ public class DefaultEnvironmentFactory extends EnvironmentFactory {
 		e.pathways.put(c.getName(), clockListener);
 		//and also as an object
 		e.elements.put(c.getName(), c);
-		//set up audio input as object in environment
-		UGen in = e.ac.getAudioInput(new int[] {0, 1});
-//		Gain in = new Gain(e.ac, 2);
-		e.elements.put("in", in);
-		//set up in and main out as object in channels
+//		//set up audio input as object in environment
+//		UGen in = e.ac.getAudioInput(new int[] {0, 1});
+////		Gain in = new Gain(e.ac, 2);
+//		e.elements.put("in", in);
+//		//set up in and main out as object in channels
 
 		//try with delay
 //		TapIn tin = new TapIn(e.ac, 10000);

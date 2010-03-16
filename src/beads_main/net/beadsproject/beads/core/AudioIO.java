@@ -60,8 +60,8 @@ public abstract class AudioIO {
 	 * 
 	 * @return true, if successful
 	 */
-	protected boolean update() {
-		return context.update();
+	protected void update() {
+		context.update();
 	}
 	
 	/**

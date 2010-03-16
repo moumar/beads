@@ -46,9 +46,6 @@ public class AudioContext {
 	/** The root {@link UGen}. */
 	public final Gain out;
 
-	/** Flag for checking for dropped frames. */
-	private boolean checkForDroppedFrames;
-
 	/** The current time step. */
 	private long timeStep;
 
@@ -153,7 +150,6 @@ public class AudioContext {
 	public AudioContext(int bufferSizeInFrames, AudioIO ioSystem,
 			AudioFormat audioFormat) {
 		// set up basic stuff
-		checkForDroppedFrames = true;
 		logTime = false;
 		maxReserveBufs = 50;
 		stopped = true;
@@ -220,18 +216,11 @@ public class AudioContext {
 	}
 
 	/** callback from AudioIO. */
-	protected boolean update() {
-		long timeBefore = System.nanoTime();
+	protected void update() {
 		bufStoreIndex = 0;
 		Arrays.fill(zeroBuf, 0f);
 		out.update(); // this will propagate all of the updates
 		timeStep++;
-		long timeAfter = System.nanoTime();
-		lastFrameGood = (timeAfter - timeBefore) < nanoLeap;
-		// now check for dropped frames
-		if (checkForDroppedFrames && !lastFrameGood) {
-			System.out.println("Audio Dropped Frame");
-		}
 		if (Thread.interrupted()) {
 			System.out.println("Thread interrupted");
 		}
@@ -239,7 +228,6 @@ public class AudioContext {
 			System.out.println(samplesToMs(timeStep * bufferSizeInFrames)
 					/ 1000f + " (seconds)");
 		}
-		return lastFrameGood;
 	}
 
 	/**
@@ -513,18 +501,6 @@ public class AudioContext {
 	 */
 	public void logTime(boolean logTime) {
 		this.logTime = logTime;
-	}
-
-	/**
-	 * Switch on/off checking for dropped frames when running in realtime. The
-	 * scheduler checks to see if audio is not being calculated quickly enough,
-	 * and prints dropped-frame messages to System.out.
-	 * 
-	 * @param checkForDroppedFrames
-	 *            set true to check for dropped frames.
-	 */
-	public void checkForDroppedFrames(boolean checkForDroppedFrames) {
-		this.checkForDroppedFrames = checkForDroppedFrames;
 	}
 
 	/**
