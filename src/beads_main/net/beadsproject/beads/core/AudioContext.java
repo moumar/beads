@@ -521,7 +521,7 @@ public class AudioContext {
 	 * @see Sample sample
 	 **/
 	public void record(double timeMS, String filename) throws IOException {
-		Sample s = new Sample(getAudioFormat(), (int) timeMS);
+		Sample s = new Sample(this, getAudioFormat(), (int) timeMS);
 		RecordToSample r;
 		try {
 			r = new RecordToSample(this, s);
@@ -580,6 +580,13 @@ public class AudioContext {
 	 */
 	public boolean isRunning() {
 		return !stopped;
+	}
+
+	/**
+	 * @return The AudioIO used by this context.
+	 */
+	public AudioIO getAudioIO() {
+		return audioIO;
 	}
 
 }

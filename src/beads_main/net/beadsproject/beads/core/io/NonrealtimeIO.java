@@ -6,6 +6,7 @@ package net.beadsproject.beads.core.io;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.AudioIO;
 import net.beadsproject.beads.core.UGen;
+import net.beadsproject.beads.data.AudioFile;
 
 /**
  * A dummy AudioIO class that is purely for non-realtime use; it does not
@@ -57,6 +58,12 @@ public class NonrealtimeIO extends AudioIO {
 		@Override
 		public void calculateBuffer() {}
 		
+	}
+
+	@Override
+	public AudioFile getAudioFile(String filename) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

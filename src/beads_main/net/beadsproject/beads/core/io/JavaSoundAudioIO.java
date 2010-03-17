@@ -4,6 +4,8 @@
 package net.beadsproject.beads.core.io;
 
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import javax.sound.sampled.AudioFormat;
@@ -14,6 +16,7 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.tritonus.share.sampled.AudioSystemShadow;
 
@@ -21,6 +24,8 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.AudioIO;
 //import net.beadsproject.beads.core.AudioUtils;
 import net.beadsproject.beads.core.UGen;
+import net.beadsproject.beads.data.AudioFile;
+import net.beadsproject.beads.data.JavaSoundAudioFile;
 
 public class JavaSoundAudioIO extends AudioIO {
 
@@ -381,6 +386,32 @@ public class JavaSoundAudioIO extends AudioIO {
 
 		}
 
+	}
+
+	@Override
+	public AudioFile getAudioFile(String filename) {
+		try {
+			return new JavaSoundAudioFile(filename);
+		} catch (IOException e) {			
+			e.printStackTrace();
+			return null;
+		} catch (UnsupportedAudioFileException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@Override
+	public AudioFile getAudioFile(InputStream is) {
+		try {
+			return new JavaSoundAudioFile(is);
+		} catch (IOException e) {			
+			e.printStackTrace();
+			return null;
+		} catch (UnsupportedAudioFileException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 }

@@ -16,7 +16,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import javax.sound.sampled.UnsupportedAudioFileException;
+import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.data.AudioFile.AudioFileUnsupportedException;
 
 /**
  * SampleManager provides a static repository for {@link Sample} data and provides methods to organise samples into groups.
@@ -24,6 +25,9 @@ import javax.sound.sampled.UnsupportedAudioFileException;
  * @beads.category data
  */
 public class SampleManager {
+	
+	/** The AudioContext to use when loading samples **/	  
+	private static AudioContext audioContext;
 	
 	/** List of all Samples, indexed by name. */
 	private final static Map<String, Sample> samples = new TreeMap<String, Sample>();
@@ -55,15 +59,15 @@ public class SampleManager {
 		if (sample == null) {
 			try {
 				if (nextBufferingRegime!=null)
-					sample = new Sample(fn,nextBufferingRegime);
+					sample = new Sample(getAudioContext(), fn,nextBufferingRegime);
 				else
-					sample = new Sample(fn);
+					sample = new Sample(getAudioContext(), fn);
 				samples.put(fn, sample);
 				if(verbose) System.out.println("Loaded " + fn);
-			} catch (UnsupportedAudioFileException e) {
-				 e.printStackTrace();
 			} catch (IOException e) {
 				 e.printStackTrace();
+			} catch (AudioFileUnsupportedException e) {
+				e.printStackTrace();
 			}
 		}
 		return sample;
@@ -83,15 +87,15 @@ public class SampleManager {
 		if (sample == null) {
 			try {
 				if (nextBufferingRegime!=null)
-					sample = new Sample(is,nextBufferingRegime);
+					sample = new Sample(getAudioContext(), is,nextBufferingRegime);
 				else
-					sample = new Sample(is);
+					sample = new Sample(getAudioContext(), is);
 				samples.put(is.toString(), sample);
 				if(verbose) System.out.println("Loaded " + is.toString());
-			} catch (UnsupportedAudioFileException e) {
-				 e.printStackTrace();
 			} catch (IOException e) {
 				 e.printStackTrace();
+			} catch (AudioFileUnsupportedException e) {
+				e.printStackTrace();
 			}
 		}
 		return sample;
@@ -118,15 +122,22 @@ public class SampleManager {
 	 * @throws IOException 
 	 * @throws UnsupportedAudioFileException 
 	 */
-	public static Sample sample(String ref, String fn) throws UnsupportedAudioFileException, IOException {
+	public static Sample sample(String ref, String fn) throws IOException {
 		Sample sample = samples.get(ref);
 		if (sample == null) {
-			if (nextBufferingRegime!=null)
-				sample = new Sample(fn,nextBufferingRegime);
-			else
-				sample = new Sample(fn);
-			samples.put(ref, sample);
-			if(verbose) System.out.println("Loaded " + fn);
+			try
+			{
+				if (nextBufferingRegime!=null)
+					sample = new Sample(getAudioContext(), fn,nextBufferingRegime);
+				else
+					sample = new Sample(getAudioContext(), fn);
+				samples.put(ref, sample);
+				if(verbose) System.out.println("Loaded " + fn);
+			}
+			catch (AudioFileUnsupportedException e)
+			{
+				e.printStackTrace();
+			}
 		}
 		return sample;
 	}
@@ -139,15 +150,16 @@ public class SampleManager {
 	 * 
 	 * @return the sample.
 	 * @throws IOException 
+	 * @throws AudioFileUnsupportedException 
 	 * @throws UnsupportedAudioFileException 
 	 */
-	public static Sample sample(String ref, InputStream is) throws UnsupportedAudioFileException, IOException {
+	public static Sample sample(String ref, InputStream is) throws IOException, AudioFileUnsupportedException {
 		Sample sample = samples.get(ref);
-		if (sample == null) {
+		if (sample == null) {			
 			if (nextBufferingRegime!=null)
-				sample = new Sample(is,nextBufferingRegime);
+				sample = new Sample(getAudioContext(), is,nextBufferingRegime);
 			else
-				sample = new Sample(is);
+				sample = new Sample(getAudioContext(), is);
 			samples.put(ref, sample);
 			if(verbose) System.out.println("Loaded " + ref);
 		}
@@ -437,6 +449,20 @@ public class SampleManager {
 		SampleManager.verbose = verbose;
 	}
 	
+	/**
+	 * @param audioContext the audioContext to set
+	 */
+	public static void setAudioContext(AudioContext audioContext) {
+		SampleManager.audioContext = audioContext;
+	}
+
+	/**
+	 * @return the audioContext
+	 */
+	public static AudioContext getAudioContext() {
+		return audioContext;
+	}
+
 	/**
 	 * Interface for notificaiton of changes to a group. Add yourself to listen to 
 	 * group changes using {@link SampleManager#addGroupListener(SampleGroupListener)}.

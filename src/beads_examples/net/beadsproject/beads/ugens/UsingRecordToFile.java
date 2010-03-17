@@ -27,6 +27,7 @@ public class UsingRecordToFile {
 			final String OUTPUT_FILE = "output/output.wav";
 			
 			final AudioContext ac = new AudioContext();
+			SampleManager.setAudioContext(ac);
 			Sample loop = SampleManager.sample(SAMPLE);
 			SamplePlayer sp = new SamplePlayer(ac, loop);
 			sp.setLoopType(SamplePlayer.LoopType.LOOP_BACKWARDS);			
@@ -68,6 +69,7 @@ public class UsingRecordToFile {
 			final String OUTPUT_PREFIX = "output/output_all_types";
 			
 			final AudioContext ac = new AudioContext();
+			SampleManager.setAudioContext(ac);
 			Sample loop = SampleManager.sample(SAMPLE);
 			SamplePlayer sp = new SamplePlayer(ac, loop);
 			sp.setLoopType(SamplePlayer.LoopType.LOOP_BACKWARDS);			
