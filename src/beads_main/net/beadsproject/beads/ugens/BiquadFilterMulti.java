@@ -150,6 +150,7 @@ public class BiquadFilterMulti extends IIRFilter implements DataBeadReceiver {
 
 	// filter memory
 	private float[] bo1m, bo2m, bi1m, bi2m;
+	private float bo1 = 0, bo2 = 0, bi1 = 0, bi2 = 0;
 
 	protected ValCalculator vc;
 	protected UGen freqUGen, qUGen, gainUGen;
@@ -234,6 +235,86 @@ public class BiquadFilterMulti extends IIRFilter implements DataBeadReceiver {
 		setParams(params);
 	}
 
+	/**
+	 * Constructor for frequency and Q as floats. See {@link #setType(int)
+	 * setType} for a list of supported filter types.
+	 * 
+	 * @param context
+	 *            The AudioContext.
+	 * @param itype
+	 *            The initial filter type, e.g. {@link #LP}, {@link #HP},
+	 *            {@link #BP_SKIRT}, etc.
+	 * @param ifreq
+	 *            The initial frequency.
+	 * @param iqval
+	 *            The initial Q-value.
+	 */
+	public BiquadFilterMulti(AudioContext context, int itype, float ifreq,
+			float iqval) {
+		super(context, 1, itype);
+		setFreq(ifreq).setQ(iqval);
+	}
+
+	/**
+	 * Constructor for frequency as a UGen and Q as a float. See
+	 * {@link #setType(int) setType} for a list of supported filter types.
+	 * 
+	 * @param context
+	 *            The AudioContext.
+	 * @param itype
+	 *            The initial filter type, {@link #LP}, {@link #HP},
+	 *            {@link #BP_SKIRT}, etc.
+	 * @param ifreq
+	 *            The frequency UGen.
+	 * @param iqval
+	 *            The initial Q-value.
+	 */
+	public BiquadFilterMulti(AudioContext context, int itype, UGen ifreq,
+			float iqval) {
+		super(context, 1, itype);
+		setFreq(ifreq).setQ(iqval);
+	}
+
+	/**
+	 * Constructor for frequency as a float and Q as a UGen. See
+	 * {@link #setType(int) setType} for a list of supported filter types.
+	 * 
+	 * @param context
+	 *            The AudioContext.
+	 * @param itype
+	 *            The initial filter type, e.g. {@link #LP}, {@link #HP},
+	 *            {@link #BP_SKIRT}, etc.
+	 * @param ifreq
+	 *            The initial frequency.
+	 * @param iqval
+	 *            The Q-value UGen.
+	 */
+	public BiquadFilterMulti(AudioContext context, int itype, float ifreq,
+			UGen iqval) {
+		super(context, 1, itype);
+		setFreq(ifreq).setQ(iqval);
+	}
+
+	/**
+	 * Constructor for frequency and Q as UGens. See {@link #setType(int)
+	 * setType} for a list of supported filter types.
+	 * 
+	 * @param context
+	 *            The AudioContext.
+	 * @param itype
+	 *            The initial filter type, e.g. {@link #LP}, {@link #HP},
+	 *            {@link #BP_SKIRT}, etc.
+	 * @param ifreq
+	 *            The frequency UGen.
+	 * @param iqval
+	 *            The Q-value UGen.
+	 */
+	public BiquadFilterMulti(AudioContext context, int itype, UGen ifreq,
+			UGen iqval) {
+		super(context, 1, itype);
+		setFreq(ifreq).setQ(iqval);
+	}
+
 	private void checkStaticStatus() {
 		if (isFreqStatic && isQStatic && isGainStatic) {
 			areAllStatic = true;
@@ -245,23 +326,59 @@ public class BiquadFilterMulti extends IIRFilter implements DataBeadReceiver {
 
 	@Override
 	public void calculateBuffer() {
+		
+		float[] bi, bo;
+		
+		if (channels == 1) {
 
-		if (areAllStatic) {
+			bi = bufIn[0];
+			bo = bufOut[0];
 
-			for (int i = 0; i < channels; i++) {
-				float[] bi = bufIn[i];
-				float[] bo = bufOut[i];
+			if (areAllStatic) {
 
 				// first two samples
-				bo[0] = (b0 * bi[0] + b1 * bi1m[i] + b2 * bi2m[i] - a1
-						* bo1m[i] - a2 * bo2m[i])
+				bo[0] = (b0 * bi[0] + b1 * bi1 + b2 * bi2 - a1 * bo1 - a2 * bo2)
 						/ a0;
-				bo[1] = (b0 * bi[1] + b1 * bi[0] + b2 * bi1m[i] - a1 * bo[0] - a2
-						* bo1m[i])
+				bo[1] = (b0 * bi[1] + b1 * bi[0] + b2 * bi1 - a1 * bo[0] - a2
+						* bo1)
 						/ a0;
 
 				// main loop
 				for (int currsamp = 2; currsamp < bufferSize; currsamp++) {
+					bo[currsamp] = (b0 * bi[currsamp] + b1 * bi[currsamp - 1]
+							+ b2 * bi[currsamp - 2] - a1 * bo[currsamp - 1] - a2
+							* bo[currsamp - 2])
+							/ a0;
+				}
+
+			} else {
+
+				freqUGen.update();
+				qUGen.update();
+				gainUGen.update();
+
+				// first two samples
+				freq = freqUGen.getValue(0, 0);
+				q = qUGen.getValue(0, 0);
+				gain = gainUGen.getValue(0, 0);
+				vc.calcVals();
+				bo[0] = (b0 * bi[0] + b1 * bi1 + b2 * bi2 - a1 * bo1 - a2 * bo2)
+						/ a0;
+
+				freq = freqUGen.getValue(0, 1);
+				q = qUGen.getValue(0, 1);
+				gain = gainUGen.getValue(0, 1);
+				vc.calcVals();
+				bo[1] = (b0 * bi[1] + b1 * bi[0] + b2 * bi1 - a1 * bo[0] - a2
+						* bo1)
+						/ a0;
+
+				// main loop
+				for (int currsamp = 2; currsamp < bufferSize; currsamp++) {
+					freq = freqUGen.getValue(0, currsamp);
+					q = qUGen.getValue(0, currsamp);
+					gain = gainUGen.getValue(0, currsamp);
+					vc.calcVals();
 
 					bo[currsamp] = (b0 * bi[currsamp] + b1 * bi[currsamp - 1]
 							+ b2 * bi[currsamp - 2] - a1 * bo[currsamp - 1] - a2
@@ -269,74 +386,113 @@ public class BiquadFilterMulti extends IIRFilter implements DataBeadReceiver {
 							/ a0;
 				}
 
-				// get 2 samples of "memory" between sample vectors
-				bi2m[i] = bi[bufferSize - 2];
-				bi1m[i] = bi[bufferSize - 1];
-				bo2m[i] = bo[bufferSize - 2];
-
-				// and check to make sure filter didn't blow up
-				if (Float.isNaN(bo1m[i] = bo[bufferSize - 1]))
-					reset();
-
 			}
+
+			// get 2 samples of "memory" between sample vectors
+			bi1 = bi[bufferSize - 1];
+			bi2 = bi[bufferSize - 2];
+			bo1 = bo[bufferSize - 1];
+			bo2 = bo[bufferSize - 2];
+
+			// check to make sure filter didn't blow up
+			if (Float.isNaN(bo1))
+				reset();
 
 		} else {
+			// multi-channel version
+			
+			if (areAllStatic) {
 
-			freqUGen.update();
-			qUGen.update();
-			gainUGen.update();
+				for (int i = 0; i < channels; i++) {
+					bi = bufIn[i];
+					bo = bufOut[i];
 
-			// first two samples
-			freq = freqUGen.getValue(0, 0);
-			q = qUGen.getValue(0, 0);
-			gain = gainUGen.getValue(0, 0);
-			vc.calcVals();
+					// first two samples
+					bo[0] = (b0 * bi[0] + b1 * bi1m[i] + b2 * bi2m[i] - a1
+							* bo1m[i] - a2 * bo2m[i])
+							/ a0;
+					bo[1] = (b0 * bi[1] + b1 * bi[0] + b2 * bi1m[i] - a1
+							* bo[0] - a2 * bo1m[i])
+							/ a0;
 
-			for (int i = 0; i < channels; i++) {
-				bufOut[i][0] = (b0 * bufIn[i][0] + b1 * bi1m[i] + b2 * bi2m[i]
-						- a1 * bo1m[i] - a2 * bo2m[i])
-						/ a0;
-			}
+					// main loop
+					for (int currsamp = 2; currsamp < bufferSize; currsamp++) {
 
-			freq = freqUGen.getValue(0, 1);
-			q = qUGen.getValue(0, 1);
-			gain = gainUGen.getValue(0, 1);
-			vc.calcVals();
-			for (int i = 0; i < channels; i++) {
-				bufOut[i][1] = (b0 * bufIn[i][1] + b1 * bufIn[i][0] + b2
-						* bi1m[i] - a1 * bufOut[i][0] - a2 * bo1m[i])
-						/ a0;
-			}
+						bo[currsamp] = (b0 * bi[currsamp] + b1
+								* bi[currsamp - 1] + b2 * bi[currsamp - 2] - a1
+								* bo[currsamp - 1] - a2 * bo[currsamp - 2])
+								/ a0;
+					}
 
-			// main loop
-			for (int currsamp = 2; currsamp < bufferSize; currsamp++) {
-				freq = freqUGen.getValue(0, currsamp);
-				q = qUGen.getValue(0, currsamp);
-				gain = gainUGen.getValue(0, currsamp);
+					// get 2 samples of "memory" between sample vectors
+					bi2m[i] = bi[bufferSize - 2];
+					bi1m[i] = bi[bufferSize - 1];
+					bo2m[i] = bo[bufferSize - 2];
+
+					// and check to make sure filter didn't blow up
+					if (Float.isNaN(bo1m[i] = bo[bufferSize - 1]))
+						reset();
+
+				}
+
+			} else {
+
+				freqUGen.update();
+				qUGen.update();
+				gainUGen.update();
+
+				// first two samples
+				freq = freqUGen.getValue(0, 0);
+				q = qUGen.getValue(0, 0);
+				gain = gainUGen.getValue(0, 0);
 				vc.calcVals();
 
 				for (int i = 0; i < channels; i++) {
-					bufOut[i][currsamp] = (b0 * bufIn[i][currsamp] + b1
-							* bufIn[i][currsamp - 1] + b2
-							* bufIn[i][currsamp - 2] - a1
-							* bufOut[i][currsamp - 1] - a2
-							* bufOut[i][currsamp - 2])
+					bufOut[i][0] = (b0 * bufIn[i][0] + b1 * bi1m[i] + b2
+							* bi2m[i] - a1 * bo1m[i] - a2 * bo2m[i])
 							/ a0;
 				}
 
+				freq = freqUGen.getValue(0, 1);
+				q = qUGen.getValue(0, 1);
+				gain = gainUGen.getValue(0, 1);
+				vc.calcVals();
+				for (int i = 0; i < channels; i++) {
+					bufOut[i][1] = (b0 * bufIn[i][1] + b1 * bufIn[i][0] + b2
+							* bi1m[i] - a1 * bufOut[i][0] - a2 * bo1m[i])
+							/ a0;
+				}
+
+				// main loop
+				for (int currsamp = 2; currsamp < bufferSize; currsamp++) {
+					freq = freqUGen.getValue(0, currsamp);
+					q = qUGen.getValue(0, currsamp);
+					gain = gainUGen.getValue(0, currsamp);
+					vc.calcVals();
+
+					for (int i = 0; i < channels; i++) {
+						bufOut[i][currsamp] = (b0 * bufIn[i][currsamp] + b1
+								* bufIn[i][currsamp - 1] + b2
+								* bufIn[i][currsamp - 2] - a1
+								* bufOut[i][currsamp - 1] - a2
+								* bufOut[i][currsamp - 2])
+								/ a0;
+					}
+
+				}
+
+				for (int i = 0; i < channels; i++) {
+					// get 2 samples of "memory" between sample vectors
+					bi2m[i] = bufIn[i][bufferSize - 2];
+					bi1m[i] = bufIn[i][bufferSize - 1];
+					bo2m[i] = bufOut[i][bufferSize - 2];
+
+					// and check to make sure filter didn't blow up
+					if (Float.isNaN(bo1m[i] = bufOut[i][bufferSize - 1]))
+						reset();
+				}
+
 			}
-
-			for (int i = 0; i < channels; i++) {
-				// get 2 samples of "memory" between sample vectors
-				bi2m[i] = bufIn[i][bufferSize - 2];
-				bi1m[i] = bufIn[i][bufferSize - 1];
-				bo2m[i] = bufOut[i][bufferSize - 2];
-
-				// and check to make sure filter didn't blow up
-				if (Float.isNaN(bo1m[i] = bufOut[i][bufferSize - 1]))
-					reset();
-			}
-
 		}
 
 	}
@@ -351,6 +507,10 @@ public class BiquadFilterMulti extends IIRFilter implements DataBeadReceiver {
 			bo1m[i] = 0;
 			bo2m[i] = 0;
 		}
+		bi1 = 0;
+		bi2 = 0;
+		bo1 = 0;
+		bo2 = 0;
 	}
 
 	protected class ValCalculator {
@@ -547,7 +707,7 @@ public class BiquadFilterMulti extends IIRFilter implements DataBeadReceiver {
 
 	private class BesselLPValCalculator extends ValCalculator {
 		public void calcVals() {
-			float w = (float)Math.tan(pi_over_sf * freq);
+			float w = (float) Math.tan(pi_over_sf * freq);
 			b2 = b0 = 3 * w * w;
 			b1 = 2 * b0;
 			a0 = 1 + 3 * w + b0;
@@ -555,10 +715,10 @@ public class BiquadFilterMulti extends IIRFilter implements DataBeadReceiver {
 			a2 = 1 - 3 * w + b0;
 		}
 	}
-	
+
 	private class BesselHPValCalculator extends ValCalculator {
 		public void calcVals() {
-			float w = (float)Math.tan(pi_over_sf * freq);
+			float w = (float) Math.tan(pi_over_sf * freq);
 			float w2 = w * w;
 			b2 = b0 = 3;
 			b1 = -6;
@@ -990,7 +1150,6 @@ public class BiquadFilterMulti extends IIRFilter implements DataBeadReceiver {
 		return new float[] { a0, a1, a2, b0, b1, b2 };
 	}
 
-
 	/**
 	 * Gets an array filled with the filter response characteristics: {frequency
 	 * response (real), frequency response (imaginary), amplitude response,
@@ -1001,9 +1160,9 @@ public class BiquadFilterMulti extends IIRFilter implements DataBeadReceiver {
 	 * @return The array.
 	 */
 	public IIRFilterAnalysis getFilterResponse(float freq) {
-		return calculateFilterResponse(new float[] {b0, b1, b2}, new float[] {a0, a1, a2}, freq, samplingfreq);
+		return calculateFilterResponse(new float[] { b0, b1, b2 }, new float[] {
+				a0, a1, a2 }, freq, samplingfreq);
 	}
-
 
 	/**
 	 * Sets a user-defined coefficient calculation algorithm. The algorithm is
