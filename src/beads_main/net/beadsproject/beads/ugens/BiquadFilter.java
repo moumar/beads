@@ -15,7 +15,7 @@ import net.beadsproject.beads.data.*;
  * a static float or by the output of a UGen.
  * <p>
  * Filter parameters may be set with individual setter functions (
- * {@link #setFreq(float) setFreq}, {@link #setQ(float) setQ}, and
+ * {@link #setFrequency(float) setFreq}, {@link #setQ(float) setQ}, and
  * {@link #setGain(float) setGain}), or by passing a DataBead with the
  * appropriate properties to {@link #setParams(DataBead) setParams}. (Messaging
  * the filter with a DataBead is equivalent to calling setParams.) Setter
@@ -193,7 +193,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 		two_pi_over_sf = (float) (Math.PI * 2 / samplingfreq);
 		pi_over_sf = (float) (Math.PI / samplingfreq);
 		setType(itype);
-		setFreq(freq).setQ(q).setGain(gain);
+		setFrequency(freq).setQ(q).setGain(gain);
 	}
 
 	/**
@@ -252,7 +252,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	public BiquadFilter(AudioContext context, int itype, float ifreq,
 			float iqval) {
 		super(context, 1, itype);
-		setFreq(ifreq).setQ(iqval);
+		setFrequency(ifreq).setQ(iqval);
 	}
 
 	/**
@@ -269,10 +269,9 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 * @param iqval
 	 *            The initial Q-value.
 	 */
-	public BiquadFilter(AudioContext context, int itype, UGen ifreq,
-			float iqval) {
+	public BiquadFilter(AudioContext context, int itype, UGen ifreq, float iqval) {
 		super(context, 1, itype);
-		setFreq(ifreq).setQ(iqval);
+		setFrequency(ifreq).setQ(iqval);
 	}
 
 	/**
@@ -289,10 +288,9 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 * @param iqval
 	 *            The Q-value UGen.
 	 */
-	public BiquadFilter(AudioContext context, int itype, float ifreq,
-			UGen iqval) {
+	public BiquadFilter(AudioContext context, int itype, float ifreq, UGen iqval) {
 		super(context, 1, itype);
-		setFreq(ifreq).setQ(iqval);
+		setFrequency(ifreq).setQ(iqval);
 	}
 
 	/**
@@ -309,10 +307,9 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 * @param iqval
 	 *            The Q-value UGen.
 	 */
-	public BiquadFilter(AudioContext context, int itype, UGen ifreq,
-			UGen iqval) {
+	public BiquadFilter(AudioContext context, int itype, UGen ifreq, UGen iqval) {
 		super(context, 1, itype);
-		setFreq(ifreq).setQ(iqval);
+		setFrequency(ifreq).setQ(iqval);
 	}
 
 	private void checkStaticStatus() {
@@ -326,9 +323,9 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 
 	@Override
 	public void calculateBuffer() {
-		
+
 		float[] bi, bo;
-		
+
 		if (channels == 1) {
 
 			bi = bufIn[0];
@@ -400,7 +397,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 
 		} else {
 			// multi-channel version
-			
+
 			if (areAllStatic) {
 
 				for (int i = 0; i < channels; i++) {
@@ -780,9 +777,9 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 
 			if ((o = paramBead.get("frequency")) != null) {
 				if (o instanceof UGen) {
-					setFreq((UGen) o);
+					setFrequency((UGen) o);
 				} else {
-					setFreq(paramBead.getFloat("frequency", freq));
+					setFrequency(paramBead.getFloat("frequency", freq));
 				}
 			}
 
@@ -955,7 +952,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 * 
 	 * @return The filter frequency.
 	 */
-	public float getFreq() {
+	public float getFrequency() {
 		return freq;
 	}
 
@@ -963,15 +960,15 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 * Sets the filter frequency to a float value. This will remove the
 	 * frequency UGen, if there is one.
 	 * 
-	 * @param nfreq
+	 * @param freq
 	 *            The frequency.
 	 */
-	public BiquadFilter setFreq(float nfreq) {
-		freq = nfreq;
+	public BiquadFilter setFrequency(float freq) {
+		this.freq = freq;
 		if (isFreqStatic) {
-			freqUGen.setValue(nfreq);
+			freqUGen.setValue(freq);
 		} else {
-			freqUGen = new Static(context, nfreq);
+			freqUGen = new Static(context, freq);
 			isFreqStatic = true;
 			checkStaticStatus();
 		}
@@ -982,14 +979,14 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	/**
 	 * Sets a UGen to determine the filter frequency.
 	 * 
-	 * @param nfreq
+	 * @param freqUGen
 	 *            The frequency UGen.
 	 */
-	public BiquadFilter setFreq(UGen nfreq) {
-		if (nfreq == null) {
-			setFreq(freq);
+	public BiquadFilter setFrequency(UGen freqUGen) {
+		if (freqUGen == null) {
+			setFrequency(freq);
 		} else {
-			freqUGen = nfreq;
+			this.freqUGen = freqUGen;
 			freqUGen.update();
 			freq = freqUGen.getValue();
 			isFreqStatic = false;
@@ -1004,12 +1001,59 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 * 
 	 * @return The frequency UGen.
 	 */
-	public UGen getFreqUGen() {
+	public UGen getFrequencyUGen() {
 		if (isFreqStatic == true) {
 			return null;
 		} else {
 			return freqUGen;
 		}
+	}
+
+	/**
+	 * Gets the current filter frequency.
+	 * 
+	 * @return The filter frequency.
+	 * @deprecated Use {@link #getFrequency()}.
+	 */
+	@Deprecated
+	public float getFreq() {
+		return getFrequency();
+	}
+
+	/**
+	 * Sets the filter frequency to a float value. This will remove the
+	 * frequency UGen, if there is one.
+	 * 
+	 * @param freq
+	 *            The frequency.
+	 * @deprecated Use {@link #setFrequency(float)}.
+	 */
+	@Deprecated
+	public BiquadFilter setFreq(float freq) {
+		return setFrequency(freq);
+	}
+
+	/**
+	 * Sets a UGen to determine the filter frequency.
+	 * 
+	 * @param freqUGen
+	 *            The frequency UGen.
+	 * @deprecated Use {@link #setFrequency(UGen)}.
+	 */
+	@Deprecated
+	public BiquadFilter setFreq(UGen freqUGen) {
+		return setFrequency(freqUGen);
+	}
+
+	/**
+	 * Gets the frequency UGen, if there is one.
+	 * 
+	 * @return The frequency UGen.
+	 * @deprecated Use {@link #getFrequencyUGen()}.
+	 */
+	@Deprecated
+	public UGen getFreqUGen() {
+		return getFrequencyUGen();
 	}
 
 	/**
@@ -1184,8 +1228,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 * coefficients for a biquad filter based on frequency and Q. Users can
 	 * create their own coefficient calculator classes by extending this class
 	 * and passing it to a BiquadFilterMulti instance with
-	 * {@link BiquadFilter#setCustomType(CustomCoeffCalculator)
-	 * setCustomType}.
+	 * {@link BiquadFilter#setCustomType(CustomCoeffCalculator) setCustomType}.
 	 * 
 	 * <p>
 	 * An instance of such a custom class should override
