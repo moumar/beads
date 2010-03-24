@@ -16,8 +16,8 @@ import net.beadsproject.beads.data.*;
  * <p>
  * Takes two parameters: cut-off frequency and resonance (0 for no resonance, 1
  * for maximum resonance). These parameters can be set using
- * {@link #setFreq(float) setFreq()} and {@link #setRes(float) setRes()}, or by
- * passing a DataBead with "frequency" and "resonance" properties to
+ * {@link #setFrequency(float) setFreq()} and {@link #setRes(float) setRes()},
+ * or by passing a DataBead with "frequency" and "resonance" properties to
  * {@link #setParams(DataBead)}. (Messaging this object with a DataBead achieves
  * the same.)
  * 
@@ -64,7 +64,7 @@ public class LPRezFilter extends IIRFilter implements DataBeadReceiver {
 		this.channels = super.getOuts();
 		y1m = new float[this.channels];
 		y2m = new float[this.channels];
-		setFreq(freq).setRes(res);
+		setFrequency(freq).setRes(res);
 	}
 
 	/**
@@ -142,7 +142,7 @@ public class LPRezFilter extends IIRFilter implements DataBeadReceiver {
 	 */
 	public LPRezFilter(AudioContext con, int channels, float freq, float res) {
 		this(con, channels);
-		setFreq(freq).setRes(res);
+		setFrequency(freq).setRes(res);
 	}
 
 	/**
@@ -160,7 +160,7 @@ public class LPRezFilter extends IIRFilter implements DataBeadReceiver {
 	 */
 	public LPRezFilter(AudioContext con, int channels, UGen freq, float res) {
 		this(con, channels);
-		setFreq(freq).setRes(res);
+		setFrequency(freq).setRes(res);
 	}
 
 	/**
@@ -178,7 +178,7 @@ public class LPRezFilter extends IIRFilter implements DataBeadReceiver {
 	 */
 	public LPRezFilter(AudioContext con, int channels, float freq, UGen res) {
 		this(con, channels);
-		setFreq(freq).setRes(res);
+		setFrequency(freq).setRes(res);
 	}
 
 	/**
@@ -196,7 +196,7 @@ public class LPRezFilter extends IIRFilter implements DataBeadReceiver {
 	 */
 	public LPRezFilter(AudioContext con, int channels, UGen freq, UGen res) {
 		this(con, channels);
-		setFreq(freq).setRes(res);
+		setFrequency(freq).setRes(res);
 	}
 
 	protected void calcVals() {
@@ -271,11 +271,11 @@ public class LPRezFilter extends IIRFilter implements DataBeadReceiver {
 			if (Float.isNaN(y1 = bo[bufferSize - 1])) {
 				reset();
 			}
-			
+
 		} else {
-			
+
 			// multi-channel case
-			
+
 			if (isFreqStatic && isResStatic) {
 				for (int i = 0; i < channels; i++) {
 					float[] bi = bufIn[i];
@@ -375,7 +375,7 @@ public class LPRezFilter extends IIRFilter implements DataBeadReceiver {
 	 * 
 	 * @return The cut-off frequency.
 	 */
-	public float getFreq() {
+	public float getFrequency() {
 		return freq;
 	}
 
@@ -383,19 +383,19 @@ public class LPRezFilter extends IIRFilter implements DataBeadReceiver {
 	 * Sets the cut-off frequency to a float. Removes the frequency UGen, if
 	 * there is one.
 	 * 
-	 * @param f
+	 * @param freq
 	 *            The cut-off frequency.
 	 * @return This filter instance.
 	 */
-	public LPRezFilter setFreq(float f) {
-		freq = f;
+	public LPRezFilter setFrequency(float freq) {
+		this.freq = freq;
 		if (isFreqStatic) {
-			freqUGen.setValue(f);
+			freqUGen.setValue(freq);
 		} else {
-			freqUGen = new Static(context, f);
+			freqUGen = new Static(context, freq);
 			isFreqStatic = true;
 		}
-		cosw = (float) (Math.cos(_2pi_over_sr * freq));
+		cosw = (float) (Math.cos(_2pi_over_sr * this.freq));
 		calcVals();
 		return this;
 	}
@@ -404,17 +404,17 @@ public class LPRezFilter extends IIRFilter implements DataBeadReceiver {
 	 * Sets a UGen to specify the cut-off frequency. Passing a null value
 	 * freezes the parameter.
 	 * 
-	 * @param f
+	 * @param freqUGen
 	 *            The frequency UGen.
 	 * @return This filter instance.
 	 */
-	public LPRezFilter setFreq(UGen f) {
-		if (f == null) {
-			setFreq(freq);
+	public LPRezFilter setFrequency(UGen freqUGen) {
+		if (freqUGen == null) {
+			setFrequency(freq);
 		} else {
-			freqUGen = f;
-			f.update();
-			freq = f.getValue();
+			this.freqUGen = freqUGen;
+			freqUGen.update();
+			freq = freqUGen.getValue();
 		}
 		return this;
 	}
@@ -424,12 +424,62 @@ public class LPRezFilter extends IIRFilter implements DataBeadReceiver {
 	 * 
 	 * @return The frequency UGen.
 	 */
-	public UGen getFreqUGen() {
+	public UGen getFrequencyUGen() {
 		if (isFreqStatic) {
 			return null;
 		} else {
 			return freqUGen;
 		}
+	}
+
+	/**
+	 * Gets the current cut-off frequency.
+	 * 
+	 * @return The cut-off frequency.
+	 * @deprecated Use {@link #getFrequency()}.
+	 */
+	@Deprecated
+	public float getFreq() {
+		return getFrequency();
+	}
+
+	/**
+	 * Sets the cut-off frequency to a float. Removes the frequency UGen, if
+	 * there is one.
+	 * 
+	 * @param freq
+	 *            The cut-off frequency.
+	 * @return This filter instance.
+	 * @deprecated Use {@link #setFrequency(float)}.
+	 */
+	@Deprecated
+	public LPRezFilter setFreq(float freq) {
+		return setFrequency(freq);
+	}
+
+	/**
+	 * Sets a UGen to specify the cut-off frequency. Passing a null value
+	 * freezes the parameter.
+	 * 
+	 * @param freqUGen
+	 *            The frequency UGen.
+	 * @return This filter instance.
+	 * @deprecated Use {@link #setFrequency(UGen)}.
+	 */
+	@Deprecated
+	public LPRezFilter setFreq(UGen freqUGen) {
+		return setFrequency(freqUGen);
+	}
+
+	/**
+	 * Gets the frequency UGen, if it exists.
+	 * 
+	 * @return The frequency UGen.
+	 * @deprecated Use {@link #getFrequencyUGen()}.
+	 */
+	@Deprecated
+	public UGen getFreqUGen() {
+		return getFrequencyUGen();
 	}
 
 	/**
@@ -520,9 +570,9 @@ public class LPRezFilter extends IIRFilter implements DataBeadReceiver {
 
 			if ((o = paramBead.get("frequency")) != null) {
 				if (o instanceof UGen) {
-					setFreq((UGen) o);
+					setFrequency((UGen) o);
 				} else {
-					setFreq(paramBead.getFloat("frequency", freq));
+					setFrequency(paramBead.getFloat("frequency", freq));
 				}
 			}
 

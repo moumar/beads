@@ -104,7 +104,7 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 		}
 		sr = context.getSampleRate();
 		pi_sr = (float) (Math.PI / sr);
-		setFreq(freq);
+		setFrequency(freq);
 	}
 
 	@Override
@@ -228,7 +228,7 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 	 * 
 	 * @return The cutoff frequency.
 	 */
-	public float getFreq() {
+	public float getFrequency() {
 		return freq;
 	}
 
@@ -239,20 +239,11 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 	 *            The cutoff frequency in Hertz.
 	 * @return This filter instance.
 	 */
-	public CrossoverFilter setFreq(float freq) {
+	public CrossoverFilter setFrequency(float freq) {
 		this.freq = freq;
 		freqUGen = null;
 		calcVals();
 		return this;
-	}
-
-	/**
-	 * Gets the UGen controlling the cutoff frequency, if there is one.
-	 * 
-	 * @return The UGen controlling the cutoff frequency.
-	 */
-	public UGen getFreqUGen() {
-		return freqUGen;
 	}
 
 	/**
@@ -263,9 +254,9 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 	 *            The UGen to control the cutoff frequency.
 	 * @return This filter instance.
 	 */
-	public CrossoverFilter setFreq(UGen freqUGen) {
+	public CrossoverFilter setFrequency(UGen freqUGen) {
 		if (freqUGen == null) {
-			setFreq(freq);
+			setFrequency(freq);
 		} else {
 			this.freqUGen = freqUGen;
 			freqUGen.update();
@@ -273,6 +264,64 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 			calcVals();
 		}
 		return this;
+	}
+
+	/**
+	 * Gets the UGen controlling the cutoff frequency, if there is one.
+	 * 
+	 * @return The UGen controlling the cutoff frequency.
+	 */
+	public UGen getFrequencyUGen() {
+		return freqUGen;
+	}
+
+	/**
+	 * Gets the current cutoff frequency.
+	 * 
+	 * @return The cutoff frequency.
+	 * @deprecated Use {@link #getFrequency()}.
+	 */
+	@Deprecated
+	public float getFreq() {
+		return getFrequency();
+	}
+
+	/**
+	 * Sets the cutoff frequency to a static float value.
+	 * 
+	 * @param freq
+	 *            The cutoff frequency in Hertz.
+	 * @return This filter instance.
+	 * @deprecated Use {@link #setFrequency(float)}.
+	 */
+	@Deprecated
+	public CrossoverFilter setFreq(float freq) {
+		return setFrequency(freq);
+	}
+
+	/**
+	 * Sets a UGen to control the cutoff frequency. Note that the frequency is
+	 * only updated every frame, not every sample.
+	 * 
+	 * @param freqUGen
+	 *            The UGen to control the cutoff frequency.
+	 * @return This filter instance.
+	 * @deprecated Use {@link #setFrequency(UGen)}.
+	 */
+	@Deprecated
+	public CrossoverFilter setFreq(UGen freqUGen) {
+		return setFrequency(freqUGen);
+	}
+	
+	/**
+	 * Gets the UGen controlling the cutoff frequency, if there is one.
+	 * 
+	 * @return The UGen controlling the cutoff frequency.
+	 * @deprecated Use {@link #getFrequencyUGen()}.
+	 */
+	@Deprecated
+	public UGen getFreqUGen() {
+		return getFrequencyUGen();
 	}
 
 	/**
@@ -292,9 +341,9 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 	public DataBeadReceiver sendData(DataBead db) {
 		UGen u = db.getUGen("frequency");
 		if (u == null) {
-			setFreq(db.getFloat("frequency", freq));
+			setFrequency(db.getFloat("frequency", freq));
 		} else {
-			setFreq(u);
+			setFrequency(u);
 		}
 		return this;
 	}
@@ -305,33 +354,38 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 			sendData((DataBead) message);
 		}
 	}
-	
+
 	public CrossoverFilter drawFromLowOutput(UGen target) {
-		for(int i = 0; i < target.getIns(); i++) {
-			if(i >= channels) { break; }
+		for (int i = 0; i < target.getIns(); i++) {
+			if (i >= channels) {
+				break;
+			}
 			target.addInput(i, this, i * 2);
 		}
 		return this;
 	}
-	
-	public CrossoverFilter drawFromLowOutput(int channel, UGen target, int targetInputIndex) {
+
+	public CrossoverFilter drawFromLowOutput(int channel, UGen target,
+			int targetInputIndex) {
 		target.addInput(targetInputIndex, this, channel * 2);
 		return this;
 	}
-	
+
 	public CrossoverFilter drawFromHighOutput(UGen target) {
-		for(int i = 0; i < target.getIns(); i++) {
-			if(i >= channels) { break; }
+		for (int i = 0; i < target.getIns(); i++) {
+			if (i >= channels) {
+				break;
+			}
 			target.addInput(i, this, i * 2 + 1);
 		}
 		return this;
 	}
-	
-	public CrossoverFilter drawFromHighOutput(int channel, UGen target, int targetInputIndex) {
+
+	public CrossoverFilter drawFromHighOutput(int channel, UGen target,
+			int targetInputIndex) {
 		target.addInput(targetInputIndex, this, channel * 2 + 1);
 		return this;
 	}
-	
 
 	// Attempted implementation of true 4th-order filter, but there's a bug...
 	/*

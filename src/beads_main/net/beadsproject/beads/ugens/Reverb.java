@@ -206,8 +206,8 @@ public class Reverb extends UGenChain implements DataBeadReceiver {
 
 		float f = 1f - (float) Math.sqrt(damping);
 
-		src.setFreq(f * 10000 + 250);
-		lpf.setFreq(f * 8000 + 200);
+		src.setFrequency(f * 10000 + 250);
+		lpf.setFrequency(f * 8000 + 200);
 
 		return this;
 	}
