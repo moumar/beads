@@ -57,11 +57,9 @@ public abstract class UGen extends Bead {
 	
 	/** An collection of pointers to the output buffers of UGens connected to this UGen's inputs. */
 	private ArrayList<BufferPointer>[] inputsAtChannel;
-	
-	//private ArrayList<BufferPointer> killedInputsAtChannel;
-	
+		
 	/** A collection of UGens that should be triggered by this one. */
-	private ArrayList<UGen> dependents; //, killedDependents;
+	private ArrayList<UGen> dependents;
 	
 	/** Flag used to avoid calling {@link #pullInputs()} unless required. */
 	private boolean noInputs;
@@ -111,7 +109,6 @@ public abstract class UGen extends Bead {
 	 */
 	public UGen(AudioContext context, int ins, int outs) {
 		dependents = new ArrayList<UGen>();
-		//TODO killedDependents = new ArrayList<UGen>();
 		noInputs = true;
 		lastTimeStep = -1;
 		outputInitializationRegime = OutputInitializationRegime.JUNK;
@@ -119,7 +116,6 @@ public abstract class UGen extends Bead {
 		timerMode = false;
 		timeTemp = 0;
 //		inputProxy = outputProxy = null;
-		//TODO killedInputsAtChannel = new ArrayList<BufferPointer>();
 		setIns(ins);
 		setOuts(outs);
 		setContext(context);
@@ -282,20 +278,14 @@ public abstract class UGen extends Bead {
 		for(int index = 0; index < size; index++) {
 			UGen dependent = dependents.get(index);
 			if (dependent.isDeleted()) {
+				// don't need to work with a cloned ArrayList if we adjust our indices properly
 				dependents.remove(index);
 				index--;
 				size--;
-				//TODO killedDependents.add(dependent);
 			} else {
 				dependent.update();
 			}
 		}
-		//TODO if(killedDependents.size() > 0) {
-		//	for(UGen killedDependent : killedDependents) {
-		//		dependents.remove(killedDependent);
-		//	}
-		//	killedDependents.clear();
-		//}
 		
 		if (!noInputs) {
 			noInputs = true;
@@ -328,12 +318,10 @@ public abstract class UGen extends Bead {
 					for (int index = 0; index < size; index++) {
 						BufferPointer bp = inputsAtChannel[i].get(index);
 						if (bp.ugen.isDeleted()) {
-							//TODO add to the list of dead inputs
-							// remove from the array and adjust our index/size variables
+							// don't need to work with a cloned array if we adjust our indices properly
 							removeInputAtChannel(i, bp);
 							size--;
 							index--;
-							//killedInputsAtChannel.add(bp);
 						} else {
 							bp.ugen.update();
 							noInputs = false;	//we actually updated something, so we must have inputs
@@ -343,13 +331,6 @@ public abstract class UGen extends Bead {
 						}
 					}
 					
-					//TODO get rid of dead inputs
-					//if(killedInputsAtChannel.size() > 0) {
-					//	for(BufferPointer killedInput : killedInputsAtChannel) {
-					//		removeInputAtChannel(i, killedInput);
-					//	}
-					//	killedInputsAtChannel.clear();
-					//}
 				}				
 			} 
 		}  else if(ins != 0) {
