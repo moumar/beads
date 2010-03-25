@@ -415,6 +415,7 @@ public class LPRezFilter extends IIRFilter implements DataBeadReceiver {
 			this.freqUGen = freqUGen;
 			freqUGen.update();
 			freq = freqUGen.getValue();
+			isFreqStatic = false;
 		}
 		return this;
 	}
