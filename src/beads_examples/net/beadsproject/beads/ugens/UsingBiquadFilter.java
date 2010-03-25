@@ -24,7 +24,7 @@ public class UsingBiquadFilter {
 			bf.addInput(n);
 			
 			// Send the result to audio out.
-			ac.out.addDependent(bf);
+			ac.out.addInput(bf);
 			
 			// Don't forget to start the audio running!
 			ac.start();
@@ -58,7 +58,7 @@ public class UsingBiquadFilter {
 			bf.addInput(n);
 			
 			// Send the result to audio out.
-			ac.out.addDependent(bf);
+			ac.out.addInput(bf);
 			
 			// Don't forget to start the audio running!
 			ac.start();
