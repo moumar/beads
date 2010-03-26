@@ -30,7 +30,6 @@ public class UsingBiquadFilter {
 			ac.start();
 		}
 	}
-
 	
 	public static class Moderate {
 		public static void main(String[] args) {
