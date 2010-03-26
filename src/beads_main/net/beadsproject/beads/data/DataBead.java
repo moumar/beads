@@ -8,7 +8,6 @@ import net.beadsproject.beads.core.*;
 import java.lang.reflect.Method;
 import java.util.*;
 
-
 /**
  * A bead that stores properties as key/value pairs. Keys must be Strings, and
  * values may be any Object. Implements the Map interface.
@@ -81,10 +80,13 @@ public class DataBead extends Bead implements Map<String, Object> {
 			properties = ht;
 		}
 	}
-	
+
 	/**
-	 * Creates a new DataBead from an interleaved series of key-value pairs, which must be in the form (String, Object, String, Object...), etc.
-	 * @param objects interleaved series of key-value pairs.
+	 * Creates a new DataBead from an interleaved series of key-value pairs,
+	 * which must be in the form (String, Object, String, Object...), etc.
+	 * 
+	 * @param objects
+	 *            interleaved series of key-value pairs.
 	 */
 	public DataBead(Object... objects) {
 		properties = new Hashtable<String, Object>();
@@ -110,36 +112,53 @@ public class DataBead extends Bead implements Map<String, Object> {
 	public void putAll(DataBead db) {
 		putAll(db.properties);
 	}
-	
+
 	/**
-	 * Adds an interleaved series of key-value pairs to the DataBead, which must be in the form (String, Object, String, Object...), etc.
-	 * @param objects an interleaved series of key-value pairs.
+	 * Adds an interleaved series of key-value pairs to the DataBead, which must
+	 * be in the form (String, Object, String, Object...), etc.
+	 * 
+	 * @param objects
+	 *            an interleaved series of key-value pairs.
 	 */
 	public void putAll(Object... objects) {
-		for(int i = 0; i < objects.length; i += 2) {
-			put((String)objects[i], objects[i+1]);
+		for (int i = 0; i < objects.length; i += 2) {
+			put((String) objects[i], objects[i + 1]);
 		}
 	}
-	
+
 	/**
-	 * Uses the parameters stored by this DataBead, this method configures the given object by using reflection to discover 
-	 * appropriate setter methods. For example, if the object has a method <code>setX(float f)</code> then the key-value pair
-	 * <String "x", float 0.5f> will be used to invoke this method. Errors are caught and printed.
-	 * @param o the Object to configure.
+	 * Uses the parameters stored by this DataBead, this method configures the
+	 * given object by using reflection to discover appropriate setter methods.
+	 * For example, if the object has a method <code>setX(float f)</code> then
+	 * the key-value pair <String "x", float 0.5f> will be used to invoke this
+	 * method. Errors are caught and printed (actually, not right now...).
+	 * <p>
+	 * Be aware that this may not work as expected with all objects. Use with
+	 * care...
+	 * 
+	 * @param o
+	 *            the Object to configure.
 	 */
 	public void configureObject(Object o) {
-		for(String s : properties.keySet()) {
-			//generate the correct method name
-			String methodName = "set" + s.substring(0,1).toUpperCase() + s.substring(1);
-			//get the arg object
-			Object theArg = properties.get(s);
-			try {
-				//find the correct method, with appropriate argument type (hope this works with primitives)
-				Method m = o.getClass().getMethod(methodName, theArg.getClass());
-				//set it
-				m.invoke(o, theArg);
-			} catch (Exception e) {
-				//ignore exceptions
+		if (o instanceof DataBeadReceiver) {
+			((DataBeadReceiver) o).sendData(this);
+		} else {
+			for (String s : properties.keySet()) {
+				// generate the correct method name
+				String methodName = "set" + s.substring(0, 1).toUpperCase()
+						+ s.substring(1);
+				// get the arg object
+				Object theArg = properties.get(s);
+				try {
+					// find the correct method, with appropriate argument type
+					// (hope this works with primitives)
+					Method m = o.getClass().getMethod(methodName,
+							theArg.getClass());
+					// set it
+					m.invoke(o, theArg);
+				} catch (Exception e) {
+					// ignore exceptions
+				}
 			}
 		}
 	}
