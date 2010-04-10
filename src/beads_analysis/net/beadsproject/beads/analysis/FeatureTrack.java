@@ -213,5 +213,10 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 		return frames.size();
 	}
 
+	public void clear() {
+		frames.clear();
+		framesInBlocks.clear();
+	}
+
 
 }

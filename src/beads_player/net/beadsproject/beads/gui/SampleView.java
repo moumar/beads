@@ -6,6 +6,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -248,8 +249,10 @@ public class SampleView implements InterfaceElement {
 
 	public JComponent getComponent() {
 		if(component == null) {
-			final JComponent subComponent = new JComponent() {
+			final JComponent subComponent = new BeadsComponent() {
 				public void paintComponent(Graphics g) {
+					Graphics2D g2d = (Graphics2D)g;
+					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 					//outer box
 					if(waveForm == null) recalculateBackgroundImage();
 					g.drawImage(waveForm, 0, 0, null);

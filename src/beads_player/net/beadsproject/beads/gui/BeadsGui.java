@@ -1,6 +1,9 @@
 package net.beadsproject.beads.gui;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -104,14 +107,10 @@ public class BeadsGui {
 		clock.addMessageListener(tg);
 		tg.getComponent().addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
-				if(clock.isPaused()) {
+				if(tempoSlider.getValue() == 0) {
 					clock.reset();
-					clock.pause(false);
-					if(tempoSlider.getValue() == 0) {
-						tempoSlider.setValue(temporaryTempo);
-					}
+					tempoSlider.setValue(temporaryTempo);
 				} else {
-					clock.pause(true);
 					temporaryTempo = tempoSlider.getCurrentValue();
 					tempoSlider.setValue(0f);
 				}
@@ -120,14 +119,10 @@ public class BeadsGui {
 		BeadsKeys.addListener(new BeadsKeys.KeyboardListener() {
 			public void keyPressed(int keyCode) {
 				if(keyCode == KeyEvent.VK_SPACE) {
-					if(clock.isPaused()) {
+					if(tempoSlider.getValue() == 0) {
 						clock.reset();
-						clock.pause(false);
-						if(tempoSlider.getValue() == 0) {
-							tempoSlider.setValue(temporaryTempo);
-						}
+						tempoSlider.setValue(temporaryTempo);
 					} else {
-						clock.pause(true);
 						temporaryTempo = tempoSlider.getCurrentValue();
 						tempoSlider.setValue(0f);
 					}
@@ -141,9 +136,9 @@ public class BeadsGui {
 		final Readout r = new Readout("time", "");
 		clock.addMessageListener(new Bead() {
 			public void messageReceived(Bead message) {
-				if(clock.isBeat()) {
+//				if(clock.isBeat()) {
 					r.setText(clock.getBeatCount() + " " + clock.getCount());
-				}
+//				}
 			}
 		});
 		ci.add(r.getComponent());
@@ -156,6 +151,9 @@ public class BeadsGui {
 		environmentFrame.setResizable(true);
 		environmentFrame.setVisible(true);
 		environmentFrame.pack();
+		//try to set up  rendering
+		Graphics2D graphics = (Graphics2D)environmentFrame.getGraphics();
+		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 	}
 
 	public void repack() {

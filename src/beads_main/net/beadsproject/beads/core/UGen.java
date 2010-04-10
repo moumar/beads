@@ -5,8 +5,12 @@ package net.beadsproject.beads.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -829,16 +833,22 @@ public abstract class UGen extends Bead {
 	
 	}
 	
-	public static void main(String[] args) {
-		final AudioContext ac = new AudioContext();
-		final WavePlayer wp = new WavePlayer(ac, 500, Buffer.SINE);
-		ac.out.addInput(wp);
-		DelayTrigger dt = new DelayTrigger(ac, 500f, new Bead() {
-			public void messageReceived(Bead message) {
-				ac.out.removeAllConnections(wp);
-			}
-		});
-		ac.out.addDependent(dt);
-		ac.start();
+	private class CallChainList {
+		/* 
+		 * This will replace ArrayLists for inputsAtChannel and dependents
+		 *
+		 * Assumption: each buffer pointer is unique. BufferPointer acts as
+		 * a linked list element with a next and a previous. LinkedList implementation
+		 * will give us fast iteration, and fast add to end, which are main use cases.
+		 * 
+		 * For fast removal and contains we could build a Hashtable but we also want
+		 * fast constructors for most UGens. What we could do is set regimes for input
+		 * behaviour. UGens with no inputs can bypass all of this crap, and Ugens with
+		 * inputs can be divided between those that might have a long lifetime involving
+		 * lots of adding and removing (in which case a Hashtable might help) and those
+		 * for which there will be a short lifetime and no connections or removals after
+		 * the initial setup.
+		 */
+		
 	}
 }

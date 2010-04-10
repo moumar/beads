@@ -118,8 +118,7 @@ public class ShortFrameSegmenter extends AudioSegmenter {
 	@Override
 	public void calculateBuffer() {
 		if(beginningTimeStamp == null) {
-			lastTimeStamp = context.generateTimeStamp(0);
-			beginningTimeStamp = context.generateTimeStamp(0);
+			resetTimeStamp();
 		}
 		for(int i = 0; i < bufferSize; i++) {
 			for(int j = 0; j < chunks.length; j++) {
@@ -140,6 +139,11 @@ public class ShortFrameSegmenter extends AudioSegmenter {
 			}
 			count %= cycleLen;
 		}
+	}
+	
+	public void resetTimeStamp() {
+		lastTimeStamp = context.generateTimeStamp(0);
+		beginningTimeStamp = context.generateTimeStamp(0);
 	}
 	
 //	/* (non-Javadoc)
