@@ -4,7 +4,7 @@
 package net.beadsproject.beads.analysis;
 
 import java.util.ArrayList;
-import java.util.List;
+
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.TimeStamp;
 

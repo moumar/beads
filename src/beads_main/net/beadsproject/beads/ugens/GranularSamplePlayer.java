@@ -64,12 +64,6 @@ public class GranularSamplePlayer extends SamplePlayer {
 	 */
 	private static class Grain {
 
-//		/** Flag to indicate whether the grain is free. */
-//		boolean free;
-//
-//		/** The start time in milliseconds. */
-//		double startTime;
-
 		/** The position in millseconds. */
 		double position;
 
@@ -95,10 +89,10 @@ public class GranularSamplePlayer extends SamplePlayer {
 		freeGrains = new ArrayList<Grain>();
 		deadGrains = new ArrayList<Grain>();
 		pitchEnvelope = new Static(context, 1f);
-		setGrainIntervalEnvelope(new Static(context, 70.0f));
-		setGrainSizeEnvelope(new Static(context, 100.0f));
-		setRandomnessEnvelope(new Static(context, 0.0f));
-		setRandomPanEnvelope(new Static(context, 0.0f));
+		setGrainInterval(new Static(context, 70.0f));
+		setGrainSize(new Static(context, 100.0f));
+		setRandomness(new Static(context, 0.0f));
+		setRandomPan(new Static(context, 0.0f));
 		setWindow(new CosineWindow().getDefault());
 		msPerSample = context.samplesToMs(1f);
 		loopInsideGrains = false;
@@ -112,7 +106,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 	 */
 	public GranularSamplePlayer(AudioContext context, Sample buffer) {
 		this(context, buffer.getNumChannels());
-		setBuffer(buffer);
+		setSample(buffer);
 		loopStartEnvelope = new Static(context, 0.0f);
 		loopEndEnvelope = new Static(context, buffer.getLength());
 	}
@@ -120,57 +114,132 @@ public class GranularSamplePlayer extends SamplePlayer {
 	/**
 	 * Gets the pitch envelope.
 	 * 
+	 * @deprecated use {@link #getPitchUGen()}.
 	 * @return the pitch envelope.
 	 */
+	@Deprecated
 	public UGen getPitchEnvelope() {
+		return pitchEnvelope;
+	}
+	
+
+	/**
+	 * Gets the pitch UGen.
+	 * 
+	 * @return the pitch UGen.
+	 */
+	public UGen getPitchUGen() {
 		return pitchEnvelope;
 	}
 
 	/**
 	 * Sets the pitch envelope.
 	 * 
+	 * @deprecated Use {@link #setPitch(UGen)} instead.
+	 * 
 	 * @param pitchEnvelope
 	 *            the new pitch envelope.
 	 */
+	@Deprecated
 	public void setPitchEnvelope(UGen pitchEnvelope) {
 		this.pitchEnvelope = pitchEnvelope;
+	}
+	
+	/**
+	 * Sets the pitch UGen.
+	 * 
+	 * @param pitchUGen
+	 *            the new pitch Ugen.
+	 */
+	public void setPitch(UGen pitchUGen) {
+		this.pitchEnvelope = pitchUGen;
 	}
 
 	/**
 	 * Gets the grain interval envelope.
 	 * 
+	 * @deprecated Use {@link #getGrainIntervalUGen()} instead.
+	 * 
 	 * @return the grain interval envelope.
 	 */
+	@Deprecated
 	public UGen getGrainIntervalEnvelope() {
+		return grainIntervalEnvelope;
+	}
+	
+	/**
+	 * Gets the grain interval UGen.
+	 * 
+	 * @return the grain interval UGen.
+	 */
+	public UGen getGrainIntervalUGen() {
 		return grainIntervalEnvelope;
 	}
 
 	/**
 	 * Sets the grain interval envelope.
 	 * 
+	 * @deprecated Use {@link #setGrainInterval(UGen)} instead.
+	 * 
 	 * @param grainIntervalEnvelope
 	 *            the new grain interval envelope.
 	 */
+	@Deprecated
 	public void setGrainIntervalEnvelope(UGen grainIntervalEnvelope) {
 		this.grainIntervalEnvelope = grainIntervalEnvelope;
+	}
+	
+	/**
+	 * Sets the grain interval UGen.
+	 * 
+	 * @param grainIntervalUGen
+	 *            the new grain interval UGen.
+	 */
+	public void setGrainInterval(UGen grainIntervalUGen) {
+		this.grainIntervalEnvelope = grainIntervalUGen;
 	}
 
 	/**
 	 * Gets the grain size envelope.
 	 * 
+	 * @deprecated Use {@link #getGrainSizeUGen()} instead.
+	 * 
 	 * @return the grain size envelope.
 	 */
+	@Deprecated
 	public UGen getGrainSizeEnvelope() {
+		return grainSizeEnvelope;
+	}
+	
+
+	/**
+	 * Gets the grain size UGen.
+	 * 
+	 * @return the grain size UGen.
+	 */
+	public UGen getGrainSizeUGen() {
 		return grainSizeEnvelope;
 	}
 
 	/**
 	 * Sets the grain size envelope.
 	 * 
+	 * @deprecated Use {@link #setGrainSize(UGen)} instead.
+	 * 
 	 * @param grainSizeEnvelope the new grain size envelope.
 	 */
+	@Deprecated
 	public void setGrainSizeEnvelope(UGen grainSizeEnvelope) {
 		this.grainSizeEnvelope = grainSizeEnvelope;
+	}
+	
+	/**
+	 * Sets the grain size UGen.
+	 * 
+	 * @param grainSizeUGen the new grain size UGen.
+	 */
+	public void setGrainSize(UGen grainSizeUGen) {
+		this.grainSizeEnvelope = grainSizeUGen;
 	}
 	
 	public Buffer getWindow() {
@@ -185,30 +254,90 @@ public class GranularSamplePlayer extends SamplePlayer {
 	/**
 	 * Gets the randomness envelope.
 	 * 
+	 * @deprecated Use {@link #getRandomnessUGen()} instead.
+	 * 
 	 * @return the randomness envelope.
 	 */
+	@Deprecated
 	public UGen getRandomnessEnvelope() {
+		return randomnessEnvelope;
+	}
+	
+	/**
+	 * Gets the randomness UGen.
+	 * 
+	 * @return the randomness UGen.
+	 */
+	public UGen getRandomnessUGen() {
 		return randomnessEnvelope;
 	}
 
 	/**
 	 * Sets the randomness envelope.
 	 * 
+	 * @deprecated Use {@link #setRandomness(UGen)} instead.
+	 * 
 	 * @param randomnessEnvelope the new randomness envelope.
 	 */
+	@Deprecated
 	public void setRandomnessEnvelope(UGen randomnessEnvelope) {
 		this.randomnessEnvelope = randomnessEnvelope;
 	}
 	
+	/**
+	 * Sets the randomness UGen.
+	 * 
+	 * @param randomnessUGen the new randomness UGen.
+	 */
+	public void setRandomness(UGen randomnessUGen) {
+		this.randomnessEnvelope = randomnessUGen;
+	}
+	
+	/**
+	 * @deprecated Use {@link #getRandomPanUGen()} instead.
+	 * @return the random pan envelope.
+	 */
+	@Deprecated
 	public UGen getRandomPanEnvelope() {
 		return randomPanEnvelope;
 	}
 
+	/**
+	 * Gets the random pan UGen.
+	 * @return the random pan Ugen.
+	 */
+	public UGen getRandomPanUGen() {
+		return randomPanEnvelope;
+	}
+	
+	/**
+	 * @deprecated Use {@link #setRandomPan(UGen)} instead.
+	 * @param randomPanEnvelope
+	 */
+	@Deprecated
 	public void setRandomPanEnvelope(UGen randomPanEnvelope) {
 		this.randomPanEnvelope = randomPanEnvelope;
 	}
 
+	public void setRandomPan(UGen randomPanEnvelope) {
+		this.randomPanEnvelope = randomPanEnvelope;
+	}
+	
+	
+	/**
+	 * @deprecated Use {@link #setSample(Sample)} instead.
+	 */
+	@Deprecated
 	public synchronized void setBuffer(Sample buffer) {
+		super.setSample(buffer);
+		grains.clear();
+		timeSinceLastGrain = 0f;
+	}
+	
+	/* (non-Javadoc)
+	 * @see net.beadsproject.beads.ugens.SamplePlayer#setBuffer(net.beadsproject.beads.data.Sample)
+	 */
+	public synchronized void setSample(Sample buffer) {
 		super.setSample(buffer);
 		grains.clear();
 		timeSinceLastGrain = 0f;
@@ -233,7 +362,6 @@ public class GranularSamplePlayer extends SamplePlayer {
 	 */
 	private void resetGrain(Grain g, int time) {
 		g.position = position + (grainSizeEnvelope.getValue(0, time) * randomnessEnvelope.getValue(0, time) * (Math.random() * 2.0 - 1.0));
-//		g.position = g.startTime;
 		g.age = 0f;
 		g.grainSize = grainSizeEnvelope.getValue(0, time);
 	}   
@@ -259,16 +387,11 @@ public class GranularSamplePlayer extends SamplePlayer {
 	private void firstGrain() {
 		if(firstGrain) {
 			Grain g = new Grain();
-//			g.startTime = -position / 2f;
-//			g.startTime = position;
 			g.position = position;
 			g.age = grainSizeEnvelope.getValue() / 4f;
 			
 			grains.add(g);
 			firstGrain = false;
-
-//			System.out.println("firstGrain " + g.position + " " + g.age + " " );
-			
 			timeSinceLastGrain = grainIntervalEnvelope.getValue() / 2f;
 			setGrainPan(g, randomPanEnvelope.getValue(0, 0));
 		}

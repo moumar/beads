@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 /**
@@ -14,6 +17,7 @@ package net.beadsproject.beads.ugens;
  * class variables {@link #sampFreq} and {@link #two_pi_over_sf}.
  * </p>
  * 
+ * @beads.category filter
  * @author Benito Crawford
  * @version .9.1
  */

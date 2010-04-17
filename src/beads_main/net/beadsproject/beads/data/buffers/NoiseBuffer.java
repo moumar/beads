@@ -1,10 +1,13 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.data.buffers;
 
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.BufferFactory;
 
 /**
- * A buffer of random floats.
+ * Creates a {@link Buffer} of random floats.
  * 
  * @author ben
  *

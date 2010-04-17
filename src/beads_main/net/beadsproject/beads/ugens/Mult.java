@@ -7,37 +7,133 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
 /**
- * Mult multiplies two {@link UGen}s together.
+ * Takes an incoming signal (or signals in the multi-channel case) and
+ * multiplies it with something (another signal or a float value).
  * 
  * @beads.category utilities
  * @author ollie
+ * @author Benito Crawford
  */
 public class Mult extends UGen {
 
+	private float multiplier = 1;
+	private UGen multiplierUGen;
+
 	/**
-	 * Instantiates a new Mult with the two {@link UGen}s whose signals will be multiplied.
+	 * Constructor for a Mult object with a static multiplier value.
 	 * 
 	 * @param context
-	 *            the AudioContext.
-	 * @param a
-	 *            one UGen.
-	 * @param b
-	 *            another UGen.
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
+	 * @param multiplier
+	 *            The multiplier value.
 	 */
-	public Mult(AudioContext context, UGen a, UGen b) {
-		super(context, 2, 1);
-		addInput(0, a, 0);
-		addInput(1, b, 0);
+	public Mult(AudioContext context, int channels, float multiplier) {
+		super(context, channels, channels);
+		setMultiplier(multiplier);
 	}
 
-	/* (non-Javadoc)
+	/**
+	 * Constructor for a Mult object with a UGen controlling the multiplier
+	 * value.
+	 * 
+	 * @param context
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
+	 * @param multiplierUGen
+	 *            The UGen controlling the multiplier value.
+	 */
+	public Mult(AudioContext context, int channels, UGen multiplierUGen) {
+		super(context, channels, channels);
+		setMultiplier(multiplierUGen);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.olliebown.beads.core.UGen#calculateBuffer()
 	 */
 	@Override
 	public void calculateBuffer() {
-		for(int i = 0; i < bufferSize; i++) {
-			bufOut[0][i] = bufIn[0][i] * bufIn[1][i];
+		if (multiplierUGen == null) {
+			for (int j = 0; j < outs; j++) {
+				float[] bi = bufIn[j];
+				float[] bo = bufOut[j];
+
+				for (int i = 0; i < bufferSize; i++) {
+					bo[i] = bi[i] * multiplier;
+				}
+			}
+		} else {
+			multiplierUGen.update();
+			if (outs == 1) {
+				float[] bi = bufIn[0];
+				float[] bo = bufOut[0];
+				for (int i = 0; i < bufferSize; i++) {
+					multiplier = multiplierUGen.getValue(0, i);
+					bo[i] = bi[i] * multiplier;
+
+				}
+			} else {
+				for (int i = 0; i < bufferSize; i++) {
+					for (int j = 0; j < outs; j++) {
+						multiplier = multiplierUGen.getValue(0, i);
+						bufOut[j][i] = bufIn[j][i] * multiplier;
+					}
+				}
+			}
 		}
+	}
+
+	/**
+	 * Gets the current multiplier value.
+	 * 
+	 * @return The multiplier.
+	 */
+	public float getMultiplier() {
+		return multiplier;
+	}
+
+	/**
+	 * Sets the multiplier to a static float value.
+	 * 
+	 * @param multiplier
+	 *            The new multiplier value.
+	 * @return This Mult instance.
+	 */
+	public Mult setMultiplier(float multiplier) {
+		this.multiplier = multiplier;
+		multiplierUGen = null;
+		return this;
+	}
+
+	/**
+	 * Sets a UGen to control the multiplier value.
+	 * 
+	 * @param multiplierUGen
+	 *            The multiplier UGen.
+	 * @return This Mult instance.
+	 */
+	public Mult setMultiplier(UGen multiplierUGen) {
+		if (multiplierUGen == null) {
+			setMultiplier(multiplier);
+		} else {
+			this.multiplierUGen = multiplierUGen;
+			multiplierUGen.update();
+			multiplier = multiplierUGen.getValue();
+		}
+		return this;
+	}
+
+	/**
+	 * Gets the multiplier UGen controller.
+	 * 
+	 * @return The multipler UGen controller.
+	 */
+	public UGen getMultiplierUGen() {
+		return multiplierUGen;
 	}
 
 }

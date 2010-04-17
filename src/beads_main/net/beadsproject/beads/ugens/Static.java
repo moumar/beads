@@ -9,6 +9,7 @@ import net.beadsproject.beads.core.UGen;
 /**
  * Static represents a {@link UGen} with a fixed value. Since the value is fixed, Static doesn't actually calculate anything, and overrides the methods {@link #getValue()} and {@link #getValue(int, int)} to return its fixed value.
  *
+ * @beads.category utilities
  * @author ollie
  */
 public class Static extends UGen {
@@ -61,23 +62,6 @@ public class Static extends UGen {
 		return x;
 	}
 	
-	public static void main(String[] args) {
-		AudioContext ac = new AudioContext();
-		Static s1 = new Static(ac, 0.1f);
-		Static s2 = new Static(ac, 0.4f);
-		Gain g = new Gain(ac, 1, 1f);
-		g.addInput(s1);
-//		g.addInput(s2);
-		Function f = new Function(g) {
-			public float calculate() {
-				System.out.println(x[0]);
-				return x[0];
-			}
-		};
-		ac.out.addInput(f);
-		ac.start();
-		
-	}
 	
 	
 }

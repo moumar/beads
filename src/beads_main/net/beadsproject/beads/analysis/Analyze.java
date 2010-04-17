@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.analysis;
 
 import java.util.Hashtable;
@@ -37,6 +40,7 @@ public class Analyze {
 		return sample(s, extractors, defaultSettings);
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static FeatureSet sample(Sample s, List<String> extractors, AnalysisSettings settings) {
 		FeatureSet results = new FeatureSet();
 		FeatureTrack lowLevel = new FeatureTrack();

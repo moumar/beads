@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import java.util.Arrays;
@@ -11,10 +14,11 @@ import net.beadsproject.beads.data.DataBead;
  * <p>
  * y(n) = a * x(n) + g * x(n - d) - h * y(n - d)
  * 
+ * @beads.category filter
  * @author Benito Crawford
  * @version 0.9.1
  */
-public class CombFilter extends UGen {
+public class CombFilter extends IIRFilter {
 
 	private float a = 1, g = .2f, h = .2f;
 	private int maxDelay = 1, delay = 1, ind = 0;
@@ -73,8 +77,8 @@ public class CombFilter extends UGen {
 				g = gUGen.getValue(0, currsample);
 				h = hUGen.getValue(0, currsample);
 				delay = (int) delayUGen.getValue(0, currsample);
-				if (delay < 0) {
-					delay = 0;
+				if (delay < 1) {
+					delay = 1;
 				} else if (delay >= maxDelay) {
 					delay = maxDelay;
 				}
@@ -121,8 +125,8 @@ public class CombFilter extends UGen {
 	 * @return This CombFilter instance.
 	 */
 	public CombFilter setDelay(int delay) {
-		if (delay < 0) {
-			this.delay = 0;
+		if (delay < 1) {
+			this.delay = 1;
 		} else if (delay >= maxDelay) {
 			this.delay = maxDelay;
 		} else {
@@ -513,6 +517,16 @@ public class CombFilter extends UGen {
 		db.put("h", h);
 		db.put("delay", delay);
 		return db;
+	}
+
+	@Override
+	public IIRFilterAnalysis getFilterResponse(float freq) {
+		float[] bs = new float[delay + 1], as = new float[delay + 1];
+		bs[0] = a;
+		bs[delay] = g;
+		as[0] = 1;
+		as[delay] = h;
+		return calculateFilterResponse(bs, as, freq, context.getSampleRate());
 	}
 
 	/*

@@ -1,6 +1,11 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.data;
 
 import net.beadsproject.beads.core.*;
+
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -8,21 +13,39 @@ import java.util.*;
  * values may be any Object. Implements the Map interface.
  * 
  * @author Benito Crawford
- * @version 0.9.5
+ * @version 0.9.6
  */
 public class DataBead extends Bead implements Map<String, Object> {
-	public Hashtable<String, Object> properties;
+	public Map<String, Object> properties;
 
 	/**
-	 * Creates a DataBead instance with no defined properties.
+	 * Creates a DataBead instance with no defined properties. Properties may be
+	 * added with {@link #put(String, Object) put()}.
 	 */
 	public DataBead() {
-		this(null);
+		properties = new Hashtable<String, Object>();
+	}
+
+	/**
+	 * Creates a DataBead with one property defined by the specified key and
+	 * value. Other properties may be added with {@link #put(String, Object)
+	 * put()}.
+	 * 
+	 * @param key
+	 *            The property name.
+	 * @param val
+	 *            The property value.
+	 */
+	public DataBead(String key, Object val) {
+		properties = new Hashtable<String, Object>();
+		if (key != null)
+			properties.put(key, val);
 	}
 
 	/**
 	 * Creates a DataBead instance with properties specified by a String array
-	 * that are set to corresponding values specified by an Object array.
+	 * that are set to corresponding values specified by an Object array. Other
+	 * properties may be added with {@link #put(String, Object) put()}.
 	 * 
 	 * @param proparr
 	 *            The array of property names.
@@ -32,7 +55,6 @@ public class DataBead extends Bead implements Map<String, Object> {
 	 */
 	public DataBead(String[] proparr, Object[] valarr) {
 		properties = new Hashtable<String, Object>();
-
 		if (proparr != null && valarr != null) {
 			int s = Math.min(proparr.length, valarr.length);
 			for (int i = 0; i < s; i++) {
@@ -43,19 +65,32 @@ public class DataBead extends Bead implements Map<String, Object> {
 	}
 
 	/**
-	 * Creates a DataBead instance that uses a Hashtable for its properties.
-	 * (This does not copy the input Hashtable, so any changes to it will change
-	 * the properties of the DataBead!)
+	 * Creates a DataBead instance that uses a Map (a Hashtable, for example)
+	 * for its properties. (This does not copy the input Map, so any changes to
+	 * it will change the properties of the DataBead!) Other properties may be
+	 * added with {@link #put(String, Object) put()}.
 	 * 
 	 * @param ht
-	 *            The input Hashtable.
+	 *            The input Map.
 	 */
-	public DataBead(Hashtable<String, Object> ht) {
+	public DataBead(Map<String, Object> ht) {
 		if (ht == null) {
 			properties = new Hashtable<String, Object>();
 		} else {
 			properties = ht;
 		}
+	}
+
+	/**
+	 * Creates a new DataBead from an interleaved series of key-value pairs,
+	 * which must be in the form (String, Object, String, Object...), etc.
+	 * 
+	 * @param objects
+	 *            interleaved series of key-value pairs.
+	 */
+	public DataBead(Object... objects) {
+		properties = new Hashtable<String, Object>();
+		putAll(objects);
 	}
 
 	/**
@@ -79,6 +114,56 @@ public class DataBead extends Bead implements Map<String, Object> {
 	}
 
 	/**
+	 * Adds an interleaved series of key-value pairs to the DataBead, which must
+	 * be in the form (String, Object, String, Object...), etc.
+	 * 
+	 * @param objects
+	 *            an interleaved series of key-value pairs.
+	 */
+	public void putAll(Object... objects) {
+		for (int i = 0; i < objects.length; i += 2) {
+			put((String) objects[i], objects[i + 1]);
+		}
+	}
+
+	/**
+	 * Uses the parameters stored by this DataBead, this method configures the
+	 * given object by using reflection to discover appropriate setter methods.
+	 * For example, if the object has a method <code>setX(float f)</code> then
+	 * the key-value pair <String "x", float 0.5f> will be used to invoke this
+	 * method. Errors are caught and printed (actually, not right now...).
+	 * <p>
+	 * Be aware that this may not work as expected with all objects. Use with
+	 * care...
+	 * 
+	 * @param o
+	 *            the Object to configure.
+	 */
+	public void configureObject(Object o) {
+		if (o instanceof DataBeadReceiver) {
+			((DataBeadReceiver) o).sendData(this);
+		} else {
+			for (String s : properties.keySet()) {
+				// generate the correct method name
+				String methodName = "set" + s.substring(0, 1).toUpperCase()
+						+ s.substring(1);
+				// get the arg object
+				Object theArg = properties.get(s);
+				try {
+					// find the correct method, with appropriate argument type
+					// (hope this works with primitives)
+					Method m = o.getClass().getMethod(methodName,
+							theArg.getClass());
+					// set it
+					m.invoke(o, theArg);
+				} catch (Exception e) {
+					// ignore exceptions
+				}
+			}
+		}
+	}
+
+	/**
 	 * Gets a float representation of the specified property; returns the
 	 * specified default value if that property doesn't exist or cannot be cast
 	 * as a float.
@@ -91,30 +176,50 @@ public class DataBead extends Bead implements Map<String, Object> {
 	 * <code>param = databead.getFloat("paramKey", param);</code>
 	 * 
 	 * @param key
+	 *            The property key.
 	 * @param defaultVal
+	 *            The value to return if the property does not contain a
+	 *            float-convertible value.
 	 * @return The property value, or the default value if there is no float
 	 *         representation of the property.
 	 */
 	public float getFloat(String key, float defaultVal) {
+		Float ret;
+		if ((ret = getFloatObject(key)) == null) {
+			return defaultVal;
+		} else
+			return ret;
+	}
 
+	/**
+	 * Gets a Float representation of the specified property; returns
+	 * <code>null</code> if that property doesn't exist or cannot be cast as a
+	 * Float.
+	 * 
+	 * @param key
+	 *            The property key.
+	 * @return The property value, or the default value if there is no float
+	 *         representation of the property.
+	 */
+
+	public Float getFloatObject(String key) {
 		Object o = get(key);
 		if (o instanceof Number) {
 			return ((Number) o).floatValue();
 		} else if (o instanceof String) {
 			try {
-				float r = Float.parseFloat((String) o);
+				Float r = Float.parseFloat((String) o);
 				return r;
 			} catch (Exception e) {
 			}
 		} else if (o instanceof Boolean) {
 			if ((Boolean) o == true) {
-				return 1;
+				return 1f;
 			} else {
-				return 0;
+				return 0f;
 			}
 		}
-
-		return defaultVal;
+		return null;
 	}
 
 	/**

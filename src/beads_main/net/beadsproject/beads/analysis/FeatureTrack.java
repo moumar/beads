@@ -4,7 +4,6 @@
 package net.beadsproject.beads.analysis;
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -13,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
 import net.beadsproject.beads.core.TimeStamp;
 
 /**
@@ -190,8 +190,6 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 //					new CloneNotSupportedException("Must implement clone handling in FeatureTrack for Class " + features.getClass()).printStackTrace();
 					ff.add(e.getName(), features);
 				}
-				
-				
 				//how about ff.add(..., features.getClass().cast(features).clone())? - ben
 				//doesn't work, since clone is not an available method - ollie
 			} 
@@ -213,6 +211,11 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	 */
 	public int getNumberOfFrames() {
 		return frames.size();
+	}
+
+	public void clear() {
+		frames.clear();
+		framesInBlocks.clear();
 	}
 
 

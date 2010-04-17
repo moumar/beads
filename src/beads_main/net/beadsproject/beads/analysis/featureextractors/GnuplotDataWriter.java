@@ -4,9 +4,7 @@
 package net.beadsproject.beads.analysis.featureextractors;
 
 import java.io.FileOutputStream;
-import java.io.PrintStream;
 
-import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.core.TimeStamp;
 
 /**

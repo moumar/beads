@@ -4,20 +4,19 @@
 package net.beadsproject.beads.data;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import javax.sound.sampled.UnsupportedAudioFileException;
-import net.beadsproject.beads.analysis.FeatureSet;
+
+import net.beadsproject.beads.data.audiofile.AudioFileIOImplementation;
+import net.beadsproject.beads.data.audiofile.JavaSoundAudioFileIOImplementation;
 
 /**
  * SampleManager provides a static repository for {@link Sample} data and provides methods to organise samples into groups.
@@ -25,6 +24,17 @@ import net.beadsproject.beads.analysis.FeatureSet;
  * @beads.category data
  */
 public class SampleManager {
+	
+	private static AudioFileIOImplementation audioFileIOImplementation = new JavaSoundAudioFileIOImplementation();
+
+	public static AudioFileIOImplementation getAudioFileIOImplementation() {
+		return audioFileIOImplementation;
+	}
+
+	public static void setAudioFileIOImplementation(
+			AudioFileIOImplementation audioFileIOImplementation) {
+		SampleManager.audioFileIOImplementation = audioFileIOImplementation;
+	}
 	
 	/** List of all Samples, indexed by name. */
 	private final static Map<String, Sample> samples = new TreeMap<String, Sample>();
@@ -35,8 +45,6 @@ public class SampleManager {
 	/** List of group names mapped to group directories, groups only in this list if from same directory. */
 	private final static Map<String, String> groupDirs = new TreeMap<String, String>();
 
-	private final static Map<Sample, FeatureSet> featureSets = new Hashtable<Sample, FeatureSet>();
-	
 	private final static Set<SampleGroupListener> listeners = new HashSet<SampleGroupListener>();
 	
 	private static boolean verbose = true;
@@ -54,22 +62,7 @@ public class SampleManager {
 	 * @return the sample.
 	 */
 	public static Sample sample(String fn) {
-		Sample sample = samples.get(fn);
-		if (sample == null) {
-			try {
-				if (nextBufferingRegime!=null)
-					sample = new Sample(fn,nextBufferingRegime);
-				else
-					sample = new Sample(fn);
-				samples.put(fn, sample);
-				if(verbose) System.out.println("Loaded " + fn);
-			} catch (UnsupportedAudioFileException e) {
-				 e.printStackTrace();
-			} catch (IOException e) {
-				 e.printStackTrace();
-			}
-		}
-		return sample;
+		return sample(fn, fn);
 	}
 	
 	/**
@@ -77,7 +70,7 @@ public class SampleManager {
 	 * been loaded, it will not be loaded again, but will simply be retrieved
 	 * from the static repository.
 	 * 
-	 * @param fn the file path.
+	 * @param is the InputStream.
 	 * 
 	 * @return the sample.
 	 */
@@ -85,17 +78,16 @@ public class SampleManager {
 		Sample sample = samples.get(is.toString());
 		if (sample == null) {
 			try {
-				if (nextBufferingRegime!=null)
+				if (nextBufferingRegime!=null) {
 					sample = new Sample(is,nextBufferingRegime);
-				else
+				} else {
 					sample = new Sample(is);
+				}
 				samples.put(is.toString(), sample);
 				if(verbose) System.out.println("Loaded " + is.toString());
-			} catch (UnsupportedAudioFileException e) {
-				 e.printStackTrace();
-			} catch (IOException e) {
-				 e.printStackTrace();
-			}
+			} catch (Exception e) {
+				 //swallow exception
+			} 
 		}
 		return sample;
 	}
@@ -118,18 +110,21 @@ public class SampleManager {
 	 * @param fn the file path.
 	 * 
 	 * @return the sample.
-	 * @throws IOException 
-	 * @throws UnsupportedAudioFileException 
 	 */
-	public static Sample sample(String ref, String fn) throws UnsupportedAudioFileException, IOException {
+	public static Sample sample(String ref, String fn) {
 		Sample sample = samples.get(ref);
 		if (sample == null) {
-			if (nextBufferingRegime!=null)
-				sample = new Sample(fn,nextBufferingRegime);
-			else
-				sample = new Sample(fn);
-			samples.put(ref, sample);
-			if(verbose) System.out.println("Loaded " + fn);
+			try {
+				if (nextBufferingRegime!=null) {
+					sample = new Sample(fn,nextBufferingRegime);
+				} else {
+					sample = new Sample(fn);
+				} 
+				samples.put(ref, sample);
+				if(verbose) System.out.println("Loaded " + fn);
+			} catch (Exception e) {
+				//swallow exception
+			}
 		}
 		return sample;
 	}
@@ -138,21 +133,24 @@ public class SampleManager {
 	 * Like {@link SampleManager#sample(String)} but with the option to specify the name with which this {@link Sample} is indexed.
 	 * 
 	 * @param ref the name with which to index this Sample.
-	 * @param fn the file path.
+	 * @param is the InputStream.
 	 * 
 	 * @return the sample.
-	 * @throws IOException 
-	 * @throws UnsupportedAudioFileException 
 	 */
-	public static Sample sample(String ref, InputStream is) throws UnsupportedAudioFileException, IOException {
+	public static Sample sample(String ref, InputStream is) {
 		Sample sample = samples.get(ref);
-		if (sample == null) {
-			if (nextBufferingRegime!=null)
-				sample = new Sample(is,nextBufferingRegime);
-			else
-				sample = new Sample(is);
-			samples.put(ref, sample);
-			if(verbose) System.out.println("Loaded " + ref);
+		if (sample == null) {	
+			try {
+				if (nextBufferingRegime!=null) {
+					sample = new Sample(is,nextBufferingRegime);
+				} else {
+					sample = new Sample(is);
+				}
+				samples.put(ref, sample);
+				if(verbose) System.out.println("Loaded " + ref);
+			} catch(Exception e) {
+				//swallow exception
+			}
 		}
 		return sample;
 	}
@@ -173,11 +171,12 @@ public class SampleManager {
 			group = groups.get(groupName);
 		}
 		for (int i = 0; i < sampleList.length; i++) {
-			if (!group.contains(sampleList[i]))
+			if (!group.contains(sampleList[i])) {
 				group.add(sampleList[i]);
+			}
 		}
 		for(SampleGroupListener l : listeners) {
-			l.changed();
+			l.changed(groupName);
 		}
 		return group;
 	}
@@ -219,7 +218,10 @@ public class SampleManager {
 		groupDirs.put(groupName, theDirectory.getAbsolutePath());
 		String[] fileNameList = theDirectory.list();
 		for (int i = 0; i < fileNameList.length; i++) {
-			fileNameList[i] = theDirectory.getAbsolutePath() + "/" + fileNameList[i];
+			String absFileName = theDirectory.getAbsolutePath() + "/" + fileNameList[i];
+			if(new File(absFileName).exists()) {
+				fileNameList[i] = absFileName;
+			}
 			
 		}
 		return group(groupName, fileNameList, maxItems);
@@ -253,7 +255,6 @@ public class SampleManager {
 			group = groups.get(groupName);
 		int count = 0;
 		for (int i = 0; i < fileNameList.length; i++) {
-//			String simpleName = groupName + "." + new File(fileNameList[i]).getName();	//dangerous to use simple names!
 			String simpleName = fileNameList[i];
 			try {
 				Sample sample = sample(simpleName, fileNameList[i]);
@@ -266,7 +267,7 @@ public class SampleManager {
 			}
 		}
 		for(SampleGroupListener l : listeners) {
-			l.changed();
+			l.changed(groupName);
 		}
 		return group;
 	}
@@ -339,7 +340,6 @@ public class SampleManager {
 	 */
 	public static void removeSample(String sampleName) {
 		if(samples.containsKey(sampleName)) {
-			featureSets.remove(samples.get(sampleName));
 			samples.remove(sampleName);
 		}
 	}
@@ -367,7 +367,7 @@ public class SampleManager {
 		groups.remove(groupName);
 		groupDirs.remove(groupName);
 		for(SampleGroupListener l : listeners) {
-			l.changed();
+			l.changed(groupName);
 		}
 	}
 
@@ -439,47 +439,21 @@ public class SampleManager {
 	public static void setVerbose(boolean verbose) {
 		SampleManager.verbose = verbose;
 	}
-	
-	/**
-	 * Sets the FeatureSet for the given Sample.
-	 * @param s the Sample.
-	 * @param fs the FeatureSet.
-	 */
-	public static void setFeaturesForSample(Sample s, FeatureSet fs) {
-		featureSets.put(s, fs);
-	}
 
 	/**
-	 * Gets the FeatureSet for a given Sample. The method first checks to see if the FeatureSet
-	 * is already stored in memory. If not it looks for a file with the same file name as the 
-	 * Sample (including the file type), but with the suffix ".features". Once loaded, the FeatureSet
-	 * is stored in memory.
+	 * Interface for notificaiton of changes to a group. Add yourself to listen to 
+	 * group changes using {@link SampleManager#addGroupListener(SampleGroupListener)}.
 	 * 
-	 * @param sample the Sample to search for features of.
-	 * @return the FeatureSet.
+	 * @author ollie
+	 *
 	 */
-	public static FeatureSet featuresForSample(Sample sample) {
-		if(featureSets.containsKey(sample)) {
-			return featureSets.get(sample);
-		} 
-		FeatureSet set = FeatureSet.forSample(sample);
-		if(set != null) {
-			featureSets.put(sample, set);
-			if(verbose) System.out.println("Loaded features for " + sample.getFileName());
-		}
-		return set;
-	}
-
-	public static void featuresForGroup(String groupName) {
-		ArrayList<Sample> theSamples = groups.get(groupName);
-		for(Sample s : theSamples) {
-			featuresForSample(s);
-		}
-	}
-	
-	//TODO not implemented in above yet!
 	public static interface SampleGroupListener {
-		public void changed();
+		
+		/**
+		 * Called when {@link SampleManager} makes changes to a group.
+		 * @param group the name of the affected group.
+		 */
+		public void changed(String group);
 	}
 	
 	

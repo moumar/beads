@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.core;
 
 /**
@@ -21,7 +24,7 @@ public class TimeStamp {
 	private long timeSamples;
 	
 	/**
-	 * Instantiates a new TimeStamp with the given time step, context and buffer index. Use {@link AudioContext.generateTimeStamp()} to generate a
+	 * Instantiates a new TimeStamp with the given time step, context and buffer index. Use {@link AudioContext#generateTimeStamp(int)} to generate a
 	 * TimeStamp for the current time.
 	 * 
 	 * @param context the AudioContext.
@@ -32,6 +35,20 @@ public class TimeStamp {
 		this.context = context;
 		this.timeStep = timeStep;
 		this.index = index;
+	}
+	
+	/**
+	 * Instantiates a new TimeStamp with the given time step, context and buffer index. Use {@link AudioContext#generateTimeStamp(int)} to generate a
+	 * TimeStamp for the current time.
+	 * 
+	 * @param context the AudioContext.
+	 * @param timeStep the time step.
+	 * @param index the index.
+	 */
+	public TimeStamp(AudioContext context, long timeInSamples) {
+		this.context = context;
+		timeStep = timeInSamples / context.getBufferSize();
+		index = (int)(timeInSamples % context.getBufferSize());
 	}
 
 	/**
@@ -79,4 +96,9 @@ public class TimeStamp {
 		}
 		return false;
 	}
+	
+	public static TimeStamp subtract(AudioContext ac, TimeStamp a, TimeStamp b) {
+		return new TimeStamp(ac, a.getTimeSamples() - b.getTimeSamples());
+	}
+
 }

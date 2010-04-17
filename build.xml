@@ -42,11 +42,7 @@
 			</classpath>
 			<compilerarg value="-Xlint:unchecked" />
 		</javac>
-		<javac srcdir="src/beads_experimental" destdir="${buildmain}" debug="off">
-			<classpath>
-				<pathelement location="dependencies/tritonus_share.jar" />
-			</classpath>
-		</javac>
+		<javac srcdir="src/beads_analysis" destdir="${buildmain}" debug="off"></javac>
 		
 		<!-- BUILD THE STANDARD JAVA PACKAGE (ALSO ECLIPSE PROJECT) -->
 		
@@ -120,7 +116,7 @@
 	<target name="clean" description="clean up">
 		<delete dir="${build}/beads" />
 		<delete dir="${build}/doc" />
-		<delete dir="${build}/processing" />
+		<delete dir="${build}/beads_processing" />
 		<delete dir="${build}/ref" />
 		<delete dir="${build}/tmp" />
 	</target>
@@ -160,8 +156,8 @@
 		<zip basedir="${build}/beads" destfile="${exportdir}/Beads.zip" />
 		<copy file="${exportdir}/Beads.zip" tofile="${exportdir}/Beads${TODAY}.zip" />
 		<!-- Beads Processing Tutorial -->
-		<zip basedir="${build}/beads_processing" destfile="${exportdir}/Beads_Processing_Tutorial.zip" />
-		<copy file="${exportdir}/Beads_Processing_Tutorial.zip" tofile="${exportdir}/Beads_Processing_Tutorial${TODAY}.zip" />
+		<zip basedir="${build}/beads_processing" destfile="${exportdir}/Beads_Processing.zip" />
+		<copy file="${exportdir}/Beads_Processing.zip" tofile="${exportdir}/Beads_Processing${TODAY}.zip" />
 	</target>
 	
 	<!-- ================================= 
@@ -177,10 +173,10 @@
 		</exec>
 		<!-- Beads Processing Tutorial -->
 		<exec executable="scp">
-			<arg line="${exportdir}/Beads_Processing_Tutorial.zip orsjb@beadsproject.net:beadsproject.net/downloads/" />
+			<arg line="${exportdir}/Beads_Processing.zip orsjb@beadsproject.net:beadsproject.net/downloads/" />
 		</exec>
 		<exec executable="scp">
-			<arg line="${exportdir}/Beads_Processing_Tutorial${TODAY}.zip orsjb@beadsproject.net:beadsproject.net/downloads/" />
+			<arg line="${exportdir}/Beads_Processing${TODAY}.zip orsjb@beadsproject.net:beadsproject.net/downloads/" />
 		</exec>		
 		<!-- Documentation -->
 		<exec executable="scp">

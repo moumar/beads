@@ -3,52 +3,137 @@
  */
 package net.beadsproject.beads.ugens;
 
-import java.util.Arrays;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 
 /**
- * Adds two {@link UGen} outputs together. In most cases this is more easily and efficiently achieved by just plugging two output connections into the same input, in which case the signals get added automatically.
- *
+ * Takes an incoming signal (or signals in the multi-channel case) and adds
+ * something (either a float value or another signal) to it (them).
+ * 
  * @beads.category utilities
  * @author ollie
+ * @author Benito Crawford
+ * @version 0.9.5
  */
 public class Add extends UGen {
 
+	private UGen adderUGen;
+	private float adder = 0;
+
 	/**
-	 * Instantiates a new Add UGen with UGen a and UGen b added together.
+	 * Constructor for an Add object that sets a UGen to control the value to
+	 * add.
 	 * 
-	 * @param context the AudioContext.
-	 * @param a the first UGen. 
-	 * @param b the second UGen.
+	 * @param context
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
+	 * @param adderUGen
+	 *            The adder UGen controller.
 	 */
-	public Add(AudioContext context, UGen a, UGen b) {
-		this(context, Math.min(a.getOuts(), b.getOuts()));
-		addInput(a);
-		addInput(b);
-	}
-	
-	
-	/**
-	 * Instantiates a new Add UGen without any UGens connected to it.
-	 * 
-	 * @param context the AudioContext.
-	 * @param inouts the number of inputs (= the number of outputs).
-	 */
-	public Add(AudioContext context, int inouts) {
-		super(context, inouts, inouts);
+	public Add(AudioContext context, int channels, UGen adderUGen) {
+		super(context, channels, channels);
+		setAdder(adderUGen);
 	}
 
-	/* (non-Javadoc)
+	/**
+	 * Constructor for an Add object that sets a static adder value.
+	 * 
+	 * @param context
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
+	 * @param adder
+	 *            The value to add.
+	 */
+	public Add(AudioContext context, int channels, float adder) {
+		super(context, channels, channels);
+		setAdder(adder);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.olliebown.beads.core.UGen#calculateBuffer()
 	 */
 	@Override
 	public void calculateBuffer() {
-		for(int i = 0; i < outs; i++) {
-			for(int j = 0; j < bufferSize; j++) {
-				bufOut[i][j] = bufIn[i][j];
+		if (adderUGen == null) {
+			for (int j = 0; j < outs; j++) {
+				float[] bi = bufIn[j];
+				float[] bo = bufOut[j];
+				for (int i = 0; i < bufferSize; i++) {
+					bo[i] = bi[j] + adder;
+				}
+			}
+		} else {
+			adderUGen.update();
+			if (outs == 1) {
+				float[] bi = bufIn[0];
+				float[] bo = bufOut[0];
+				for (int i = 0; i < bufferSize; i++) {
+					adder = adderUGen.getValue(0, i);
+					bo[i] = bi[i] + adder;
+
+				}
+			} else {
+				for (int i = 0; i < bufferSize; i++) {
+					for (int j = 0; j < outs; j++) {
+						adder = adderUGen.getValue(0, i);
+						bufOut[j][i] = bufIn[j][i] + adder;
+					}
+				}
 			}
 		}
 	}
-	
+
+	/**
+	 * Gets the current adder value.
+	 * 
+	 * @return The adder value.
+	 */
+	public float getAdder() {
+		return adder;
+	}
+
+	/**
+	 * Sets the adder to a static float value.
+	 * 
+	 * @param adder
+	 *            The new adder value.
+	 * @return This Add instance.
+	 */
+	public Add setAdder(float adder) {
+		this.adder = adder;
+		adderUGen = null;
+		return this;
+	}
+
+	/**
+	 * Sets a UGen to control the adder value.
+	 * 
+	 * @param adderUGen
+	 *            The adder UGen controller.
+	 * @return This Add instance.
+	 */
+	public Add setAdder(UGen adderUGen) {
+		if (adderUGen == null) {
+			setAdder(adder);
+		} else {
+			this.adderUGen = adderUGen;
+			adderUGen.update();
+			adder = adderUGen.getValue();
+		}
+		return this;
+	}
+
+	/**
+	 * Gets the adder UGen controller.
+	 * 
+	 * @return The adder UGen controller.
+	 */
+	public UGen getAdderUGen() {
+		return adderUGen;
+	}
+
 }

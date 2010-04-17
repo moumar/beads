@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
@@ -13,15 +16,16 @@ import net.beadsproject.beads.data.*;
  * <p>
  * Takes two parameters: cut-off frequency and resonance (0 for no resonance, 1
  * for maximum resonance). These parameters can be set using
- * {@link #setFreq(float) setFreq()} and {@link #setRes(float) setRes()}, or by
- * passing a DataBead with "frequency" and "resonance" properties to
+ * {@link #setFrequency(float) setFreq()} and {@link #setRes(float) setRes()},
+ * or by passing a DataBead with "frequency" and "resonance" properties to
  * {@link #setParams(DataBead)}. (Messaging this object with a DataBead achieves
  * the same.)
  * 
+ * @beads.category filter
  * @author Benito Crawford
  * @version 0.9.5
  */
-public class LPRezFilter extends UGen implements DataBeadReceiver {
+public class LPRezFilter extends IIRFilter implements DataBeadReceiver {
 
 	protected float freq = 100;
 	protected float res = .5f, _2pi_over_sr, cosw = 0;
@@ -29,11 +33,43 @@ public class LPRezFilter extends UGen implements DataBeadReceiver {
 
 	protected float a1, a2, b0;
 	private float y1 = 0, y2 = 0;
+	private float[] y1m, y2m;
+	private int channels;
 
 	protected boolean isFreqStatic, isResStatic;
 
 	/**
-	 * Constructor for frequency and resonance specified by floats.
+	 * Constructor for a single-channel LPRezFilter with default values for
+	 * frequency and resonance.
+	 * 
+	 * @param con
+	 *            The audio context.
+	 */
+	public LPRezFilter(AudioContext con) {
+		this(con, 1);
+	}
+
+	/**
+	 * Constructor for a multi-channel LPRezFilter with default values for
+	 * frequency and resonance.
+	 * 
+	 * @param con
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
+	 */
+	public LPRezFilter(AudioContext con, int channels) {
+		super(con, channels, channels);
+		_2pi_over_sr = (float) (2 * Math.PI / con.getSampleRate());
+		this.channels = super.getOuts();
+		y1m = new float[this.channels];
+		y2m = new float[this.channels];
+		setFrequency(freq).setRes(res);
+	}
+
+	/**
+	 * Constructor for a single-channel LPRezFilter with frequency and resonance
+	 * specified by floats.
 	 * 
 	 * @param con
 	 *            The audio context.
@@ -43,14 +79,12 @@ public class LPRezFilter extends UGen implements DataBeadReceiver {
 	 *            The resonance.
 	 */
 	public LPRezFilter(AudioContext con, float freq, float res) {
-		super(con, 1, 1);
-		_2pi_over_sr = (float) (2 * Math.PI / con.getSampleRate());
-		setFreq(freq).setRes(res);
+		this(con, 1, freq, res);
 	}
 
 	/**
-	 * Constructor for frequency specified by a UGen and resonance specified by
-	 * a float.
+	 * Constructor for a single-channel LPRezFilter with frequency specified by
+	 * a UGen and resonance specified by a float.
 	 * 
 	 * @param con
 	 *            The audio context.
@@ -60,14 +94,12 @@ public class LPRezFilter extends UGen implements DataBeadReceiver {
 	 *            The resonance.
 	 */
 	public LPRezFilter(AudioContext con, UGen freq, float res) {
-		super(con, 1, 1);
-		_2pi_over_sr = (float) (2 * Math.PI / con.getSampleRate());
-		setFreq(freq).setRes(res);
+		this(con, 1, freq, res);
 	}
 
 	/**
-	 * Constructor for frequency specified by a float and resonance specified by
-	 * a UGen.
+	 * Constructor for a single-channel LPRezFilter with frequency specified by
+	 * a float and resonance specified by a UGen.
 	 * 
 	 * @param con
 	 *            The audio context.
@@ -77,13 +109,12 @@ public class LPRezFilter extends UGen implements DataBeadReceiver {
 	 *            The resonance UGen.
 	 */
 	public LPRezFilter(AudioContext con, float freq, UGen res) {
-		super(con, 1, 1);
-		_2pi_over_sr = (float) (2 * Math.PI / con.getSampleRate());
-		setFreq(freq).setRes(res);
+		this(con, 1, freq, res);
 	}
 
 	/**
-	 * Constructor for frequency and resonance specified by UGens.
+	 * Constructor for a single-channel LPRezFilter with frequency and resonance
+	 * specified by UGens.
 	 * 
 	 * @param con
 	 *            The audio context.
@@ -93,23 +124,79 @@ public class LPRezFilter extends UGen implements DataBeadReceiver {
 	 *            The resonance UGen.
 	 */
 	public LPRezFilter(AudioContext con, UGen freq, UGen res) {
-		super(con, 1, 1);
-		_2pi_over_sr = (float) (2 * Math.PI / con.getSampleRate());
-		setFreq(freq).setRes(res);
+		this(con, 1, freq, res);
 	}
 
 	/**
-	 * Constructor for multi-channel processing; used by LPRezFilterMulti
+	 * Constructor for a multi-channel LPRezFilter with frequency and resonance
+	 * specified by floats.
 	 * 
 	 * @param con
 	 *            The audio context.
 	 * @param channels
 	 *            The number of channels.
+	 * @param freq
+	 *            The filter cut-off frequency.
+	 * @param res
+	 *            The resonance.
 	 */
-	protected LPRezFilter(AudioContext con, int channels) {
-		super(con, channels, channels);
-		_2pi_over_sr = (float) (2 * Math.PI / con.getSampleRate());
-		setFreq(freq).setRes(res);
+	public LPRezFilter(AudioContext con, int channels, float freq, float res) {
+		this(con, channels);
+		setFrequency(freq).setRes(res);
+	}
+
+	/**
+	 * Constructor for a multi-channel LPRezFilter with frequency specified by a
+	 * UGen and resonance specified by a float.
+	 * 
+	 * @param con
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
+	 * @param freq
+	 *            The filter cut-off frequency UGen.
+	 * @param res
+	 *            The resonance.
+	 */
+	public LPRezFilter(AudioContext con, int channels, UGen freq, float res) {
+		this(con, channels);
+		setFrequency(freq).setRes(res);
+	}
+
+	/**
+	 * Constructor for a multi-channel LPRezFilter with frequency specified by a
+	 * float and resonance specified by a UGen.
+	 * 
+	 * @param con
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
+	 * @param freq
+	 *            The filter cut-off frequency.
+	 * @param res
+	 *            The resonance UGen.
+	 */
+	public LPRezFilter(AudioContext con, int channels, float freq, UGen res) {
+		this(con, channels);
+		setFrequency(freq).setRes(res);
+	}
+
+	/**
+	 * Constructor for a multi-channel LPRezFilter with frequency and resonance
+	 * specified by UGens.
+	 * 
+	 * @param con
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
+	 * @param freq
+	 *            The filter cut-off frequency UGen.
+	 * @param res
+	 *            The resonance UGen.
+	 */
+	public LPRezFilter(AudioContext con, int channels, UGen freq, UGen res) {
+		this(con, channels);
+		setFrequency(freq).setRes(res);
 	}
 
 	protected void calcVals() {
@@ -121,66 +208,153 @@ public class LPRezFilter extends UGen implements DataBeadReceiver {
 	@Override
 	public void calculateBuffer() {
 
-		float[] bi = bufIn[0];
-		float[] bo = bufOut[0];
+		if (channels == 1) {
 
-		if (isFreqStatic && isResStatic) {
+			float[] bi = bufIn[0];
+			float[] bo = bufOut[0];
 
-			bo[0] = bi[0] * b0 - a1 * y1 - a2 * y2;
-			bo[1] = bi[1] * b0 - a1 * bo[0] - a2 * y1;
+			if (isFreqStatic && isResStatic) {
 
-			// main loop
-			for (int currsamp = 2; currsamp < bufferSize; currsamp++) {
-				bo[currsamp] = bi[currsamp] * b0 - a1 * bo[currsamp - 1] - a2
-						* bo[currsamp - 2];
-			}
+				bo[0] = bi[0] * b0 - a1 * y1 - a2 * y2;
+				bo[1] = bi[1] * b0 - a1 * bo[0] - a2 * y1;
 
-		} else {
+				// main loop
+				for (int currsamp = 2; currsamp < bufferSize; currsamp++) {
+					bo[currsamp] = bi[currsamp] * b0 - a1 * bo[currsamp - 1]
+							- a2 * bo[currsamp - 2];
+				}
 
-			freqUGen.update();
-			resUGen.update();
+			} else {
 
-			cosw = (float) (Math.cos(_2pi_over_sr
-					* (freq = freqUGen.getValue(0, 0))));
-			if ((res = resUGen.getValue(0, 0)) > .999999f) {
-				res = .999999f;
-			} else if (res < 0) {
-				res = 0;
-			}
-			calcVals();
-			bo[0] = bi[0] * b0 - a1 * y1 - a2 * y2;
-
-			cosw = (float) (Math.cos(_2pi_over_sr
-					* (freq = freqUGen.getValue(0, 1))));
-			if ((res = resUGen.getValue(0, 1)) > .999999f) {
-				res = .999999f;
-			} else if (res < 0) {
-				res = 0;
-			}
-			calcVals();
-			bo[1] = bi[1] * b0 - a1 * bo[0] - a2 * y1;
-
-			// main loop
-			for (int currsamp = 2; currsamp < bufferSize; currsamp++) {
+				freqUGen.update();
+				resUGen.update();
 
 				cosw = (float) (Math.cos(_2pi_over_sr
-						* (freq = freqUGen.getValue(0, currsamp))));
-				if ((res = resUGen.getValue(0, currsamp)) > .999999f) {
+						* (freq = freqUGen.getValue(0, 0))));
+				if ((res = resUGen.getValue(0, 0)) > .999999f) {
 					res = .999999f;
 				} else if (res < 0) {
 					res = 0;
 				}
 				calcVals();
+				bo[0] = bi[0] * b0 - a1 * y1 - a2 * y2;
 
-				bo[currsamp] = bi[currsamp] * b0 - a1 * bo[currsamp - 1] - a2
-						* bo[currsamp - 2];
+				cosw = (float) (Math.cos(_2pi_over_sr
+						* (freq = freqUGen.getValue(0, 1))));
+				if ((res = resUGen.getValue(0, 1)) > .999999f) {
+					res = .999999f;
+				} else if (res < 0) {
+					res = 0;
+				}
+				calcVals();
+				bo[1] = bi[1] * b0 - a1 * bo[0] - a2 * y1;
+
+				// main loop
+				for (int currsamp = 2; currsamp < bufferSize; currsamp++) {
+
+					cosw = (float) (Math.cos(_2pi_over_sr
+							* (freq = freqUGen.getValue(0, currsamp))));
+					if ((res = resUGen.getValue(0, currsamp)) > .999999f) {
+						res = .999999f;
+					} else if (res < 0) {
+						res = 0;
+					}
+					calcVals();
+
+					bo[currsamp] = bi[currsamp] * b0 - a1 * bo[currsamp - 1]
+							- a2 * bo[currsamp - 2];
+				}
+
 			}
 
-		}
+			y2 = bo[bufferSize - 2];
+			if (Float.isNaN(y1 = bo[bufferSize - 1])) {
+				reset();
+			}
 
-		y2 = bo[bufferSize - 2];
-		if (Float.isNaN(y1 = bo[bufferSize - 1])) {
-			reset();
+		} else {
+
+			// multi-channel case
+
+			if (isFreqStatic && isResStatic) {
+				for (int i = 0; i < channels; i++) {
+					float[] bi = bufIn[i];
+					float[] bo = bufOut[i];
+
+					bo[0] = bi[0] * b0 - a1 * y1m[i] - a2 * y2m[i];
+					bo[1] = bi[1] * b0 - a1 * bo[0] - a2 * y1m[i];
+
+					// main loop
+					for (int currsamp = 2; currsamp < bufferSize; currsamp++) {
+						bo[currsamp] = bi[currsamp] * b0 - a1
+								* bo[currsamp - 1] - a2 * bo[currsamp - 2];
+					}
+
+					y2m[i] = bo[bufferSize - 2];
+					if (Float.isNaN(y1m[i] = bo[bufferSize - 1])) {
+						reset();
+					}
+				}
+
+			} else {
+
+				freqUGen.update();
+				resUGen.update();
+
+				// first sample
+				cosw = (float) (Math.cos(_2pi_over_sr
+						* (freq = freqUGen.getValue(0, 0))));
+				if ((res = resUGen.getValue(0, 0)) > .999999f) {
+					res = .999999f;
+				} else if (res < 0) {
+					res = 0;
+				}
+				calcVals();
+				for (int i = 0; i < channels; i++) {
+					bufOut[i][0] = bufIn[i][0] * b0 - a1 * y1m[i] - a2 * y2m[i];
+				}
+
+				// second sample
+				cosw = (float) (Math.cos(_2pi_over_sr
+						* (freq = freqUGen.getValue(0, 1))));
+				if ((res = resUGen.getValue(0, 1)) > .999999f) {
+					res = .999999f;
+				} else if (res < 0) {
+					res = 0;
+				}
+				calcVals();
+				for (int i = 0; i < channels; i++) {
+					bufOut[i][1] = bufIn[i][1] * b0 - a1 * bufOut[i][0] - a2
+							* y1m[i];
+				}
+
+				// main loop
+				for (int currsamp = 2; currsamp < bufferSize; currsamp++) {
+
+					cosw = (float) (Math.cos(_2pi_over_sr
+							* (freq = freqUGen.getValue(0, currsamp))));
+					if ((res = resUGen.getValue(0, currsamp)) > .999999f) {
+						res = .999999f;
+					} else if (res < 0) {
+						res = 0;
+					}
+					calcVals();
+
+					for (int i = 0; i < channels; i++) {
+						bufOut[i][currsamp] = bufIn[i][currsamp] * b0 - a1
+								* bufOut[i][currsamp - 1] - a2
+								* bufOut[i][currsamp - 2];
+					}
+				}
+
+				for (int i = 0; i < channels; i++) {
+					y2m[i] = bufOut[i][bufferSize - 2];
+					if (Float.isNaN(y1m[i] = bufOut[i][bufferSize - 1])) {
+						reset();
+					}
+				}
+			}
+
 		}
 	}
 
@@ -190,6 +364,10 @@ public class LPRezFilter extends UGen implements DataBeadReceiver {
 	public void reset() {
 		y1 = 0;
 		y2 = 0;
+		for (int i = 0; i < channels; i++) {
+			y1m[i] = 0;
+			y2m[i] = 0;
+		}
 	}
 
 	/**
@@ -197,7 +375,7 @@ public class LPRezFilter extends UGen implements DataBeadReceiver {
 	 * 
 	 * @return The cut-off frequency.
 	 */
-	public float getFreq() {
+	public float getFrequency() {
 		return freq;
 	}
 
@@ -205,19 +383,19 @@ public class LPRezFilter extends UGen implements DataBeadReceiver {
 	 * Sets the cut-off frequency to a float. Removes the frequency UGen, if
 	 * there is one.
 	 * 
-	 * @param f
+	 * @param freq
 	 *            The cut-off frequency.
 	 * @return This filter instance.
 	 */
-	public LPRezFilter setFreq(float f) {
-		freq = f;
+	public LPRezFilter setFrequency(float freq) {
+		this.freq = freq;
 		if (isFreqStatic) {
-			freqUGen.setValue(f);
+			freqUGen.setValue(freq);
 		} else {
-			freqUGen = new Static(context, f);
+			freqUGen = new Static(context, freq);
 			isFreqStatic = true;
 		}
-		cosw = (float) (Math.cos(_2pi_over_sr * freq));
+		cosw = (float) (Math.cos(_2pi_over_sr * this.freq));
 		calcVals();
 		return this;
 	}
@@ -226,17 +404,18 @@ public class LPRezFilter extends UGen implements DataBeadReceiver {
 	 * Sets a UGen to specify the cut-off frequency. Passing a null value
 	 * freezes the parameter.
 	 * 
-	 * @param f
+	 * @param freqUGen
 	 *            The frequency UGen.
 	 * @return This filter instance.
 	 */
-	public LPRezFilter setFreq(UGen f) {
-		if (f == null) {
-			setFreq(freq);
+	public LPRezFilter setFrequency(UGen freqUGen) {
+		if (freqUGen == null) {
+			setFrequency(freq);
 		} else {
-			freqUGen = f;
-			f.update();
-			freq = f.getValue();
+			this.freqUGen = freqUGen;
+			freqUGen.update();
+			freq = freqUGen.getValue();
+			isFreqStatic = false;
 		}
 		return this;
 	}
@@ -246,12 +425,62 @@ public class LPRezFilter extends UGen implements DataBeadReceiver {
 	 * 
 	 * @return The frequency UGen.
 	 */
-	public UGen getFreqUGen() {
+	public UGen getFrequencyUGen() {
 		if (isFreqStatic) {
 			return null;
 		} else {
 			return freqUGen;
 		}
+	}
+
+	/**
+	 * Gets the current cut-off frequency.
+	 * 
+	 * @return The cut-off frequency.
+	 * @deprecated Use {@link #getFrequency()}.
+	 */
+	@Deprecated
+	public float getFreq() {
+		return getFrequency();
+	}
+
+	/**
+	 * Sets the cut-off frequency to a float. Removes the frequency UGen, if
+	 * there is one.
+	 * 
+	 * @param freq
+	 *            The cut-off frequency.
+	 * @return This filter instance.
+	 * @deprecated Use {@link #setFrequency(float)}.
+	 */
+	@Deprecated
+	public LPRezFilter setFreq(float freq) {
+		return setFrequency(freq);
+	}
+
+	/**
+	 * Sets a UGen to specify the cut-off frequency. Passing a null value
+	 * freezes the parameter.
+	 * 
+	 * @param freqUGen
+	 *            The frequency UGen.
+	 * @return This filter instance.
+	 * @deprecated Use {@link #setFrequency(UGen)}.
+	 */
+	@Deprecated
+	public LPRezFilter setFreq(UGen freqUGen) {
+		return setFrequency(freqUGen);
+	}
+
+	/**
+	 * Gets the frequency UGen, if it exists.
+	 * 
+	 * @return The frequency UGen.
+	 * @deprecated Use {@link #getFrequencyUGen()}.
+	 */
+	@Deprecated
+	public UGen getFreqUGen() {
+		return getFrequencyUGen();
 	}
 
 	/**
@@ -342,9 +571,9 @@ public class LPRezFilter extends UGen implements DataBeadReceiver {
 
 			if ((o = paramBead.get("frequency")) != null) {
 				if (o instanceof UGen) {
-					setFreq((UGen) o);
+					setFrequency((UGen) o);
 				} else {
-					setFreq(paramBead.getFloat("frequency", freq));
+					setFrequency(paramBead.getFloat("frequency", freq));
 				}
 			}
 
@@ -404,11 +633,18 @@ public class LPRezFilter extends UGen implements DataBeadReceiver {
 
 	/**
 	 * Sets the filter's parameters with properties from a DataBead.
+	 * 
 	 * @see #setParams(DataBead)
 	 */
 	public DataBeadReceiver sendData(DataBead db) {
 		setParams(db);
 		return this;
+	}
+
+	@Override
+	public IIRFilterAnalysis getFilterResponse(float freq) {
+		return calculateFilterResponse(new float[] { b0 }, new float[] { 1, a1,
+				a2 }, freq, context.getSampleRate());
 	}
 
 }

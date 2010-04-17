@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.data.buffers;
 
 import java.util.Arrays;
@@ -6,7 +9,7 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.BufferFactory;
 
 /**
- * A window filled with 1's.
+ * Creates a {@link Buffer} filled with 1's.
  * 
  * @author ben
  *

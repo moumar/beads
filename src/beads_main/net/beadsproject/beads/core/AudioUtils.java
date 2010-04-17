@@ -6,7 +6,6 @@
 package net.beadsproject.beads.core;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -167,6 +166,10 @@ public final class AudioUtils {
 			int min = Math.min(out.length,startIndexInFloatArray+numFloats);
 			for (int i = startIndexInFloatArray; i < min; ++i) {
 				float sample = ((in[ib + 0] << 8) | (in[ib + 1] & 0xFF)) / 32768.0F;
+				
+				// BP: Could you explain the above code better?
+				// How do we generalise to N-bytes per float?
+				
 				ib += 2;
 				out[i] = sample;
 			}
@@ -180,6 +183,61 @@ public final class AudioUtils {
 			}
 		}
 	}
+	
+	/**
+	 * Converts a buffer of bytes to a buffer of floats with a given byte order. 
+	 * Will copy numFloat floats to out.
+	 * 
+	 * @param out
+	 *            buffer of floats.
+	 * @param in
+	 *            buffer of bytes.
+	 * @param nBytesPerFloat
+	 * 			  number of bytes per float, maximum of 4           
+	 * @param bigEndian
+	 *            true for big endian byte order, false otherwise.
+	 * @param startIndexInByteArray
+	 * 			  where to start copying from
+	 * @param startIndexInFloatArray
+	 * 			  where to start copying to
+	 * @param numFloats
+	 *            number of elements to copy into out
+	 */
+	/*
+	static final public void byteToFloatWithNBytesPerFloat(float[] out, byte[] in, int nBytesPerFloat, boolean bigEndian, int startIndexInByteArray, int startIndexInFloatArray, int numFloats) {
+		float maxvalue = (float)(1 << (nBytesPerFloat*8));
+		System.out.println(maxvalue);
+		
+		if (bigEndian) {
+			int ib = startIndexInByteArray;
+			int min = Math.min(out.length,startIndexInFloatArray+numFloats);
+			for (int i = startIndexInFloatArray; i < min; ++i) {
+				// float sample = ((in[ib + 0] << 8) | (in[ib + 1] & 0xFF)) / maxvalue;
+				
+				long l = 0;
+				for(int k=0;k<nBytesPerFloat;k++)
+					l |= (in[ib+k]&0xFF) << (8*((nBytesPerFloat-1)-k));
+				float sample = l / maxvalue;
+				ib += nBytesPerFloat;
+				out[i] = sample;
+			}
+		} else {
+			int ib = startIndexInByteArray;
+			int min = Math.min(out.length,startIndexInFloatArray+numFloats);
+			for (int i = startIndexInFloatArray; i < min; ++i) {
+				// float sample = ((in[ib] & 0xFF) | (in[ib + 1] << 8)) / maxvalue;
+				
+				long l = 0;
+				for(int k=0;k<nBytesPerFloat;k++)
+					l |= (in[ib+k]&0xFF) << (8*k);
+				float sample = l / maxvalue;
+				
+				ib += nBytesPerFloat;
+				out[i] = sample;
+			}
+		}
+	}	
+	*/
 	
 	/**
 	 * De-interleave an interleaved buffer of floats to form a 2D array of
@@ -362,7 +420,7 @@ public final class AudioUtils {
 		} catch(Exception e) {
 			File f = new File(s);
 			try {
-				url = f.toURL();
+				url = f. toURI().toURL();
 			} catch (MalformedURLException e1) {
 				e1.printStackTrace();
 			}

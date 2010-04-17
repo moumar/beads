@@ -7,7 +7,7 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.BufferFactory;
 
 /**
- * A {@link BufferFactory} that generates square waves.
+ * Creates a {@link Buffer} consisting of a square wave in the range [-1,1].
  * 
  * @see Buffer BufferFactory
  * @author ollie

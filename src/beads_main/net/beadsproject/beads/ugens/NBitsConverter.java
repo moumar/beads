@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.AudioContext;
@@ -17,8 +20,12 @@ public class NBitsConverter extends UGen
 	  private int toRange;
 	  private float invToRange;
 
-	  public NBitsConverter(AudioContext ac, int n)
-	  {
+	  /**
+	   * Creates a new NBitsConverter with the specified {@link AudioContext} and number of bits to convert to.
+	 * @param ac the AudioContext.
+	 * @param n the number of bits to convert to.
+	 */
+	public NBitsConverter(AudioContext ac, int n) {
 	    super(ac,1,1);
 	    toRange = 1<<(n-1);
 	    invToRange = (float) (1. / toRange);

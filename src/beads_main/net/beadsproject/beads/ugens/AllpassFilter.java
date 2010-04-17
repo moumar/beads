@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
@@ -9,13 +12,14 @@ import net.beadsproject.beads.data.*;
  * 
  * for delay time <em>d</em> and factor <em>g</em>.
  * 
+ * @beads.category filter
  * @author Benito Crawford
  * @version 0.9.5
  */
-public class AllpassFilter extends UGen implements DataBeadReceiver {
+public class AllpassFilter extends IIRFilter implements DataBeadReceiver {
 
 	protected float g;
-	protected int maxDelay = 1, delay = 0, ind = 0, bufLen;
+	protected int maxDelay = 1, delay = 1, ind = 0, bufLen;
 	protected UGen delayUGen, gUGen;
 	protected boolean isDelayStatic, isGStatic;
 	protected float[] xn, yn;
@@ -119,8 +123,8 @@ public class AllpassFilter extends UGen implements DataBeadReceiver {
 			delayUGen.update();
 
 			for (int currsample = 0; currsample < bufferSize; currsample++) {
-				if ((delay = (int) gUGen.getValue(0, currsample)) < 0) {
-					delay = 0;
+				if ((delay = (int) gUGen.getValue(0, currsample)) < 1) {
+					delay = 1;
 				} else if (delay > maxDelay) {
 					delay = maxDelay;
 				}
@@ -215,8 +219,8 @@ public class AllpassFilter extends UGen implements DataBeadReceiver {
 	public AllpassFilter setDelay(int del) {
 		if (del > maxDelay) {
 			delay = maxDelay;
-		} else if (del < 0) {
-			delay = 0;
+		} else if (del < 1) {
+			delay = 1;
 		} else {
 			delay = del;
 		}
@@ -355,6 +359,14 @@ public class AllpassFilter extends UGen implements DataBeadReceiver {
 	public DataBeadReceiver sendData(DataBead db) {
 		setParams(db);
 		return this;
+	}
+
+	@Override
+	public IIRFilterAnalysis getFilterResponse(float freq) {
+		float[] as = new float[delay + 1], bs = new float[delay + 1];
+		bs[0] = as[delay] = -g;
+		as[0] = bs[delay] = 1;
+		return calculateFilterResponse(bs, as, freq, context.getSampleRate());
 	}
 
 }

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.core.AudioUtils;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.UGen;
 
@@ -129,8 +128,9 @@ public class Envelope extends UGen {
     /**
 	 * Locks/unlocks the Envelope.
 	 */
-    public void lock(boolean lock) {
+    public Envelope lock(boolean lock) {
     	this.lock = lock;
+    	return this;
     }
     
     /**
@@ -151,16 +151,37 @@ public class Envelope extends UGen {
 	 *            the duration.
 	 * @param curvature
 	 *            the exponent of the curve.
+	 */
+    public synchronized Envelope addSegment(float endValue, float duration, float curvature) { //synchronized
+        if(!lock) {
+        	if(!Float.isNaN(endValue) && !Float.isInfinite(endValue)) {
+        		segments.add(new Segment(endValue, duration, curvature, null));
+                unchanged = false;
+        	}
+        }
+        return this;
+    }
+    
+    /**
+	 * Adds a new Segment.
+	 * 
+	 * @param endValue
+	 *            the destination value.
+	 * @param duration
+	 *            the duration.
+	 * @param curvature
+	 *            the exponent of the curve.
 	 * @param trigger
 	 *            the trigger.
 	 */
-    public synchronized void addSegment(float endValue, float duration, float curvature, Bead trigger) { //synchronized
+    public synchronized Envelope addSegment(float endValue, float duration, float curvature, Bead trigger) { //synchronized
         if(!lock) {
         	if(!Float.isNaN(endValue) && !Float.isInfinite(endValue)) {
         		segments.add(new Segment(endValue, duration, curvature, trigger));
                 unchanged = false;
         	}
         }
+        return this;
     }
     
     /**
@@ -171,8 +192,8 @@ public class Envelope extends UGen {
 	 * @param duration
 	 *            the duration.
 	 */
-    public void addSegment(float endValue, float duration) {
-    	addSegment(endValue, duration, 1.0f, null);        
+    public Envelope addSegment(float endValue, float duration) {
+    	return addSegment(endValue, duration, 1.0f, null);
     }
     
     /**
@@ -185,15 +206,15 @@ public class Envelope extends UGen {
 	 * @param trigger
 	 *            the trigger.
 	 */
-    public void addSegment(float endValue, float duration, Bead trigger) {
-    	addSegment(endValue, duration, 1.0f, trigger);        
+    public Envelope addSegment(float endValue, float duration, Bead trigger) {
+    	return addSegment(endValue, duration, 1.0f, trigger);
     }
     
     /**
      * Adds the specified List of Segments.
      * @param segments the Segments.
      */
-    public void addSegments(List<Segment> segments) {
+    public Envelope addSegments(List<Segment> segments) {
 		if(!lock) {
 			for(Segment s : segments) {
             	if(!Float.isNaN(s.endValue) && !Float.isInfinite(s.endValue)) {
@@ -202,6 +223,7 @@ public class Envelope extends UGen {
             	}
             }
     	}
+		return this;
     }
     
     /**
@@ -218,11 +240,12 @@ public class Envelope extends UGen {
     /**
 	 * Clears the list of Segments.
 	 */
-    public synchronized void clear() { //synchronized
+    public synchronized Envelope clear() { //synchronized
     	if(!lock) {
     		segments = new ArrayList<Segment>();
         	currentSegment = null;
     	} 
+    	return this;
     }
     
     /**

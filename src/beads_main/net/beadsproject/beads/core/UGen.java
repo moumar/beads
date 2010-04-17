@@ -9,14 +9,11 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
-import net.beadsproject.beads.data.Buffer;
-import net.beadsproject.beads.data.ControllerBead;
+
 import net.beadsproject.beads.events.KillTrigger;
 import net.beadsproject.beads.ugens.Clock;
-import net.beadsproject.beads.ugens.DelayTrigger;
 import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.Gain;
-import net.beadsproject.beads.ugens.WavePlayer;
 
 /**
  * A UGen is the main base class for implementing signal generation and processing units (unit generators). UGens can have any number of audio input and output channels, which adopt the audio format of the {@link AudioContext} used to construct the UGen. Any UGen output can be connected to any other UGen input, using {@link #addInput(int, UGen, int)} (or use {@link #addInput(UGen)} to connect all outputs of one UGen to all inputs of another). UGens are constructed using an
@@ -46,10 +43,10 @@ public abstract class UGen extends Bead {
 	/** The number of outputs. */
 	protected int outs;
 	
-	/** The buffer used internally to store input data. */
+	/** The buffer used internally to store input data. Array has dimensions [channels][bufferSize]. */
 	protected float[][] bufIn;
 	
-	/** The buffer that will be grabbed by other UGens connected to this one. */
+	/** The buffer that will be grabbed by other UGens connected to this one. Array has dimensions [channels][bufferSize]. */
 	protected float[][] bufOut;
 	
 	/** The buffer size. This is specified by {@link AudioContext}. */
@@ -57,7 +54,7 @@ public abstract class UGen extends Bead {
 	
 	/** An collection of pointers to the output buffers of UGens connected to this UGen's inputs. */
 	private ArrayList<BufferPointer>[] inputsAtChannel;
-	
+		
 	/** A collection of UGens that should be triggered by this one. */
 	private ArrayList<UGen> dependents;
 	
@@ -70,9 +67,6 @@ public abstract class UGen extends Bead {
 	private boolean timerMode;
 	private long timeTakenLastUpdate;
 	private long timeTemp;
-	
-	private UGen inputProxy;
-	private UGen outputProxy;
 	
 	/** Used to determine how a UGen sets its outputs up before calculateBuffer() is called. */
 	protected enum OutputInitializationRegime {ZERO, NULL, JUNK, RETAIN};
@@ -118,7 +112,7 @@ public abstract class UGen extends Bead {
 		outputPauseRegime = OutputPauseRegime.ZERO;
 		timerMode = false;
 		timeTemp = 0;
-		inputProxy = outputProxy = null;
+//		inputProxy = outputProxy = null;
 		setIns(ins);
 		setOuts(outs);
 		setContext(context);
@@ -274,28 +268,33 @@ public abstract class UGen extends Bead {
 	/**
 	 * Tells all UGens up the call chain, and all UGens that are dependents of this UGen, to calculate their ouput buffers.
 	 */
-	@SuppressWarnings("unchecked")
 	private synchronized void pullInputs() {
-		ArrayList<UGen> dependentsClone = null;
-		dependentsClone = (ArrayList<UGen>) dependents.clone(); //this may be slow, but avoids concurrent mod exceptions
-		int size = dependentsClone.size();
-		for (int i = 0; i < size; i++) {
-			UGen dependent = dependentsClone.get(i);
-			if (dependent.isDeleted())
-				removeDependent(dependent);
-			else
+		//ArrayList<UGen> dependentsClone = (ArrayList<UGen>) dependents.clone(); //this may be slow, but avoids concurrent mod exceptions
+		//don't need to clone the array any more; we'll just be careful how we traverse the array.
+		int size = dependents.size();
+		for(int index = 0; index < size; index++) {
+			UGen dependent = dependents.get(index);
+			if (dependent.isDeleted()) {
+				// don't need to work with a cloned ArrayList if we adjust our indices properly
+				dependents.remove(index);
+				index--;
+				size--;
+			} else {
 				dependent.update();
+			}
 		}
+		
 		if (!noInputs) {
 			noInputs = true;
 			for (int i = 0; i < inputsAtChannel.length; i++) {
-				ArrayList<BufferPointer> inputsAtChannelICopy = (ArrayList<BufferPointer>) inputsAtChannel[i].clone();
-				size = inputsAtChannelICopy.size();
+				//ArrayList<BufferPointer> inputsAtChannelICopy = (ArrayList<BufferPointer>) inputsAtChannel[i].clone();
+				//don't need to clone the array any more
+				size = inputsAtChannel[i].size();
 				bufIn[i] = context.getZeroBuf();
 				if(size == 1) {
-					BufferPointer bp = inputsAtChannelICopy.get(0);
+					BufferPointer bp = inputsAtChannel[i].get(0);
 					if (bp.ugen.isDeleted()) {
-						removeInputAtChannel(i,bp);
+						removeInputAtChannel(i, bp);
 					} else {
 						bp.ugen.update();
 						noInputs = false;	//we actually updated something, so we must have inputs
@@ -305,29 +304,37 @@ public abstract class UGen extends Bead {
 													//but we can't do this for Static and Envelope and stuff like that efficiently
 						//so these kinds of UGens can make sure their outputs are null in this case, by setting outputInitializationRegime to NULL.
 						if(bufIn[i] == null) {
-							bufIn[i] = context.getBuf();
+							float[] bi = bufIn[i] = context.getBuf();
 							for (int j = 0; j < bufferSize; j++) {
-								bufIn[i][j] = bp.get(j);
+								bi[j] = bp.get(j);
 							}
 						}
 					}
 				} else if(size != 0) {
-					bufIn[i] = context.getCleanBuf();
-					for (int ip = 0; ip < size; ip++) {
-						BufferPointer bp = inputsAtChannelICopy.get(ip);						
+					float[] bi = bufIn[i] = context.getCleanBuf();
+					for (int index = 0; index < size; index++) {
+						BufferPointer bp = inputsAtChannel[i].get(index);
 						if (bp.ugen.isDeleted()) {
-							removeInputAtChannel(i,bp);
+							// don't need to work with a cloned array if we adjust our indices properly
+							removeInputAtChannel(i, bp);
+							size--;
+							index--;
 						} else {
 							bp.ugen.update();
 							noInputs = false;	//we actually updated something, so we must have inputs
 							for (int j = 0; j < bufferSize; j++) {
-								bufIn[i][j] += bp.get(j);
+								bi[j] += bp.get(j);
 							}
 						}
 					}
-				}
+					
+				}				
 			} 
-		} 
+		}  else if(ins != 0) {
+			for (int i = 0; i < inputsAtChannel.length; i++) {
+				bufIn[i] = context.getZeroBuf();
+			}
+		}
 	}
 
 	/**
@@ -343,23 +350,10 @@ public abstract class UGen extends Bead {
 				}
 				lastTimeStep = context.getTimeStep(); // do this first to break call chain loops
 				pullInputs();
-				//proxy option
-				if(inputProxy != null && outputProxy != null) {
-					inputProxy.bufIn = bufIn;
-					inputProxy.initializeOuts();
-					inputProxy.calculateBuffer();
-					if(outputProxy != inputProxy) {
-						outputProxy.bufIn = inputProxy.bufOut;
-						outputProxy.initializeOuts();
-						outputProxy.calculateBuffer();
-					} 
-					bufOut = outputProxy.bufOut;
-				} else {
-					//this sets up the output buffers - default behaviour is to use dirty buffers from the AudioContexts
-					//buffer reserve. Override this function to get another behaviour.
-					initializeOuts();
-					calculateBuffer();
-				}
+				//this sets up the output buffers - default behaviour is to use dirty buffers from the AudioContexts
+				//buffer reserve. Override this function to get another behaviour.
+				initializeOuts();
+				calculateBuffer();
 				if(timerMode) {
 					timeTakenLastUpdate = System.nanoTime() - timeTemp;
 				}
@@ -367,32 +361,6 @@ public abstract class UGen extends Bead {
 			//by the time we get here, we might have been paused. If so then initialize outs using the pause regime.
 			if(isPaused()) setOutsToPause();
 		} 
-	}
-	
-	/**
-	 * Highly experimental! Don't use. 
-	 * @param ugen
-	 */
-	public void setInputProxy(UGen ugen) {
-		inputProxy = ugen;
-		if(outs == 0) outputProxy = inputProxy;
-	}
-
-	/**
-	 * Highly experimental! Don't use. 
-	 * @param ugen
-	 */
-	public void setOutputProxy(UGen ugen) {
-		outputProxy = ugen;
-		if(ins == 0) inputProxy = ugen;
-	}
-
-	/**
-	 * Highly experimental! Don't use. 
-	 * @param ugen
-	 */
-	public void setProxy(UGen ugen) {
-		inputProxy = outputProxy = ugen;
 	}
 
 	/**
@@ -486,6 +454,9 @@ public abstract class UGen extends Bead {
 		dependents.remove(dependent);
 	}
 	
+	/**
+	 * Clears the list of dependent UGens.
+	 */
 	public synchronized void clearDependents() {
 		dependents.clear();
 	}
@@ -547,16 +518,16 @@ public abstract class UGen extends Bead {
 		return connectedInputs;
 	}
 	
-	private static Hashtable<Class, Hashtable<String, Method>> envelopeGetterMethods = new Hashtable<Class, Hashtable<String,Method>>();
+	private static Hashtable<Class<?>, Hashtable<String, Method>> envelopeGetterMethods = new Hashtable<Class<?>, Hashtable<String,Method>>();
 	
 	private void findEnvelopeGetterMethods() {
-		Class c = getClass();
+		Class<?> c = getClass();
 		if(!envelopeGetterMethods.containsKey(c)) {
 			Hashtable<String, Method> methodTable = new Hashtable<String, Method>();
 			Method[] methods = c.getMethods();
 			for(Method m : methods) {
 				String name = m.getName();
-				if(name.startsWith("get") && name.endsWith("Envelope") && m.getReturnType().equals(UGen.class)) {
+				if(name.startsWith("get") && name.endsWith("UGen") && m.getReturnType().equals(UGen.class)) {
 					String envelopeName = name.substring(3, 3).toLowerCase() + name.substring(4, name.length() - 8);
 					methodTable.put(envelopeName, m);
 				}
@@ -587,7 +558,6 @@ public abstract class UGen extends Bead {
 	
 	private synchronized void removeInputAtChannel(int channel, BufferPointer bp) {
 		inputsAtChannel[channel].remove(bp);
-		//System.out.println("input removed, channel=" + channel + " total=" + inputsAtChannel[channel].size());
 	}	
 	
 	/**
@@ -600,7 +570,6 @@ public abstract class UGen extends Bead {
 		if (!noInputs) {
 				int inputCount = 0;
 				for (int i = 0; i < inputsAtChannel.length; i++) {
-					//System.out.println("remove " + i);
 					ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputsAtChannel[i].clone();
 					for (BufferPointer bp : bplist) {
 						if (sourceUGen.equals(bp.ugen)) {
@@ -613,6 +582,44 @@ public abstract class UGen extends Bead {
 					noInputs = true;
 					zeroIns();
 				}
+		}
+	}
+	
+	/**
+	 * Disconnects the connection from the specified UGen to this one.
+	 * 
+	 * @param inputChannel
+	 *            The channel of this UGen to check.
+	 * @param sourceUGen
+	 *            The UGen to disconnect.
+	 * @param sourceOutputChannel
+	 *            The channel of the source UGen.
+	 * @return True if a connection was removed; false otherwise.
+	 */
+	@SuppressWarnings("unchecked")
+	public synchronized boolean removeConnection(int inputChannel,
+			UGen sourceUGen, int sourceOutputChannel) {
+		// Added by Benito
+		if (!noInputs) {
+			int inputCount = 0;
+			boolean ret = false;
+			ArrayList<BufferPointer> bplist = (ArrayList<BufferPointer>) inputsAtChannel[inputChannel].clone();
+			for (BufferPointer bp : bplist) {
+				if (sourceUGen.equals(bp.ugen)
+						&& bp.index == sourceOutputChannel) {
+					removeInputAtChannel(inputChannel, bp);
+					ret = true;
+				} else {
+					inputCount++;
+				}
+			}
+			if (inputCount == 0) {
+				noInputs = true;
+				zeroIns();
+			}
+			return ret;
+		} else {
+			return false;
 		}
 	}
 	
@@ -686,6 +693,18 @@ public abstract class UGen extends Bead {
 	 */
 	public float getValue(int i, int j) {
 		return bufOut[i][j];
+	}
+	
+	/**
+	 * Gets an entire output buffer from a specific channel at a given time step. Note that output buffers are swapped
+	 * every time step, so this float[] will only be valid between the time this UGen in updated 
+	 * and the beginning of the next update cycle. It's your job to make sure you're calling this
+	 * at a sensible time.
+	 * @param i the output channel.
+	 * @return a buffer of output data.
+	 */
+	public float[] getOutBuffer(int i) {
+		return bufOut[i];
 	}
 	
 	/**
@@ -807,16 +826,4 @@ public abstract class UGen extends Bead {
 	
 	}
 	
-	public static void main(String[] args) {
-		final AudioContext ac = new AudioContext();
-		final WavePlayer wp = new WavePlayer(ac, 500, Buffer.SINE);
-		ac.out.addInput(wp);
-		DelayTrigger dt = new DelayTrigger(ac, 500f, new Bead() {
-			public void messageReceived(Bead message) {
-				ac.out.removeAllConnections(wp);
-			}
-		});
-		ac.out.addDependent(dt);
-		ac.start();
-	}
 }

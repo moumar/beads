@@ -1,9 +1,14 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.analysis.featureextractors;
 
 import net.beadsproject.beads.analysis.FeatureExtractor;
 import net.beadsproject.beads.core.TimeStamp;
 
 /**
+ * SpectralDifference calculates the spectral difference between one frame and the next.
+ * 
  * @beads.category analysis
  */
 public class SpectralDifference extends FeatureExtractor<Float, float[]> {

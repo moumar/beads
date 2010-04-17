@@ -166,7 +166,7 @@ public class Clock extends UGen implements IntegerBead {
     		boolean backwards = interval < 0;
     		if(backwards) value *= -1;
     		point += 1.0 / context.msToSamples(value);
-    		//what happens if we start going backwards? New strategy is untested
+    		//what happens if we start going backwards?
     		while(!backwards && point >= count + 1) {// || point < -count) {
     			tick();
     			count += Math.signum(interval);

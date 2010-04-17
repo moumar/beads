@@ -1,4 +1,4 @@
-This software is written and maintained by Ollie Bown (ollie@icarus.nu) and Ben Porter, except portions of code that have been taken from other open source projects. For practical purposes, this code has been reappropriated to fit into the beads framework, and so cannot simply be linked from the original project that it was taken from. A list of the appropriated code is provided below and the relevant files are marked accordingly.
+This software is written and maintained by Ollie Bown (ollie@icarus.nu), Ben Porter, and Benito Crawford except portions of code that have been taken from other open source projects. For practical purposes, this code has been reappropriated to fit into the beads framework, and so cannot simply be linked from the original project that it was taken from. A list of the appropriated code is provided below and the relevant files are marked accordingly.
 
 Creator: MEAPSoft
 License: GPL

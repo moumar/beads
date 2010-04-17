@@ -9,7 +9,13 @@ import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Sample;
 
 /**
- * SamplePlayer plays back a {@link Sample}. Playback rate and loop points can be controlled by {@link UGen}s. The playback point in the {@link Sample} can also be directly controlled from {@link UGen} to perform scrubbing. The player can be set to a number of different loop modes. If constructed with a {@link Sample} argument, the number of outputs of SamplePlayer is determined by the number of channels of the {@link Sample}. {@link Sample} playback can use either linear or cubic interpolation.
+ * SamplePlayer plays back a {@link Sample}. Playback rate and loop points can be controlled by {@link UGen}s. 
+ * The playback point in the {@link Sample} can also be directly controlled from {@link UGen} to perform scrubbing. 
+ * The player can be set to a number of different loop modes. If constructed with a {@link Sample} argument, the number 
+ * of outputs of SamplePlayer is determined by the number of channels of the {@link Sample}. {@link Sample} playback can 
+ * use either linear or cubic interpolation.
+ * 
+ * TODO: Loop cross-fading has not been implemented yet.
  * 
  * @beads.category sample players
  * @author ollie
@@ -20,7 +26,8 @@ public class SamplePlayer extends UGen {
 	public static final float ADAPTIVE_INTERP_HIGH_THRESH = 2.5f;
 	
 	/**
-	 * The Enum InterpolationType.
+	 * Used to determine what kind of interpolation is used
+	 * when access samples.
 	 */
 	public static enum InterpolationType {
 
@@ -41,7 +48,7 @@ public class SamplePlayer extends UGen {
 	};
 
 	/**
-	 * The Enum LoopType.
+	 * Used to determine which kind of loop the sample player will use.
 	 */
 	public static enum LoopType {
 
@@ -62,6 +69,12 @@ public class SamplePlayer extends UGen {
 
 	};
 	
+	/**
+	 * Used to determine whether the SamplePlayer updates control values at sample rate ({@link EnvelopeType#FINE}) or 
+	 * just every frame ({@link EnvelopeType#COARSE}).
+	 * @author ollie
+	 *
+	 */
 	public static enum EnvelopeType {
 		/** Sample the controlling envelopes every buffer. Faster but only approximate. */
 		COARSE,
@@ -254,46 +267,108 @@ public class SamplePlayer extends UGen {
 	/**
 	 * Gets the position envelope. 
 	 * 
+	 * @deprecated Use {@link #getRateUGen()} instead.
+	 * 
 	 * @return the position envelope.
 	 */
+	@Deprecated
 	public UGen getPositionEnvelope() {
+		return positionEnvelope;
+	}
+	
+	/**
+	 * Gets the position UGen. 
+	 * 
+	 * @return the position UGen.
+	 */
+	public UGen getPositionUGen() {
 		return positionEnvelope;
 	}
 
 	/**
 	 * Sets the position envelope. Setting the position envelope means that the position is then controlled by this envelope. If the envelope is null the position continues to be modified by the SamplePlayer's internal playback or by calls to change the position.
 	 * 
+	 * @deprecated Use {@link #setPosition(UGen)} instead.
+	 * 
 	 * @param positionEnvelope the new position envelope.
 	 */
+	@Deprecated
 	public void setPositionEnvelope(UGen positionEnvelope) {
 		this.positionEnvelope = positionEnvelope;
 	}
+	
+	/**
+	 * Sets the position as a UGen. Setting the position envelope means that the position is then controlled by this UGen. If the UGen is null the position continues to be modified by the SamplePlayer's internal playback or by calls to change the position.
+	 * 
+	 * @param positionUGen the new position UGen.
+	 */
+	public void setPosition(UGen positionUGen) {
+		this.positionEnvelope = positionUGen;
+	}
+
 
 	/**
 	 * Gets the rate envelope.
 	 * 
+	 * @deprecated use {@link #getRateUGen()} instead.
+	 * 
 	 * @return the rate envelope.
 	 */
+	@Deprecated
 	public UGen getRateEnvelope() {
 		return rateEnvelope;
 	}
 
 	/**
+	 * Gets the rate UGen.
+	 * 
+	 * @return the rate UGen.
+	 */
+	public UGen getRateUGen() {
+		return rateEnvelope;
+	}
+	
+	/**
 	 * Sets the rate envelope.
+	 * 
+	 * @deprecated use {@link #setRate(UGen)} instead.
 	 * 
 	 * @param rateEnvelope the new rate envelope.
 	 */
+	@Deprecated
 	public void setRateEnvelope(UGen rateEnvelope) {
 		this.rateEnvelope = rateEnvelope;
+	}
+	
+	/**
+	 * Sets the rate to a UGen.
+	 * 
+	 * @param rateUGen the new rate UGen.
+	 */
+	public void setRate(UGen rateUGen) {
+		this.rateEnvelope = rateUGen;
 	}
 	
 	/**
 	 * Gets the rate envelope (this method is provided so that SamplePlayer and GranularSamplePlayer can 
 	 * be used interchangeably).
 	 * 
+	 * @deprecated use {@link #getPitchUGen()} instead.
+	 * 
 	 * @return the rate envelope.
 	 */
+	@Deprecated
 	public UGen getPitchEnvelope() {
+		return rateEnvelope;
+	}
+	
+	/**
+	 * Gets the rate UGen (this method is provided so that SamplePlayer and GranularSamplePlayer can 
+	 * be used interchangeably).
+	 * 
+	 * @return the rate envelope.
+	 */
+	public UGen getPitchUGen() {
 		return rateEnvelope;
 	}
 
@@ -301,24 +376,46 @@ public class SamplePlayer extends UGen {
 	 * Sets the rate envelope (this method is provided so that SamplePlayer and GranularSamplePlayer can 
 	 * be used interchangeably).
 	 * 
+	 * @deprecated use {@link #setPitch(UGen)} instead.
+	 * 
 	 * @param rateEnvelope the new rate envelope.
 	 */
+	@Deprecated
 	public void setPitchEnvelope(UGen rateEnvelope) {
 		this.rateEnvelope = rateEnvelope;
 	}
+	
+	/**
+	 * Sets the rate UGen (this method is provided so that SamplePlayer and GranularSamplePlayer can 
+	 * be used interchangeably).
+	 * 
+	 * @param rateUGen the new rate UGen.
+	 */
+	public void setPitch(UGen rateUGen) {
+		this.rateEnvelope = rateUGen;
+	}
 
-	public EnvelopeType getEnvelopeType()
-	{
+	/**
+	 * Gets the {@link EnvelopeType}, either {@link EnvelopeType#COARSE} or {@link EnvelopeType#FINE}.
+	 * @return the {@link EnvelopeType}. 
+	 */
+	public EnvelopeType getEnvelopeType() {
 		return envelopeType;
 	}
 	
-	public void setEnvelopeType(EnvelopeType et)
-	{
+	/**
+	 * Sets the {@link EnvelopeType}. The value {@link EnvelopeType#COARSE} means that elements controlled
+	 * by UGens will not be modified every sample, but every sample frame. The value {@link EnvelopeType#FINE} 
+	 * means that values will be updated every sample. Use COARSE to save processing resources, but use FINE
+	 * if you want clean and sample accurate control of values.
+	 * @param et the {@link EnvelopeType}.
+	 */
+	public void setEnvelopeType(EnvelopeType et) {
 		envelopeType = et;
 	}	
 	
 	/**
-	 * Gets the interpolation type.
+	 * Gets the {@link InterpolationType} used for accessing samples.
 	 * 
 	 * @return the interpolation type.
 	 */
@@ -356,41 +453,91 @@ public class SamplePlayer extends UGen {
 	/**
 	 * Gets the loop end envelope.
 	 * 
+	 * @deprecated Use {@link #getLoopEndUGen()} instead.
+	 * 
 	 * @return the loop end envelope.
 	 */
+	@Deprecated
 	public UGen getLoopEndEnvelope() {
+		return loopEndEnvelope;
+	}
+	
+	/**
+	 * Gets the loop end UGen.
+	 * 
+	 * @return the loop end UGen.
+	 */
+	public UGen getLoopEndUGen() {
 		return loopEndEnvelope;
 	}
 
 	/**
 	 * Sets the loop end envelope.
 	 * 
+	 * @deprecated Use {@link #setLoopEnd(UGen)} instead.
+	 * 
 	 * @param loopEndEnvelope the new loop end envelope.
 	 */
+	@Deprecated
 	public void setLoopEndEnvelope(UGen loopEndEnvelope) {
 		this.loopEndEnvelope = loopEndEnvelope;
+	}
+	
+
+	/**
+	 * Sets the loop end UGen.
+	 * 
+	 * @param loopEndUGen the new loop end UGen.
+	 */
+	public void setLoopEnd(UGen loopEndUGen) {
+		this.loopEndEnvelope = loopEndUGen;
 	}
 
 	/**
 	 * Gets the loop start envelope.
 	 * 
+	 * @deprecated Use {@link #getLoopStartUGen()} instead.
 	 * @return the loop start envelope
 	 */
+	@Deprecated
 	public UGen getLoopStartEnvelope() {
+		return loopStartEnvelope;
+	}
+	
+	/**
+	 * Gets the loop start UGen.
+	 * 
+	 * @return the loop start UGen
+	 */
+	public UGen getLoopStartUGen() {
 		return loopStartEnvelope;
 	}
 
 	/**
 	 * Sets the loop start envelope.
 	 * 
+	 * @deprecated Use {@link #setLoopStart(UGen)} instead.
+	 * 
 	 * @param loopStartEnvelope the new loop start envelope.
 	 */
+	@Deprecated
 	public void setLoopStartEnvelope(UGen loopStartEnvelope) {
 		this.loopStartEnvelope = loopStartEnvelope;
 	}
+	
 
 	/**
-	 * Sets both loop points to static values as fractions of the Sample length.
+	 * Sets the loop start UGen.
+	 * 
+	 * @param loopStartUGen the new loop start UGen.
+	 */
+	public void setLoopStart(UGen loopStartUGen) {
+		this.loopStartEnvelope = loopStartUGen;
+	}
+
+	/**
+	 * Sets both loop points to static values as fractions of the Sample length, 
+	 * overriding any UGens that were controlling the loop points.
 	 * 
 	 * @param start the start value, as fraction of the Sample length.
 	 * @param end the end value, as fraction of the Sample length.

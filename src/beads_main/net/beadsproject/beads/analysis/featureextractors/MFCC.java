@@ -87,14 +87,4 @@ public class MFCC extends FeatureExtractor<float[], float[]> {
 	}
 	
 
-	/**
-	 * Prints the feature data.
-	 */
-	private void printFeatures() {
-		for (int i = 0; i < features.length; i++) {
-			System.out.print(features[i] + " ");
-		}
-		System.out.println();
-	}
-
 }

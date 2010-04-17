@@ -1,3 +1,6 @@
+/*
+ * This file is part of Beads. See http://www.beadsproject.net for all information.
+ */
 package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.*;
@@ -9,11 +12,12 @@ import net.beadsproject.beads.data.*;
  * <p>
  * It uses the formula: y(n) = a * x(n) + (1 - a) * y(n - 1)
  * 
+ * @beads.category filter
  * @author Benito Crawford
  * @version 0.9
  */
-public class OnePoleFilter extends UGen implements DataBeadReceiver {
-	private float freq, a0, b1, y1 = 0;
+public class OnePoleFilter extends IIRFilter implements DataBeadReceiver {
+	private float freq, b0, a1, y1 = 0;
 	private UGen freqUGen;
 	protected float samplingfreq, two_pi_over_sf;
 	protected boolean isFreqStatic;
@@ -31,7 +35,7 @@ public class OnePoleFilter extends UGen implements DataBeadReceiver {
 		samplingfreq = con.getSampleRate();
 		two_pi_over_sf = (float) (2 * Math.PI / samplingfreq);
 
-		setFreq(freq);
+		setFrequency(freq);
 	}
 
 	/**
@@ -47,11 +51,11 @@ public class OnePoleFilter extends UGen implements DataBeadReceiver {
 		samplingfreq = con.getSampleRate();
 		two_pi_over_sf = (float) (2 * Math.PI / samplingfreq);
 
-		setFreq(freq);
+		setFrequency(freq);
 	}
 
 	protected void calcVals() {
-		b1 = (a0 = (float) Math.sin(two_pi_over_sf * freq)) - 1;
+		a1 = (b0 = (float) Math.sin(two_pi_over_sf * freq)) - 1;
 	}
 
 	@Override
@@ -62,7 +66,7 @@ public class OnePoleFilter extends UGen implements DataBeadReceiver {
 		if (isFreqStatic) {
 
 			for (int currsamp = 0; currsamp < bufferSize; currsamp++) {
-				bo[currsamp] = y1 = a0 * bi[currsamp] - b1 * y1;
+				bo[currsamp] = y1 = b0 * bi[currsamp] - a1 * y1;
 			}
 
 		} else {
@@ -70,9 +74,9 @@ public class OnePoleFilter extends UGen implements DataBeadReceiver {
 			freqUGen.update();
 
 			for (int currsamp = 0; currsamp < bufferSize; currsamp++) {
-				b1 = (a0 = (float) Math.sin(two_pi_over_sf
+				a1 = (b0 = (float) Math.sin(two_pi_over_sf
 						* freqUGen.getValue(0, currsamp))) - 1;
-				bo[currsamp] = y1 = a0 * bi[currsamp] - b1 * y1;
+				bo[currsamp] = y1 = b0 * bi[currsamp] - a1 * y1;
 			}
 			freq = freqUGen.getValue(0, bufferSize - 1);
 
@@ -88,7 +92,7 @@ public class OnePoleFilter extends UGen implements DataBeadReceiver {
 	 * 
 	 * @return The cut-off frequency.
 	 */
-	public float getFreq() {
+	public float getFrequency() {
 		return freq;
 	}
 
@@ -99,9 +103,9 @@ public class OnePoleFilter extends UGen implements DataBeadReceiver {
 	 *            The cut-off frequency.
 	 * @return This filter instance.
 	 */
-	public OnePoleFilter setFreq(float freq) {
+	public OnePoleFilter setFrequency(float freq) {
 		this.freq = freq;
-		b1 = (a0 = (float) Math.sin(two_pi_over_sf * freq)) - 1;
+		a1 = (b0 = (float) Math.sin(two_pi_over_sf * freq)) - 1;
 		isFreqStatic = true;
 		return this;
 	}
@@ -114,9 +118,9 @@ public class OnePoleFilter extends UGen implements DataBeadReceiver {
 	 *            The cut-off frequency UGen.
 	 * @return This filter instance.
 	 */
-	public OnePoleFilter setFreq(UGen freqUGen) {
+	public OnePoleFilter setFrequency(UGen freqUGen) {
 		if (freqUGen == null) {
-			setFreq(freq);
+			setFrequency(freq);
 		} else {
 			this.freqUGen = freqUGen;
 			freqUGen.update();
@@ -131,13 +135,62 @@ public class OnePoleFilter extends UGen implements DataBeadReceiver {
 	 * 
 	 * @return The cut-off frequency UGen.
 	 */
-	public UGen getFreqUGen() {
+	public UGen getFrequencyUGen() {
 		if (isFreqStatic) {
 			return null;
 		} else {
 
 			return freqUGen;
 		}
+	}
+
+	/**
+	 * Gets the current cut-off frequency.
+	 * 
+	 * @return The cut-off frequency.
+	 * @deprecated Use {@link #getFrequency()}.
+	 */
+	@Deprecated
+	public float getFreq() {
+		return getFrequency();
+	}
+
+	/**
+	 * Sets the cut-off frequency to a static float.
+	 * 
+	 * @param freq
+	 *            The cut-off frequency.
+	 * @return This filter instance.
+	 * @deprecated Use {@link #setFrequency(float)}.
+	 */
+	@Deprecated
+	public OnePoleFilter setFreq(float freq) {
+		return setFrequency(freq);
+	}
+
+	/**
+	 * Sets a UGen to specify the cut-off frequency; passing null freezes the
+	 * frequency at its current value.
+	 * 
+	 * @param freqUGen
+	 *            The cut-off frequency UGen.
+	 * @return This filter instance.
+	 * @deprecated Use {@link #setFrequency(UGen)}.
+	 */
+	@Deprecated
+	public OnePoleFilter setFreq(UGen freqUGen) {
+		return setFrequency(freqUGen);
+	}
+
+	/**
+	 * Gets the cut-off frequency UGen; returns null if frequency is static.
+	 * 
+	 * @return The cut-off frequency UGen.
+	 * @deprecated Use {@link #getFrequencyUGen()}.
+	 */
+	@Deprecated
+	public UGen getFreqUGen() {
+		return getFrequencyUGen();
 	}
 
 	/**
@@ -155,9 +208,9 @@ public class OnePoleFilter extends UGen implements DataBeadReceiver {
 
 			if ((o = paramBead.get("frequency")) != null) {
 				if (o instanceof UGen) {
-					setFreq((UGen) o);
+					setFrequency((UGen) o);
 				} else {
-					setFreq(paramBead.getFloat("frequency", freq));
+					setFrequency(paramBead.getFloat("frequency", freq));
 				}
 			}
 
@@ -209,6 +262,12 @@ public class OnePoleFilter extends UGen implements DataBeadReceiver {
 	public DataBeadReceiver sendData(DataBead db) {
 		setParams(db);
 		return this;
+	}
+
+	@Override
+	public IIRFilterAnalysis getFilterResponse(float freq) {
+		return calculateFilterResponse(new float[] { b0 },
+				new float[] { 1, a1 }, freq, context.getSampleRate());
 	}
 
 }
