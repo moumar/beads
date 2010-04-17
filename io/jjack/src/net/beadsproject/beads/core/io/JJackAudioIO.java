@@ -1,6 +1,7 @@
 package net.beadsproject.beads.core.io;
 
 import java.nio.FloatBuffer;
+
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.AudioIO;
 import net.beadsproject.beads.core.UGen;
@@ -47,6 +48,14 @@ public class JJackAudioIO extends AudioIO {
 		jjackInputIndex = jjackOutputIndex = beadsInputIndex = beadsOutputIndex = 0;
 		timeSinceUpdate = 0;
 		firstUpdateComplete = false;
+		
+		//try to wait
+		try {
+			Thread.sleep(1000);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
 		//create the client inline
 		JJackAudioProcessor p = new JJackAudioProcessor() {
 			private static final long serialVersionUID = 1L;
@@ -55,7 +64,7 @@ public class JJackAudioIO extends AudioIO {
 //				long startTime = System.currentTimeMillis();
 				try {
 					//grab the buffers
-					FloatBuffer[] inBuffer = frame.getInputs();
+					FloatBuffer[] inBuffer = frame.getInputs();    
 					FloatBuffer[] outBuffer = frame.getOutputs();
 					//turn inputs into float[][] arrays
 					for(int i = 0; i < inBuffer.length; i++) {
@@ -138,6 +147,7 @@ public class JJackAudioIO extends AudioIO {
 	private void doUpdate() {
 		super.update();
 	}
+	
 	
 	private class JJackRTInput extends UGen {
 
