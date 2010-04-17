@@ -4,7 +4,7 @@
 package net.beadsproject.beads.core;
 
 import net.beadsproject.beads.core.io.JavaSoundAudioIO;
-import net.beadsproject.beads.data.AudioFile;
+import net.beadsproject.beads.data.audiofile.AudioFile;
 
 /**
  * AudioIO is the abstract base class for setting up interaction between {@link AudioContext} and the world. It is 
@@ -72,18 +72,6 @@ public abstract class AudioIO {
 	 */
 	public AudioContext getContext() {
 		return context;
-	}
-	
-	/**
-	 * Retrieve an audio file. 
-	 * 
-	 * @param filename
-	 * @return
-	 */
-	public abstract AudioFile getAudioFile(String filename);
-
-	public AudioFile getAudioFile(java.io.InputStream is) {
-		return null;
 	}
 
 }

@@ -151,6 +151,26 @@ public class Envelope extends UGen {
 	 *            the duration.
 	 * @param curvature
 	 *            the exponent of the curve.
+	 */
+    public synchronized Envelope addSegment(float endValue, float duration, float curvature) { //synchronized
+        if(!lock) {
+        	if(!Float.isNaN(endValue) && !Float.isInfinite(endValue)) {
+        		segments.add(new Segment(endValue, duration, curvature, null));
+                unchanged = false;
+        	}
+        }
+        return this;
+    }
+    
+    /**
+	 * Adds a new Segment.
+	 * 
+	 * @param endValue
+	 *            the destination value.
+	 * @param duration
+	 *            the duration.
+	 * @param curvature
+	 *            the exponent of the curve.
 	 * @param trigger
 	 *            the trigger.
 	 */

@@ -3,10 +3,16 @@
  */
 package net.beadsproject.beads.core.io;
 
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.sound.sampled.UnsupportedAudioFileException;
+
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.AudioIO;
 import net.beadsproject.beads.core.UGen;
-import net.beadsproject.beads.data.AudioFile;
+import net.beadsproject.beads.data.audiofile.AudioFile;
+import net.beadsproject.beads.data.audiofile.JavaSoundAudioFile;
 
 /**
  * A dummy AudioIO class that is purely for non-realtime use; it does not
@@ -60,10 +66,5 @@ public class NonrealtimeIO extends AudioIO {
 		
 	}
 
-	@Override
-	public AudioFile getAudioFile(String filename) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 }

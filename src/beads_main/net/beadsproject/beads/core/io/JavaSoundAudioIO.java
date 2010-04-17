@@ -24,8 +24,8 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.AudioIO;
 //import net.beadsproject.beads.core.AudioUtils;
 import net.beadsproject.beads.core.UGen;
-import net.beadsproject.beads.data.AudioFile;
-import net.beadsproject.beads.data.JavaSoundAudioFile;
+import net.beadsproject.beads.data.audiofile.AudioFile;
+import net.beadsproject.beads.data.audiofile.JavaSoundAudioFile;
 
 public class JavaSoundAudioIO extends AudioIO {
 
@@ -388,30 +388,6 @@ public class JavaSoundAudioIO extends AudioIO {
 
 	}
 
-	@Override
-	public AudioFile getAudioFile(String filename) {
-		try {
-			return new JavaSoundAudioFile(filename);
-		} catch (IOException e) {			
-			e.printStackTrace();
-			return null;
-		} catch (UnsupportedAudioFileException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
-	@Override
-	public AudioFile getAudioFile(InputStream is) {
-		try {
-			return new JavaSoundAudioFile(is);
-		} catch (IOException e) {			
-			e.printStackTrace();
-			return null;
-		} catch (UnsupportedAudioFileException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+
 
 }

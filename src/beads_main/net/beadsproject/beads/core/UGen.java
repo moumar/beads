@@ -50,10 +50,10 @@ public abstract class UGen extends Bead {
 	/** The number of outputs. */
 	protected int outs;
 	
-	/** The buffer used internally to store input data. */
+	/** The buffer used internally to store input data. Array has dimensions [channels][bufferSize]. */
 	protected float[][] bufIn;
 	
-	/** The buffer that will be grabbed by other UGens connected to this one. */
+	/** The buffer that will be grabbed by other UGens connected to this one. Array has dimensions [channels][bufferSize]. */
 	protected float[][] bufOut;
 	
 	/** The buffer size. This is specified by {@link AudioContext}. */

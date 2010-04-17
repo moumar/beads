@@ -21,7 +21,7 @@ public class UsingPanner {
 			Panner panner = new Panner(ac);
 
 			// And we'll pan it mostly to the left.
-			panner.setPos(-.5f);
+			panner.setPos(-5f);
 
 			// Now add the sine tone to the Panner's input.
 			panner.addInput(sine);
@@ -36,13 +36,8 @@ public class UsingPanner {
 	}
 
 	public static class Moderate {
-		// We have to declare this out here...
-		static Envelope envelope;
-
 		public static void main(String[] args) {
-
 			// Moving bloops.
-
 			// Create our audio context.
 			AudioContext ac = new AudioContext();
 
@@ -51,11 +46,11 @@ public class UsingPanner {
 
 			// We'll make it bloop-y by multiplying it (using a Gain) by an
 			// envelope that is triggered by a Clock.
-			envelope = new Envelope(ac, 0);
+			final Envelope envelope = new Envelope(ac, 0);
 			Gain bloops = new Gain(ac, 1, envelope);
 			bloops.addInput(sine);
 
-			Clock clock = new Clock(ac, 500);
+			Clock clock = new Clock(ac, 300);
 			clock.setTicksPerBeat(1);
 			ac.out.addDependent(clock);
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of Beads. See http://www.beadsproject.net for all information.
  */
-package net.beadsproject.beads.data;
+package net.beadsproject.beads.data.audiofile;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -19,6 +19,7 @@ import org.tritonus.share.sampled.file.TAudioFileFormat;
 
 import net.beadsproject.beads.core.AudioFormat;
 import net.beadsproject.beads.core.AudioUtils;
+import net.beadsproject.beads.data.Sample;
 
 /**
  * Uses javasound to load audio files located on disk or via a URL. 
@@ -89,7 +90,7 @@ public class JavaSoundAudioFile extends AudioFile {
 		} catch(Exception e) {
 			file = new File(filename);
 			url = null;
-			name = file.getPath();
+			name = file.getAbsolutePath();
 		}
 		audioInputStream = null;
 		
@@ -262,7 +263,7 @@ public class JavaSoundAudioFile extends AudioFile {
 	 * @throws UnsupportedAudioFileException
 	 * @throws IOException
 	 */
-	public void open() throws AudioFileUnsupportedException, IOException
+	public void open() throws UnsupportedAudioFileException, IOException
 	{
 		if (trace) System.err.printf("AudioFile \"%s\" open start\n",name);
 		finished = false;
@@ -271,7 +272,7 @@ public class JavaSoundAudioFile extends AudioFile {
 		try {
 			encodedStream = getStream();
 		} catch (UnsupportedAudioFileException e) {
-			throw(new AudioFileUnsupportedException(e.getMessage()));
+			throw(new UnsupportedAudioFileException(e.getMessage()));
 		}
 		encodedFormat = encodedStream.getFormat();
 		
@@ -316,7 +317,7 @@ public class JavaSoundAudioFile extends AudioFile {
 			{
 				close();
 				String s = "Tried to load " + (8*decodedFormat.getFrameSize()/decodedFormat.getChannels()) + "-bit file, but couldn't convert to 16-bit.";
-				throw(new AudioFileUnsupportedException(s));
+				throw(new UnsupportedAudioFileException(s));
 			}
 			
 			nFrames = (int)(decodedStream.getFrameLength());

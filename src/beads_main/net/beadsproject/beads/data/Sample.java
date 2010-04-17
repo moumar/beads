@@ -22,9 +22,8 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.AudioUtils;
-import net.beadsproject.beads.data.AudioFile.AudioFileUnsupportedException;
+import net.beadsproject.beads.data.audiofile.AudioFile;
 
 /**
  * A Sample encapsulates audio data, either loaded from an audio file (such as an MP3) or
@@ -79,6 +78,7 @@ import net.beadsproject.beads.data.AudioFile.AudioFileUnsupportedException;
  * @author Beads Team
  */
 public class Sample implements Runnable {
+
 	static public class Regime
 	{
 		/** 
@@ -328,7 +328,6 @@ public class Sample implements Runnable {
 		private float[][] f_sampleData; // f_sampleData[0] first channel, f_sampleData[1] second channel, etc..
 		
 		private float[] current, next; //used as temp buffers whilst calculating interpolation
-		private AudioContext audioContext;
 
 	/**
 	 * Instantiates a new writeable Sample with the specified audio format and
@@ -339,8 +338,8 @@ public class Sample implements Runnable {
 	 * @param audioFormat the audio format.
 	 * @param length The length of the sample in ms.
 	 */
-	public Sample(AudioContext ac, AudioFormat audioFormat, double length) {
-		this(ac);
+	public Sample(AudioFormat audioFormat, double length) {
+		this();
 		this.audioFormat = audioFormat;
 		nChannels = audioFormat.getChannels();
 		current = new float[nChannels];
@@ -357,8 +356,8 @@ public class Sample implements Runnable {
 		this.length = 1000f * nFrames / audioFormat.getSampleRate();
 	}
 	
-	public Sample(AudioContext ac, AudioFormat audioFormat, double length, Regime br) {
-		this(ac);
+	public Sample(AudioFormat audioFormat, double length, Regime br) {
+		this();
 		bufferingRegime = br;
 		this.audioFormat = audioFormat;
 		nChannels = audioFormat.getChannels();
@@ -381,9 +380,8 @@ public class Sample implements Runnable {
 	 * Call setFile to initialise the sample.
 	 *
 	 */
-	private Sample(AudioContext ac)
+	private Sample()
 	{
-		audioContext = ac;
 		bufferingRegime = Regime.newTotalRegime();
 		isBigEndian = true;
 		isScheduled = false;
@@ -397,9 +395,9 @@ public class Sample implements Runnable {
 	 * @throws IOException 
 	 * @throws AudioFileUnsupportedException 
 	 */
-	public Sample(AudioContext ac, String filename) throws IOException, AudioFileUnsupportedException
+	public Sample(String filename) throws IOException, UnsupportedAudioFileException
 	{    	
-		this(ac);
+		this();
 		setFile(filename);
 	}
 	
@@ -410,9 +408,9 @@ public class Sample implements Runnable {
 	 * @throws IOException 
 	 * @throws AudioFileUnsupportedException 
 	 */
-	public Sample(AudioContext ac, InputStream is) throws IOException, AudioFileUnsupportedException
+	public Sample(InputStream is) throws IOException, UnsupportedAudioFileException
 	{    	
-		this(ac);
+		this();
 		setFile(is);
 	}
 
@@ -423,9 +421,9 @@ public class Sample implements Runnable {
 	 * @throws IOException 
 	 * @throws AudioFileUnsupportedException 
 	 */
-	public Sample(AudioContext ac, AudioFile af) throws IOException, AudioFileUnsupportedException
+	public Sample(AudioFile af) throws IOException, UnsupportedAudioFileException
 	{    	
-		this(ac);		
+		this();		
 		setFile(af);
 	}
 
@@ -436,9 +434,9 @@ public class Sample implements Runnable {
 	 * @throws IOException 
 	 * @throws AudioFileUnsupportedException 
 	 */
-	public Sample(AudioContext ac, AudioFile af, Regime r) throws IOException, AudioFileUnsupportedException
+	public Sample(AudioFile af, Regime r) throws IOException, UnsupportedAudioFileException
 	{    	
-		this(ac);
+		this();
 		setBufferingRegime(r);		
 		setFile(af);
 	}
@@ -450,9 +448,9 @@ public class Sample implements Runnable {
 	 * @throws IOException 
 	 * @throws AudioFileUnsupportedException 
 	 */
-	public Sample(AudioContext ac, String filename, Regime r) throws IOException, AudioFileUnsupportedException
+	public Sample(String filename, Regime r) throws IOException, UnsupportedAudioFileException
 	{    	
-		this(ac);
+		this();
 		setBufferingRegime(r);
 		setFile(filename);
 	}
@@ -464,9 +462,9 @@ public class Sample implements Runnable {
 	 * @throws IOException 
 	 * @throws AudioFileUnsupportedException 
 	 */
-	public Sample(AudioContext ac, InputStream is, Regime r) throws IOException, AudioFileUnsupportedException
+	public Sample(InputStream is, Regime r) throws IOException, UnsupportedAudioFileException
 	{    	
-		this(ac);
+		this();
 		setBufferingRegime(r);
 		setFile(is);
 	}
@@ -1218,9 +1216,9 @@ public class Sample implements Runnable {
 	 * @throws AudioFileUnsupportedException 
 	 * 
 	 */
-	private void setFile(String file) throws IOException, AudioFileUnsupportedException
+	private void setFile(String file) throws IOException, UnsupportedAudioFileException
 	{
-		audioFile = audioContext.getAudioIO().getAudioFile(file);
+		audioFile = SampleManager.getAudioFileIOImplementation().getAudioFile(file);
 		setFile(audioFile);
 	}
 	
@@ -1231,9 +1229,9 @@ public class Sample implements Runnable {
 	 * @throws AudioFileUnsupportedException 
 	 * 
 	 */
-	private void setFile(InputStream is) throws IOException, AudioFileUnsupportedException
+	private void setFile(InputStream is) throws IOException, UnsupportedAudioFileException
 	{
-		audioFile = audioContext.getAudioIO().getAudioFile(is);
+		audioFile = SampleManager.getAudioFileIOImplementation().getAudioFile(is);
 		setFile(audioFile);
 	}
 
@@ -1245,7 +1243,7 @@ public class Sample implements Runnable {
 	 * @throws AudioFileUnsupportedException 
 	 * 
 	 */
-	private void setFile(AudioFile af) throws IOException, AudioFileUnsupportedException
+	private void setFile(AudioFile af) throws IOException, UnsupportedAudioFileException
 	{
 		audioFile = af;
 		audioFile.open();

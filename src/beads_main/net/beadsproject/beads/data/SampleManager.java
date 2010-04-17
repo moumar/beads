@@ -4,7 +4,6 @@
 package net.beadsproject.beads.data;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
@@ -16,8 +15,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.data.AudioFile.AudioFileUnsupportedException;
+import net.beadsproject.beads.data.audiofile.AudioFileIOImplementation;
+import net.beadsproject.beads.data.audiofile.JavaSoundAudioFileIOImplementation;
 
 /**
  * SampleManager provides a static repository for {@link Sample} data and provides methods to organise samples into groups.
@@ -26,8 +25,16 @@ import net.beadsproject.beads.data.AudioFile.AudioFileUnsupportedException;
  */
 public class SampleManager {
 	
-	/** The AudioContext to use when loading samples **/	  
-	private static AudioContext audioContext;
+	private static AudioFileIOImplementation audioFileIOImplementation = new JavaSoundAudioFileIOImplementation();
+
+	public static AudioFileIOImplementation getAudioFileIOImplementation() {
+		return audioFileIOImplementation;
+	}
+
+	public static void setAudioFileIOImplementation(
+			AudioFileIOImplementation audioFileIOImplementation) {
+		SampleManager.audioFileIOImplementation = audioFileIOImplementation;
+	}
 	
 	/** List of all Samples, indexed by name. */
 	private final static Map<String, Sample> samples = new TreeMap<String, Sample>();
@@ -55,22 +62,7 @@ public class SampleManager {
 	 * @return the sample.
 	 */
 	public static Sample sample(String fn) {
-		Sample sample = samples.get(fn);
-		if (sample == null) {
-			try {
-				if (nextBufferingRegime!=null)
-					sample = new Sample(getAudioContext(), fn,nextBufferingRegime);
-				else
-					sample = new Sample(getAudioContext(), fn);
-				samples.put(fn, sample);
-				if(verbose) System.out.println("Loaded " + fn);
-			} catch (IOException e) {
-				 e.printStackTrace();
-			} catch (AudioFileUnsupportedException e) {
-				e.printStackTrace();
-			}
-		}
-		return sample;
+		return sample(fn, fn);
 	}
 	
 	/**
@@ -86,17 +78,16 @@ public class SampleManager {
 		Sample sample = samples.get(is.toString());
 		if (sample == null) {
 			try {
-				if (nextBufferingRegime!=null)
-					sample = new Sample(getAudioContext(), is,nextBufferingRegime);
-				else
-					sample = new Sample(getAudioContext(), is);
+				if (nextBufferingRegime!=null) {
+					sample = new Sample(is,nextBufferingRegime);
+				} else {
+					sample = new Sample(is);
+				}
 				samples.put(is.toString(), sample);
 				if(verbose) System.out.println("Loaded " + is.toString());
-			} catch (IOException e) {
-				 e.printStackTrace();
-			} catch (AudioFileUnsupportedException e) {
-				e.printStackTrace();
-			}
+			} catch (Exception e) {
+				 //swallow exception
+			} 
 		}
 		return sample;
 	}
@@ -119,24 +110,20 @@ public class SampleManager {
 	 * @param fn the file path.
 	 * 
 	 * @return the sample.
-	 * @throws IOException 
-	 * @throws UnsupportedAudioFileException 
 	 */
-	public static Sample sample(String ref, String fn) throws IOException {
+	public static Sample sample(String ref, String fn) {
 		Sample sample = samples.get(ref);
 		if (sample == null) {
-			try
-			{
-				if (nextBufferingRegime!=null)
-					sample = new Sample(getAudioContext(), fn,nextBufferingRegime);
-				else
-					sample = new Sample(getAudioContext(), fn);
+			try {
+				if (nextBufferingRegime!=null) {
+					sample = new Sample(fn,nextBufferingRegime);
+				} else {
+					sample = new Sample(fn);
+				} 
 				samples.put(ref, sample);
 				if(verbose) System.out.println("Loaded " + fn);
-			}
-			catch (AudioFileUnsupportedException e)
-			{
-				e.printStackTrace();
+			} catch (Exception e) {
+				//swallow exception
 			}
 		}
 		return sample;
@@ -149,19 +136,21 @@ public class SampleManager {
 	 * @param is the InputStream.
 	 * 
 	 * @return the sample.
-	 * @throws IOException 
-	 * @throws AudioFileUnsupportedException 
-	 * @throws UnsupportedAudioFileException 
 	 */
-	public static Sample sample(String ref, InputStream is) throws IOException, AudioFileUnsupportedException {
+	public static Sample sample(String ref, InputStream is) {
 		Sample sample = samples.get(ref);
-		if (sample == null) {			
-			if (nextBufferingRegime!=null)
-				sample = new Sample(getAudioContext(), is,nextBufferingRegime);
-			else
-				sample = new Sample(getAudioContext(), is);
-			samples.put(ref, sample);
-			if(verbose) System.out.println("Loaded " + ref);
+		if (sample == null) {	
+			try {
+				if (nextBufferingRegime!=null) {
+					sample = new Sample(is,nextBufferingRegime);
+				} else {
+					sample = new Sample(is);
+				}
+				samples.put(ref, sample);
+				if(verbose) System.out.println("Loaded " + ref);
+			} catch(Exception e) {
+				//swallow exception
+			}
 		}
 		return sample;
 	}
@@ -229,7 +218,10 @@ public class SampleManager {
 		groupDirs.put(groupName, theDirectory.getAbsolutePath());
 		String[] fileNameList = theDirectory.list();
 		for (int i = 0; i < fileNameList.length; i++) {
-			fileNameList[i] = theDirectory.getAbsolutePath() + "/" + fileNameList[i];
+			String absFileName = theDirectory.getAbsolutePath() + "/" + fileNameList[i];
+			if(new File(absFileName).exists()) {
+				fileNameList[i] = absFileName;
+			}
 			
 		}
 		return group(groupName, fileNameList, maxItems);
@@ -263,7 +255,6 @@ public class SampleManager {
 			group = groups.get(groupName);
 		int count = 0;
 		for (int i = 0; i < fileNameList.length; i++) {
-//			String simpleName = groupName + "." + new File(fileNameList[i]).getName();	//dangerous to use simple names!
 			String simpleName = fileNameList[i];
 			try {
 				Sample sample = sample(simpleName, fileNameList[i]);
@@ -447,20 +438,6 @@ public class SampleManager {
 	 */
 	public static void setVerbose(boolean verbose) {
 		SampleManager.verbose = verbose;
-	}
-	
-	/**
-	 * @param audioContext the audioContext to set
-	 */
-	public static void setAudioContext(AudioContext audioContext) {
-		SampleManager.audioContext = audioContext;
-	}
-
-	/**
-	 * @return the audioContext
-	 */
-	public static AudioContext getAudioContext() {
-		return audioContext;
 	}
 
 	/**

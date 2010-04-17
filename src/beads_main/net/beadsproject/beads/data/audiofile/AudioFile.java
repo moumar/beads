@@ -1,13 +1,16 @@
 /*
  * This file is part of Beads. See http://www.beadsproject.net for all information.
  */
-package net.beadsproject.beads.data;
+package net.beadsproject.beads.data.audiofile;
 
 import java.io.IOException;
 import java.util.Map;
 
+import javax.sound.sampled.UnsupportedAudioFileException;
+
 import net.beadsproject.beads.core.AudioFormat;
 import net.beadsproject.beads.core.AudioIO;
+import net.beadsproject.beads.data.Sample;
 
 /**
  * An AudioFile provides a handle to an audio file located either on disk or online. 
@@ -80,24 +83,7 @@ public abstract class AudioFile {
 		{
 			return this.operation;
 		}		
-	}
-	
-	static public class AudioFileUnsupportedException extends Exception
-	{
-		private static final long serialVersionUID = 1L;
-		public String message;
-		public AudioFileUnsupportedException(String message)
-		{
-			super(message);
-			this.message = message;
-		}
-		
-		public String getError()
-		{
-			return message;
-		}		
-	}
-	
+	}	
 		
 	/**
 	 * Reset the audio input stream. 
@@ -135,7 +121,7 @@ public abstract class AudioFile {
 	/**
 	 * Opens the audio file.
 	 */
-	public abstract void open() throws AudioFileUnsupportedException, IOException;
+	public abstract void open() throws UnsupportedAudioFileException, IOException;
 	
 	/**
 	 * @return The name of the audio file. 

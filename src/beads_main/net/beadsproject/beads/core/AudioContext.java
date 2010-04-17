@@ -521,7 +521,7 @@ public class AudioContext {
 	 * @see Sample sample
 	 **/
 	public void record(double timeMS, String filename) throws IOException {
-		Sample s = new Sample(this, getAudioFormat(), (int) timeMS);
+		Sample s = new Sample(getAudioFormat(), (int) timeMS);
 		RecordToSample r;
 		try {
 			r = new RecordToSample(this, s);
