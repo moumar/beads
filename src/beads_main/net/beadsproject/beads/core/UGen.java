@@ -5,22 +5,15 @@ package net.beadsproject.beads.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
-import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.events.KillTrigger;
 import net.beadsproject.beads.ugens.Clock;
-import net.beadsproject.beads.ugens.DelayTrigger;
 import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.Gain;
-import net.beadsproject.beads.ugens.WavePlayer;
 
 /**
  * A UGen is the main base class for implementing signal generation and processing units (unit generators). UGens can have any number of audio input and output channels, which adopt the audio format of the {@link AudioContext} used to construct the UGen. Any UGen output can be connected to any other UGen input, using {@link #addInput(int, UGen, int)} (or use {@link #addInput(UGen)} to connect all outputs of one UGen to all inputs of another). UGens are constructed using an
@@ -833,22 +826,4 @@ public abstract class UGen extends Bead {
 	
 	}
 	
-	private class CallChainList {
-		/* 
-		 * This will replace ArrayLists for inputsAtChannel and dependents
-		 *
-		 * Assumption: each buffer pointer is unique. BufferPointer acts as
-		 * a linked list element with a next and a previous. LinkedList implementation
-		 * will give us fast iteration, and fast add to end, which are main use cases.
-		 * 
-		 * For fast removal and contains we could build a Hashtable but we also want
-		 * fast constructors for most UGens. What we could do is set regimes for input
-		 * behaviour. UGens with no inputs can bypass all of this crap, and Ugens with
-		 * inputs can be divided between those that might have a long lifetime involving
-		 * lots of adding and removing (in which case a Hashtable might help) and those
-		 * for which there will be a short lifetime and no connections or removals after
-		 * the initial setup.
-		 */
-		
-	}
 }

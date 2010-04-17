@@ -21,7 +21,7 @@ import net.beadsproject.beads.ugens.RecordToSample;
  * AudioContext provides the core audio set up for running audio in a Beads
  * project. An AudioContext determines the JavaSound {@link AudioFormat} used,
  * the IO device, the audio buffer size and the system IO buffer size. An
- * AudioContext also has provides a {@link UGen} called {@link #out}, which is
+ * AudioContext also provides a {@link UGen} called {@link #out}, which is
  * the output point for networks of UGens in a Beads project.
  * 
  * @beads.category control

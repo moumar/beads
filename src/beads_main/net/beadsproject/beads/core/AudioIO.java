@@ -58,8 +58,6 @@ public abstract class AudioIO {
 	
 	/**
 	 * Updates the {@link AudioContext}.
-	 * 
-	 * @return true, if successful
 	 */
 	protected void update() {
 		context.update();

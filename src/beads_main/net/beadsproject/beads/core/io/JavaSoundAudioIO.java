@@ -4,8 +4,6 @@
 package net.beadsproject.beads.core.io;
 
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import javax.sound.sampled.AudioFormat;
@@ -16,17 +14,14 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
-import javax.sound.sampled.UnsupportedAudioFileException;
-
-import org.tritonus.share.sampled.AudioSystemShadow;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.AudioIO;
-//import net.beadsproject.beads.core.AudioUtils;
 import net.beadsproject.beads.core.UGen;
-import net.beadsproject.beads.data.audiofile.AudioFile;
-import net.beadsproject.beads.data.audiofile.JavaSoundAudioFile;
 
+/**
+ * The default {@link AudioIO}, uses JavaSound.
+ */
 public class JavaSoundAudioIO extends AudioIO {
 
 	/** The default system buffer size. */
@@ -60,10 +55,18 @@ public class JavaSoundAudioIO extends AudioIO {
 	private boolean hasInput;
 	
 
+	/**
+	 * Instantiates a new java sound audio io.
+	 */
 	public JavaSoundAudioIO() {
 		this(DEFAULT_OUTPUT_BUFFER_SIZE);
 	}
 
+	/**
+	 * Instantiates a new java sound audio io.
+	 *
+	 * @param systemBufferSize the system buffer size
+	 */
 	public JavaSoundAudioIO(int systemBufferSize) {
 		this.systemBufferSizeInFrames = systemBufferSize;
 		setThreadPriority((int)(Thread.MAX_PRIORITY));
@@ -71,6 +74,8 @@ public class JavaSoundAudioIO extends AudioIO {
 
 	/**
 	 * Initialises JavaSound.
+	 *
+	 * @return true, if successful
 	 */
 	private boolean setupOutputJavaSound() {
 		AudioFormat audioFormat = getContext().getAudioFormat();
@@ -93,6 +98,9 @@ public class JavaSoundAudioIO extends AudioIO {
 		return true;
 	}
 
+	/**
+	 * Setup input java sound.
+	 */
 	private void setupInputJavaSound() {
 		AudioFormat audioFormat = context.getInputAudioFormat();
 		DataLine.Info info = new DataLine.Info(TargetDataLine.class,
@@ -167,8 +175,8 @@ public class JavaSoundAudioIO extends AudioIO {
 	/**
 	 * Sets the priority of the audio thread. Default priority is
 	 * Thread.MAX_PRIORITY.
-	 * 
-	 * @param priority
+	 *
+	 * @param priority the new thread priority
 	 */
 	public void setThreadPriority(int priority) {
 		this.threadPriority = priority;
@@ -177,13 +185,19 @@ public class JavaSoundAudioIO extends AudioIO {
 	}
 
 	/**
+	 * Gets the thread priority.
+	 *
 	 * @return The priority of the audio thread.
 	 */
 	public int getThreadPriority() {
 		return this.threadPriority;
 	}
 
-	/** Shuts down JavaSound elements, SourceDataLine and Mixer. */
+	/**
+	 * Shuts down JavaSound elements, SourceDataLine and Mixer.
+	 *
+	 * @return true, if successful
+	 */
 	private boolean destroy() {
 		sourceDataLine.drain();
 		sourceDataLine.stop();
@@ -196,7 +210,11 @@ public class JavaSoundAudioIO extends AudioIO {
 		return true;
 	}
 
-	/** Starts the audio system running. */
+	/**
+	 * Starts the audio system running.
+	 *
+	 * @return true, if successful
+	 */
 	@Override
 	protected boolean start() {
 		audioThread = new Thread(new Runnable() {
@@ -323,6 +341,9 @@ public class JavaSoundAudioIO extends AudioIO {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see net.beadsproject.beads.core.AudioIO#getAudioInput(int[])
+	 */
 	@Override
 	protected synchronized UGen getAudioInput(int[] channels) {
 		if(targetDataLine == null) {
@@ -342,15 +363,14 @@ public class JavaSoundAudioIO extends AudioIO {
 	 */
 	private class JavaSoundRTInput extends UGen {
 
+		/** The channels to serve. */
 		private int[] channelsToServe;
 
 		/**
 		 * Instantiates a new RTInput.
-		 * 
-		 * @param context
-		 *            the AudioContext.
-		 * @param audioFormat
-		 *            the AudioFormat.
+		 *
+		 * @param context the AudioContext.
+		 * @param channelsToServe the channels to serve
 		 */
 		JavaSoundRTInput(AudioContext context, int[] channelsToServe) {
 			super(context, channelsToServe.length);
