@@ -35,6 +35,19 @@ public class Add extends UGen {
 		super(context, channels, channels);
 		setAdder(adderUGen);
 	}
+	/**
+	 * Constructor for an Add object with a given UGen as input and another as adder.
+	 * i.e., use this as quickest way to add two UGens together.
+	 * 
+	 * @param context the AudioContext.
+	 * @param input the input UGen.
+	 * @param adderUGen the adder UGen.
+	 */
+	public Add(AudioContext context, UGen input, UGen adderUGen) {
+		super(context, input.getOuts(), input.getOuts());
+		setAdder(adderUGen);
+		addInput(input);
+	}
 
 	/**
 	 * Constructor for an Add object that sets a static adder value.

@@ -49,6 +49,20 @@ public class Mult extends UGen {
 		super(context, channels, channels);
 		setMultiplier(multiplierUGen);
 	}
+	
+	/**
+	 * Constructor for a Mult object with a given UGen as input and another as multiplier.
+	 * i.e., use this as quickest way to multiply two UGens together.
+	 * 
+	 * @param context the AudioContext.
+	 * @param input the input UGen.
+	 * @param multiplierUGen the multiplier UGen.
+	 */
+	public Mult(AudioContext context, UGen input, UGen multiplierUGen) {
+		super(context, input.getOuts(), input.getOuts());
+		setMultiplier(multiplierUGen);
+		addInput(input);
+	}
 
 	/*
 	 * (non-Javadoc)
