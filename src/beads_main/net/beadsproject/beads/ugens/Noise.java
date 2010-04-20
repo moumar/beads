@@ -32,7 +32,7 @@ public class Noise extends UGen {
     	} else {
     		noiseBuffer = Buffer.staticBufs.get("noise");
     	}
-		index = 0;
+		index = (int)(Math.random() * noiseBuffer.buf.length);
 	}
 
 	/* (non-Javadoc)
