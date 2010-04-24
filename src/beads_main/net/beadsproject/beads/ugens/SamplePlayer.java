@@ -86,9 +86,6 @@ public class SamplePlayer extends UGen {
 	/** The Sample. */
 	protected Sample sample;            
 
-	/** The sample rate, determined by the Sample. */
-//	protected float sampleRate;                 
-
 	/** The position in milliseconds. */
 	protected double position;                
 

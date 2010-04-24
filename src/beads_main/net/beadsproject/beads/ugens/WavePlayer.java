@@ -179,8 +179,8 @@ public class WavePlayer extends UGen {
 			setFrequency(frequency);
 		} else {
 			this.frequencyEnvelope = frequencyUGen;
-			frequencyUGen.update();
-			frequency = frequencyUGen.getValue();
+//			frequencyUGen.update();
+//			frequency = frequencyUGen.getValue();	//Ollie - this is causing trouble. Shouldn't call update() except in the call chain.
 			isFreqStatic = false;
 		}
 		return this;
