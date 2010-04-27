@@ -40,6 +40,16 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	/** The list of FeatureExtractors used to extract data. */
 	private transient List<FeatureExtractor<?, ?>> extractors;
 	
+	/** The memory of the FeatureTrack. Max number of frames allowed. -1 means unlimited. */
+	private int frameMemory;
+	
+	/* TODO FeatureTrack should be able to clear parts of its memory, for example
+	 * be able to only remember a certain period of time before last. Should also 
+	 * have quick access option based on access by frames (assumes the user knows
+	 * distance between frames or doesn't care), or iterartion backwards through
+	 * frames from last.
+	 */
+	
 	/**
 	 * Instantiates a new FeatureTrack.
 	 */
@@ -48,6 +58,7 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 		framesInBlocks = new Hashtable<Integer, SortedSet<FeatureFrame>>();
 		skipMS = 1000;
 		extractors = new ArrayList<FeatureExtractor<?,?>>();
+		frameMemory = -1;
 	}
 	
 	/**
@@ -56,20 +67,42 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	 * @param ff the FeatureFrame.
 	 */
 	public void add(FeatureFrame ff) {
-		//add to frames
-		frames.add(ff);
-		//and to framesInBlocks
+		if(frameMemory != 0) {
+			//add to frames
+			frames.add(ff);
+			//and to framesInBlocks
+			int startIndex = (int)(ff.getStartTimeMS() / skipMS);
+			int endIndex = (int)(ff.getEndTimeMS() / skipMS);
+			for(int i = startIndex; i <= endIndex; i++) {
+				SortedSet<FeatureFrame> frameSet;
+				if(framesInBlocks.containsKey(i)) {
+					frameSet = framesInBlocks.get(i);
+				} else {
+					frameSet = new TreeSet<FeatureFrame>();
+					framesInBlocks.put(i, frameSet);
+				}
+				frameSet.add(ff);
+			}
+			frameMemoryCheck();
+		}
+	}
+	
+	/**
+	 * Removes the specified FeatureFrame.
+	 * @param ff the FeatureFrame to remove.
+	 */
+	public void remove(FeatureFrame ff) {
+		//remove from frames
+		frames.remove(ff);
+		//remove from framesInBlocks
 		int startIndex = (int)(ff.getStartTimeMS() / skipMS);
 		int endIndex = (int)(ff.getEndTimeMS() / skipMS);
 		for(int i = startIndex; i <= endIndex; i++) {
 			SortedSet<FeatureFrame> frameSet;
 			if(framesInBlocks.containsKey(i)) {
 				frameSet = framesInBlocks.get(i);
-			} else {
-				frameSet = new TreeSet<FeatureFrame>();
-				framesInBlocks.put(i, frameSet);
+				frameSet.remove(ff);
 			}
-			frameSet.add(ff);
 		}
 	}
 	
@@ -133,7 +166,8 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	 * @return the last FeatureFrame in this FeatureTrack.
 	 */
 	public FeatureFrame getLastFrame() {
-		return frames.last();
+		if(frames.size() > 0) return frames.last();
+		return null;
 	}
 	
 	/**
@@ -204,6 +238,27 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 		return frames.iterator();
 	}
 
+	public int getFrameMemory() {
+		return frameMemory;
+	}
+
+	public void setFrameMemory(int frameMemory) {
+		this.frameMemory = frameMemory;
+		frameMemoryCheck();
+	}
+	
+	/**
+	 * Ensures that number of stored frames is <= frameMemory.
+	 */
+	private void frameMemoryCheck() {
+		if(frameMemory > 0) {
+			while(frames.size() > frameMemory) {
+				FeatureFrame ff = frames.first();
+				remove(ff);	
+			}
+		}
+	}
+
 	/**
 	 * Returns the number of {@link FeatureFrame}s stored in this FeatureTrack.
 	 * 
@@ -213,6 +268,9 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 		return frames.size();
 	}
 
+	/**
+	 * Clears all memory of feature frames.
+	 */
 	public void clear() {
 		frames.clear();
 		framesInBlocks.clear();

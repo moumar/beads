@@ -158,5 +158,9 @@ public class FeatureFrame implements Serializable, Comparable<FeatureFrame> {
 		if(startTimeMS > other.startTimeMS) return 1;
 		return 0;
 	}
+
+	public int numFeatures() {
+		return features.size();
+	}
 	
 }
