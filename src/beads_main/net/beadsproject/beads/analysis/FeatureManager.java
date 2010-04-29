@@ -50,8 +50,24 @@ public class FeatureManager {
 		if(set != null) {
 			featureSets.put(sample, set);
 			if(verbose) System.out.println("Loaded features for " + sample.getFileName());
+		} else {
+			if(verbose) System.out.println("Could not find features for " + sample.getFileName());
 		}
 		return set;
+	}
+	
+	/**
+	 * Gets the FeatureSet for a given Sample, only if the FeatureSet
+	 * is already stored in memory. 
+	 * 
+	 * @param sample the Sample to search for features of.
+	 * @return the FeatureSet.
+	 */
+	public static FeatureSet featuresForSampleIfLoaded(Sample sample) {
+		if(featureSets.containsKey(sample)) {
+			return featureSets.get(sample);
+		} 
+		return null;
 	}
 
 	public static void featuresForGroup(String groupName) {
@@ -89,4 +105,5 @@ public class FeatureManager {
 	public static void setVerbose(boolean verbose) {
 		FeatureManager.verbose = verbose;
 	}
+
 }

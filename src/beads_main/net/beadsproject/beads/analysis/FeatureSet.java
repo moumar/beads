@@ -210,5 +210,12 @@ public class FeatureSet {
 	public Map<String, FeatureTrack> tracks() {
 		return tracks;
 	}
+
+	public void printGlobalFeatures() {
+		System.out.println("Features for " + this + ":");
+		for(String s : globalFeatures.keySet()) {
+			System.out.println("- " + s);
+		}
+	}
 	
 }

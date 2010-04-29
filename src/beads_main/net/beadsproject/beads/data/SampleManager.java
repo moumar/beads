@@ -273,6 +273,52 @@ public class SampleManager {
 	}
 	
 	/**
+	 * Add a new Sample to a group. Create the group if it doesn't exist.
+	 * @param group the group to add to.
+	 * @param sample the Sample to add.
+	 */
+	public static void addToGroup(String group, Sample sample) {
+		ArrayList<Sample> samples;
+		if(!groups.containsKey(group)) {
+			samples = new ArrayList<Sample>();
+			groups.put(group, samples);
+		} else {
+			samples = groups.get(group);
+		}
+		if(!samples.contains(sample)) {
+			samples.add(sample);
+		}
+		for(SampleGroupListener l : listeners) {
+			l.changed(group);
+		}
+	}
+	
+
+	/**
+	 * Add a new list of Samples to the specified group. Create the group if it doesn't exist.
+	 * @param group the group to add to.
+	 * @param newSamples the list of Samples to add.
+	 */
+	public static void addToGroup(String group, List<Sample> newSamples) {
+		if(newSamples == null) return;
+		ArrayList<Sample> samples;
+		if(!groups.containsKey(group)) {
+			samples = new ArrayList<Sample>();
+			groups.put(group, samples);
+		} else {
+			samples = groups.get(group);
+		}
+		for(Sample sample : newSamples) {
+			if(!samples.contains(sample)) {
+				samples.add(sample);
+			}
+		}
+		for(SampleGroupListener l : listeners) {
+			l.changed(group);
+		}
+	}
+	
+	/**
 	 * Gets the set of group names.
 	 * @return Set of Strings representing group names.
 	 */
@@ -280,6 +326,10 @@ public class SampleManager {
 		return groups.keySet();
 	}
 	
+	/**
+	 * List the groups by name as a list of Strings.
+	 * @return a List of Strings.
+	 */
 	public static List<String> groupsAsList() {
 		return new ArrayList<String>(groups.keySet());
 	}
