@@ -10,7 +10,8 @@ import net.beadsproject.beads.data.buffers.NoiseBuffer;
 import net.beadsproject.beads.data.buffers.SawBuffer;
 import net.beadsproject.beads.data.buffers.SineBuffer;
 import net.beadsproject.beads.data.buffers.SquareBuffer;
-import net.beadsproject.beads.data.buffers.TriangularBuffer;
+import net.beadsproject.beads.data.buffers.TriangleBuffer;
+import net.beadsproject.beads.data.buffers.TriangularWindow;
 
 /**
  * A Buffer stores a one-dimensional buffer of floats for use as a wavetable or a window. Buffer does not perform any interpolation in this version, you should just make sure your buffer 
@@ -37,7 +38,7 @@ public class Buffer implements Serializable {
 	public static final Buffer SINE = new SineBuffer().getDefault();
 	public static final Buffer SAW = new SawBuffer().getDefault();
 	public static final Buffer SQUARE = new SquareBuffer().getDefault();
-	public static final Buffer TRIANGLE = new TriangularBuffer().getDefault();
+	public static final Buffer TRIANGLE = new TriangleBuffer().getDefault();
 	public static final Buffer NOISE = new NoiseBuffer().getDefault();
 	
 	/** 

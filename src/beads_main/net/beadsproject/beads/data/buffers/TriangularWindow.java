@@ -12,7 +12,7 @@ import net.beadsproject.beads.data.BufferFactory;
  * @author ben
  *
  */
-public class TriangularBuffer extends BufferFactory {
+public class TriangularWindow extends BufferFactory {
 
 	@Override
 	public Buffer generateBuffer(int bufferSize) {

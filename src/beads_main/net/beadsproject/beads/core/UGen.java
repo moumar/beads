@@ -7,7 +7,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,7 +54,7 @@ public abstract class UGen extends Bead {
 	protected int bufferSize;
 	
 	/** An collection of pointers to the output buffers of UGens connected to this UGen's inputs. */
-	private LinkedList<BufferPointer>[] inputsAtChannel;
+	private ArrayList<BufferPointer>[] inputsAtChannel;
 		
 	/** A collection of UGens that should be triggered by this one. */
 	private ArrayList<UGen> dependents;
@@ -157,9 +156,9 @@ public abstract class UGen extends Bead {
 	@SuppressWarnings("unchecked")
 	private synchronized void setIns(int ins) {
 		this.ins = ins;
-		inputsAtChannel = new LinkedList[ins];
+		inputsAtChannel = new ArrayList[ins];
 		for (int i = 0; i < ins; i++) {
-			inputsAtChannel[i] = new LinkedList<BufferPointer>();
+			inputsAtChannel[i] = new ArrayList<BufferPointer>();
 		}
 	}
 	

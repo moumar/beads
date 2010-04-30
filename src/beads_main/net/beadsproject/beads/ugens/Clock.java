@@ -118,8 +118,8 @@ public class Clock extends UGen implements IntegerBead {
      */
     public void reset() {
         point = 0.0f;
-        count = 0;
-        tick();
+        count = 0;	//OLLIE - hack to get the first tick to be a beat
+//        tick();	//OLLIE - this must be pointless, if we haven't connect the clock to anything
     }
 
     /**
@@ -165,7 +165,7 @@ public class Clock extends UGen implements IntegerBead {
     		double value = Math.max(1.0, Math.abs(interval) / ticksPerBeat);
     		boolean backwards = interval < 0;
     		if(backwards) value *= -1;
-    		point += 1.0 / context.msToSamples(value);
+    		point += 1.0 / context.msToSamples(value); //OLLIE - TODO We don't get a BEAT on the first TICK
     		//what happens if we start going backwards?
     		while(!backwards && point >= count + 1) {// || point < -count) {
     			tick();

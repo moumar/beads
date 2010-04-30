@@ -234,6 +234,7 @@ public class Envelope extends UGen {
     	if(!lock) {
     		clear();
         	addSegment(value, 0.0f);
+        	currentValue = value;
     	}
     }
     
