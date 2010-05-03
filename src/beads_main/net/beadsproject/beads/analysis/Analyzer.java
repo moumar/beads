@@ -57,6 +57,12 @@ public class Analyzer implements SegmentMaker {
 	/** The results. */
 	private FeatureSet results;
 	
+	/** The set of all extractor data. */
+	private Hashtable<Class<?>, Object> extractorArrangement;
+	
+	/** The thing responsible for sending messages about beats. */
+	private SegmentMaker beatSegmentMaker;
+	
 	/**
 	 * Instantiates a new analyzer.
 	 *
@@ -93,12 +99,28 @@ public class Analyzer implements SegmentMaker {
 	}
 	
 	/**
+	 * Adds a {#link SegmentListener} which will listen to the beats detected by this Analyzer.
+	 * @param sl a SegmentListener.
+	 */
+	public void addBeatListener(SegmentListener sl) {
+		beatSegmentMaker.addSegmentListener(sl);
+	}
+	
+	/**
+	 * Removes the {#link SegmentListener} from listening to the beats detected by this Analyzer.
+	 * @param sl a SegmentListener.
+	 */
+	public void removeBeatListener(SegmentListener sl) {
+		beatSegmentMaker.removeSegmentListener(sl);
+	}
+	
+	/**
 	 * Listen to this input ugen.
 	 *
 	 * @param ugen the ugen
 	 */
 	public void listenTo(UGen ugen) {
-		sfs.addInput(ugen);
+		sfs.addInput(0, ugen, 0);
 	}
 	
 	/**
@@ -129,6 +151,15 @@ public class Analyzer implements SegmentMaker {
 	}
 	
 	/**
+	 * Gets the extractor or other element of the given class type.
+	 * @param classID
+	 * @return
+	 */
+	public Object getElement(Class<?> classID) {
+		return extractorArrangement.get(classID);
+	}
+	
+	/**
 	 * Setup.
 	 *
 	 * @param ac the ac
@@ -142,7 +173,7 @@ public class Analyzer implements SegmentMaker {
 		FeatureTrack beats = new FeatureTrack();
 		results.add("Low Level", lowLevel);
 		results.add("Beats", beats);
-		Hashtable<Class<?>, Object> extractorArrangement = new Hashtable<Class<?>, Object>();
+		extractorArrangement = new Hashtable<Class<?>, Object>();
 		extractorArrangement.put(AudioContext.class, ac);
 		//set up call chain
 		sfs = new ShortFrameSegmenter(ac);
@@ -183,8 +214,10 @@ public class Analyzer implements SegmentMaker {
 		}
 		//add beat stuff
 		PeakDetector d = new PeakDetector();
-		d.setThreshold(0.01f);
+		beatSegmentMaker = d;
+		d.setThreshold(0.1f);
 		d.setAlpha(0.9f);
+		d.setResetDelay(100f);
 		SpectralDifference sd = (SpectralDifference)extractorArrangement.get(SpectralDifference.class);
 		sd.addListener(d);
 		d.addSegmentListener(beats);

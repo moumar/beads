@@ -27,20 +27,30 @@ public class LevelMeter implements InterfaceElement {
 	private int currentLevel;
 	private int numLevels;
 	private int range;
+	private int outputIndex;
 	
 	public LevelMeter(UGen focus) {
-		setFocus(focus);
-		setNumLevels(10);
-		range = 100;
-		currentLevel = 0;
+		this(focus, 0);
 	}
 
+	public LevelMeter(UGen focus, int outputIndex) {
+		setFocus(focus, outputIndex);
+		setNumLevels(10);
+		range = 5;
+		currentLevel = 0;
+	}
+	
 	public UGen getFocus() {
 		return focus;
 	}
 
 	public void setFocus(UGen focus) {
+		setFocus(focus, 0);
+	}
+	
+	public void setFocus(UGen focus, int outputIndex) {
 		this.focus = focus;
+		this.outputIndex = outputIndex;
 	}
 	
 	public int getNumLevels() {
@@ -54,9 +64,8 @@ public class LevelMeter implements InterfaceElement {
 	public JComponent getComponent() {
 		if(component == null) {
 			component = new BeadsComponent() {
+				private static final long serialVersionUID = 1L;
 				public void paintComponent(Graphics g) {
-					Graphics2D g2d = (Graphics2D)g;
-					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 					int levelBoxHeight = getHeight() / numLevels;
 					getCurrentLevel();
 					//outer box
@@ -83,7 +92,7 @@ public class LevelMeter implements InterfaceElement {
 			component.setMaximumSize(size);
 			new Thread() {
 				public void run() {
-					while(true) {
+					while(isAlive()) {
 						component.repaint();
 						try {
 							sleep(100);
@@ -92,7 +101,7 @@ public class LevelMeter implements InterfaceElement {
 						}
 					}
 				}
-			}.start();	//TODO this thread never stops!
+			}.start();			//TODO bad bad bad, this can get thrown away and still be running
 		}
 		return component;
 	}
@@ -102,7 +111,7 @@ public class LevelMeter implements InterfaceElement {
 			float max = 0f;
 			range = Math.min(range, focus.getContext().getBufferSize());
 			for(int i = 0; i < range; i++) {
-				float val = Math.abs(focus.getValue(0, i));
+				float val = Math.abs(focus.getValue(outputIndex, i));
 				if(val > max) max = val;
 			}
 			currentLevel = (int)(max * numLevels);
@@ -118,9 +127,9 @@ public class LevelMeter implements InterfaceElement {
 		Gain g = new Gain(ac, 2);
 		g.addInput(wp);
 		Slider s1 = new Slider(ac, "gain", 0, 1, 1);
-		g.setGainEnvelope(s1);
+		g.setGain(s1);
 		Slider s2 = new Slider(ac, "freq", 110, 5000, 440);
-		wp.setFrequencyEnvelope(s2);
+		wp.setFrequency(s2);
 		LevelMeter m = new LevelMeter(g);
 		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.X_AXIS));
 		frame.getContentPane().add(s1.getComponent());
