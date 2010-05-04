@@ -47,8 +47,8 @@ public class Analyzer implements SegmentMaker {
 	private static AnalysisSettings defaultSettings;
 	static {
 		defaultSettings = new AnalysisSettings();
-		defaultSettings.hopSize = 512;
-		defaultSettings.chunkSize = 2048;
+		defaultSettings.hopSize = 1024;
+		defaultSettings.chunkSize = 1024;
 	}
 	
 	/** The sfs. */
@@ -216,10 +216,11 @@ public class Analyzer implements SegmentMaker {
 		PeakDetector d = new PeakDetector();
 		beatSegmentMaker = d;
 		d.setThreshold(0.1f);
-		d.setAlpha(0.9f);
-		d.setResetDelay(100f);
+		d.setAlpha(0.99f);
+		d.setResetDelay(200f);
 		SpectralDifference sd = (SpectralDifference)extractorArrangement.get(SpectralDifference.class);
 		sd.addListener(d);
+		sd.setDifferenceType(DifferenceType.POSITIVERMS);
 		d.addSegmentListener(beats);
 	}
 	
@@ -295,7 +296,7 @@ public class Analyzer implements SegmentMaker {
 		if(!extractorArrangement.containsKey(MelSpectrum.class)) {
 			powerSpectrum(extractorArrangement);
 			AudioContext ac = (AudioContext)extractorArrangement.get(AudioContext.class);
-			MelSpectrum ms = new MelSpectrum(ac.getSampleRate(), 100);
+			MelSpectrum ms = new MelSpectrum(ac.getSampleRate(), 200);
 			PowerSpectrum ps = (PowerSpectrum)extractorArrangement.get(PowerSpectrum.class);
 			ps.addListener(ms);
 			extractorArrangement.put(MelSpectrum.class, ms);

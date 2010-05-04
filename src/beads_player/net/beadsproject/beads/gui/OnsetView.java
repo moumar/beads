@@ -31,9 +31,11 @@ public class OnsetView extends UGen implements InterfaceElement, SegmentListener
 					g.fillRect(0, 0, getWidth(), getHeight());
 					g.setColor(Color.black);
 					g.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
-					float intensity = Math.max(0, 1f - (float)framesSinceOnset / 20f);
-					g.setColor(new Color(0.2f, 0.1f, 0f, intensity));
-					g.fillRect(10, 10, getWidth() - 20, getHeight() - 20);
+					if(framesSinceOnset <= 15) {
+						float intensity = Math.max(0, 1f - (float)Math.pow((float)framesSinceOnset / 15f, 2f));
+						g.setColor(new Color(0.2f, 0.2f, 0.2f, intensity));
+						g.fillRect(20, 20, getWidth() - 40, getHeight() - 40);
+					}
 				}
 			};
 			component = new OnsetViewComponent(); 
@@ -52,7 +54,7 @@ public class OnsetView extends UGen implements InterfaceElement, SegmentListener
 	@Override
 	public void calculateBuffer() {
 		framesSinceOnset++;
-		if(component != null && framesSinceOnset % 5 == 0) {
+		if(component != null && framesSinceOnset % 3 == 0) {
 			component.repaint();
 		}
 	}

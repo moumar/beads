@@ -50,16 +50,16 @@ public class FloatArrayPlot implements InterfaceElement, SegmentListener {
 				public void paintComponent(Graphics g) {
 					g.setColor(Color.white);
 					g.fillRect(0, 0, getWidth(), getHeight());
-					g.setColor(Color.black);
-					g.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
 					if(data != null && range != 0) {
 						float blockWidth = (float)getWidth() / data.length;
 						g.setColor(Color.lightGray);
 						for(int i = 0; i < data.length; i++) {
 							int height = (int)((data[i] - min) / range * getHeight());
-							g.fillRect((int)(i * blockWidth), getHeight() - height, Math.max(3, (int)blockWidth), height);
+							g.fillRect((int)(i * blockWidth), getHeight() - 1 - height, Math.max(3, (int)blockWidth), height);
 						}
 					}
+					g.setColor(Color.black);
+					g.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
 				}
 			};
 		}
