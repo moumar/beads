@@ -47,7 +47,7 @@ public class Analyzer implements SegmentMaker {
 	private static AnalysisSettings defaultSettings;
 	static {
 		defaultSettings = new AnalysisSettings();
-		defaultSettings.hopSize = 1024;
+		defaultSettings.hopSize = 512;
 		defaultSettings.chunkSize = 1024;
 	}
 	
@@ -216,11 +216,11 @@ public class Analyzer implements SegmentMaker {
 		PeakDetector d = new PeakDetector();
 		beatSegmentMaker = d;
 		d.setThreshold(0.1f);
-		d.setAlpha(0.99f);
+		d.setAlpha(0.9f);
 		d.setResetDelay(200f);
 		SpectralDifference sd = (SpectralDifference)extractorArrangement.get(SpectralDifference.class);
 		sd.addListener(d);
-		sd.setDifferenceType(DifferenceType.POSITIVERMS);
+		sd.setDifferenceType(DifferenceType.POSITIVEMEANDIFFERENCE);
 		d.addSegmentListener(beats);
 	}
 	

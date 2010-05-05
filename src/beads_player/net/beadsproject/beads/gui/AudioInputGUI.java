@@ -25,11 +25,15 @@ public class AudioInputGUI extends JPanel {
 	UGen analysisMix;
 	
 	public AudioInputGUI(AudioContext ac) {
+		this(ac, new ArrayList<Class<? extends FeatureExtractor<?,?>>>());
+		
+	}
+	
+	public AudioInputGUI(AudioContext ac, List<Class<? extends FeatureExtractor<?,?>>> extractors) {
 		this.ac = ac;
-		List<Class<? extends FeatureExtractor<?,?>>> extractors = new ArrayList<Class<? extends FeatureExtractor<?,?>>>();
-		extractors.add(MelSpectrum.class);
+		if(!extractors.contains(MelSpectrum.class)) extractors.add(MelSpectrum.class);
 		anal = new Analyzer(ac, extractors);
-		anal.setFrameMemory(0);
+		anal.setFrameMemory(1);
 		analysisMix = new Throughput(ac, 1);
 		Throughput monitorMix = new Throughput(ac, 1);
 		anal.listenTo(analysisMix); 
@@ -89,8 +93,8 @@ public class AudioInputGUI extends JPanel {
 		return analysisMix;
 	}
 	
-	public static AudioInputGUI createAndShow(AudioContext ac) {
-		AudioInputGUI newGui = new AudioInputGUI(ac);
+	public static AudioInputGUI createAndShow(AudioContext ac, List<Class<? extends FeatureExtractor<?,?>>> extractors) {
+		AudioInputGUI newGui = new AudioInputGUI(ac, extractors);
 		JFrame f = new JFrame();
 		JPanel p = new JPanel();
 		p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
