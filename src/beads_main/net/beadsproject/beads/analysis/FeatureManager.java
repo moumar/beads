@@ -72,8 +72,10 @@ public class FeatureManager {
 
 	public static void featuresForGroup(String groupName) {
 		ArrayList<Sample> theSamples = SampleManager.getGroup(groupName);
-		for(Sample s : theSamples) {
-			featuresForSample(s);
+		if(theSamples != null) {
+			for(Sample s : theSamples) {
+				featuresForSample(s);
+			}
 		}
 	}
 	
