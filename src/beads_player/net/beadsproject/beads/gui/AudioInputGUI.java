@@ -49,7 +49,7 @@ public class AudioInputGUI extends JPanel {
 		
 		Slider[] analysisGains = new Slider[input.getOuts()];
 		for(int i = 0; i < analysisGains.length; i++) {
-			analysisGains[i] = new Slider(ac, "Analysis " + i, 0, 2, 1);
+			analysisGains[i] = new Slider(ac, "Analysis " + i, 0, 2, ((i == 0) ? 1 : 0));
 			Gain g = new Gain(ac, 1, analysisGains[i]);
 			g.addInput(0, input, i);
 			LevelMeter meter = new LevelMeter(g);
@@ -83,6 +83,14 @@ public class AudioInputGUI extends JPanel {
 		ac.out.addDependent(ov);
 		anal.addBeatListener(ov);
 		add(ov.getComponent());
+		
+		add(Box.createHorizontalStrut(10));
+		
+		Slider gainSlider = new Slider(ac, "Master Gain", 0, 2, 1);
+		ac.out.setGain(gainSlider);
+		add(gainSlider.getComponent());
+		LevelMeter meter = new LevelMeter(ac.out);
+		add(meter.getComponent());
 		
 		add(Box.createHorizontalStrut(10));
 		
