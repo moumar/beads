@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.AudioUtils;
 import net.beadsproject.beads.core.UGen;
 
 /**
@@ -61,10 +62,10 @@ public class Spatial extends UGen {
 		 */
 		Location(UGen source) {
 			this.source = source;
-			pos = new Glide[source.getOuts()][dimensions];
+			pos = new Static[source.getOuts()][dimensions];
 			for(int i = 0; i < pos.length; i++) {
 				for(int j = 0; j < dimensions; j++) {
-					pos[i][j] = new Glide(context, 100f); //the position is set to be far-far away
+					pos[i][j] = new Static(context, 100f); //the position is set to be far-far away
 				}
 			}	
 			ownsPosition = true;
@@ -134,7 +135,13 @@ public class Spatial extends UGen {
 					for(int speaker = 0; speaker < speakerPositions.length; speaker++) {
 						float distance = distance(speakerPositions[speaker], currentPos);
 						float linearGain = Math.max(0, 1f - distance / sphereDiameter);
-						speakerGains[speaker] = (float)Math.pow(linearGain, curve);
+						/*
+						 * TODO I've removed the math pow because it was really slowing things down.
+						 * the fastPow01 method doesn't help much either. Surprising this should make such
+						 * a great difference.
+						 */
+						speakerGains[speaker] = linearGain;//(float)Math.pow(linearGain, curve);
+//						speakerGains[speaker] = (float)AudioUtils.fastPow01(linearGain, curve);
 					}
 					//then mix that channel in
 					for(int speaker = 0; speaker < speakerPositions.length; speaker++) {
@@ -385,17 +392,17 @@ public class Spatial extends UGen {
 		sources.get(source).move(channel, newPos);
 	}
 	
-	/**
-	 * Sets the location of a UGen at the give channel immediately. This assumes the UGen's position is not being
-	 * controlled by other external UGens.
-	 * 
-	 * @param source the source
-	 * @param channel the channel
-	 * @param newPos the new pos
-	 */
-	public void setLocationImmediately(UGen source, int channel, float[] newPos) {
-		sources.get(source).moveImmediately(channel, newPos);
-	}
+//	/**
+//	 * Sets the location of a UGen at the give channel immediately. This assumes the UGen's position is not being
+//	 * controlled by other external UGens.
+//	 * 
+//	 * @param source the source
+//	 * @param channel the channel
+//	 * @param newPos the new pos
+//	 */
+//	public void setLocationImmediately(UGen source, int channel, float[] newPos) {
+//		sources.get(source).moveImmediately(channel, newPos);
+//	}
 	
 	/**
 	 * Removes the source.
