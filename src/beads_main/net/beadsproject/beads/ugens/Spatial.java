@@ -366,6 +366,13 @@ public class Spatial extends UGen {
 		Location location = new Location(source);
 		sources.put(source, location);
 	}
+	
+	/** 
+	 * This overrides {@link #addInput(UGen)} by adding a new 'source' sound to the spatialisation. 
+	 */
+	public void addInput(int inputIndex, UGen source, int outputIndex) {
+		addInput(source);
+	}
 
 	/**
 	 * Adds a new source sound with the given UGen controllers for controlling its position. The array of controllers is of the form
