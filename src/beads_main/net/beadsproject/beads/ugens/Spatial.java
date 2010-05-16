@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.AudioUtils;
@@ -62,10 +63,10 @@ public class Spatial extends UGen {
 		 */
 		Location(UGen source) {
 			this.source = source;
-			pos = new Static[source.getOuts()][dimensions];
+			pos = new UGen[source.getOuts()][dimensions];
 			for(int i = 0; i < pos.length; i++) {
 				for(int j = 0; j < dimensions; j++) {
-					pos[i][j] = new Static(context, 100f); //the position is set to be far-far away
+					pos[i][j] = new Glide(context, 100f, 5f); //the position is set to be far-far away
 				}
 			}	
 			ownsPosition = true;
@@ -396,7 +397,8 @@ public class Spatial extends UGen {
 	 * @param newPos the new pos
 	 */
 	public void setLocation(UGen source, int channel, float[] newPos) {
-		sources.get(source).move(channel, newPos);
+		Location l = sources.get(source);
+		if(l != null) l.move(channel, newPos);
 	}
 	
 //	/**
@@ -472,6 +474,15 @@ public class Spatial extends UGen {
 			}
 			deadSources.clear();
 		}
+	}
+
+	@Override
+	public synchronized int getNumberOfConnectedUGens(int index) {
+		return sources.size();
+	}
+
+	public synchronized int getNumberOfSources() {
+		return sources.size();
 	}
 	
 

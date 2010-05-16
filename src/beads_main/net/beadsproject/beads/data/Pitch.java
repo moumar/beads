@@ -61,7 +61,7 @@ public abstract class Pitch {
 		}
 		return register * notesPerOctave + newPitchClass;
 	}
-
+	
 	/**
 	 * Takes a pitch and returns that pitch adjusted downwards to the nearest pitch in the given scale. Assumes 12 pitches per octave.
 	 * 
@@ -71,6 +71,10 @@ public abstract class Pitch {
 	 */
 	public static final int forceToScale(int pitch, int[] scale) {
 		return forceToScale(pitch, scale, 12);
+	}
+
+	public static final float forceFrequencyToScale(float freq, int[] scale) {
+		return mtof(forceToScale((int)ftom(freq), scale));
 	}
 	
 	/** Pitch names for scale starting at C. */
