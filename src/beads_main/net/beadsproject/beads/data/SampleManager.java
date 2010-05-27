@@ -259,8 +259,8 @@ public class SampleManager {
 			try {
 				Sample sample = sample(simpleName, fileNameList[i]);
 				if (!group.contains(simpleName) && sample != null) {
-					group.add(sample);
 					if(count++ >= maxItems) break;
+					group.add(sample);
 				}
 			} catch(Exception e) {
 				//snuff the exception

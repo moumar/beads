@@ -118,7 +118,7 @@ public class Clock extends UGen implements IntegerBead {
      */
     public void reset() {
         point = 0.0f;
-        count = 0;	//OLLIE - hack to get the first tick to be a beat
+        count = -1;	//OLLIE - hack to get the first tick to be a beat
 //        tick();	//OLLIE - this must be pointless, if we haven't connect the clock to anything
     }
 
