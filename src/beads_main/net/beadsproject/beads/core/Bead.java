@@ -30,7 +30,6 @@ public abstract class Bead {
 	
 	/** The name. */
 	private String name;
-
 	
 	/**
 	 * Instantiates a new bead.

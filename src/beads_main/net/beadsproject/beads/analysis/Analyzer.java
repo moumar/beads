@@ -160,6 +160,15 @@ public class Analyzer implements SegmentMaker {
 	}
 	
 	/**
+	 * Gets the results from the analysis, which is a {@link FeatureSet} containing feature
+	 * tracks: "Low Level" for low level features and "Beat" for beat level features.
+	 * @return the results set.
+	 */
+	public FeatureSet getResults() {
+		return results;
+	}
+	
+	/**
 	 * Setup.
 	 *
 	 * @param ac the ac

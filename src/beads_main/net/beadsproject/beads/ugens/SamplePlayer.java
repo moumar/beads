@@ -5,6 +5,7 @@ package net.beadsproject.beads.ugens;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.AudioUtils;
+import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Sample;
 
@@ -135,6 +136,9 @@ public class SamplePlayer extends UGen {
 	
 	/** Array for temp storage. */
 	protected float[] frame;
+	
+	/** Bead responding to sample at end (only applies when not in loop mode). */
+	private Bead endListener;
 
 	/**
 	 * Instantiates a new SamplePlayer with given number of outputs.
@@ -760,9 +764,35 @@ public class SamplePlayer extends UGen {
 	 * Called when at the end of the Sample, assuming the loop mode is non-looping, or beginning, if the SamplePlayer is playing backwards..
 	 */
 	private void atEnd() {
+		if(endListener != null) {
+			endListener.message(this);
+		}
 		if (killOnEnd) {
 			kill();
 		}
+	}
+	
+	/**
+	 * Sets a {@link Bead} that will be triggered when this SamplePlayer gets to the end. This occurs when the SamplePlayer's
+	 * position reaches then end when playing forwards in a non-looping mode, or reaches the the beginning when playing backwards in a 
+	 * non-looping mode. It is never triggered in a looping mode. As an alternative, you can use the method {@link Bead.#setKillListener(Bead)}
+	 * as long as {@link #setKillOnEnd(boolean)} is set to true. In other words, you set this SamplePlayer to kill itself when it
+	 * reaches the end of the sample, and then use the functionality of {@link Bead}, which allows you to create a trigger
+	 * whenever a Bead is killed. Set to null to remove the current listener.
+	 * 
+	 * @param endListener the {@link Bead} that responds to this SamplePlayer reaching its end.
+	 */
+	public void setEndListener(Bead endListener) {
+		this.endListener = endListener;
+	}
+	
+	/**
+	 * Gets the current endListener. 
+	 * @see {#setEndListener(Bead)}.
+	 * @return the current endListener.
+	 */
+	public Bead getEndListener() {
+		return endListener;
 	}
 
 	/**
