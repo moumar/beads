@@ -13,8 +13,16 @@ import net.beadsproject.beads.play.InterfaceElement;
 
 public class FloatArrayPlot implements InterfaceElement, SegmentListener {
 
+	public static enum ViewMode {
+		INSTANT, HISTORY
+	}
+	
 	JComponent component;
-	float[] data;
+	ViewMode viewMode;
+	float[] instantData;
+	float[][] historyData; //float[time][index]
+	int historyLength;
+	int historyIndex;
 	float min, max, range;
 	boolean adaptiveRange;
 	FeatureExtractor<float[], ?> extractor;
@@ -34,6 +42,7 @@ public class FloatArrayPlot implements InterfaceElement, SegmentListener {
 		this.max = max;
 		range = max - min;
 		adaptiveRange = false;
+		viewMode = ViewMode.INSTANT;
 	}
 	
 	public FloatArrayPlot(boolean adaptive) {
@@ -41,6 +50,18 @@ public class FloatArrayPlot implements InterfaceElement, SegmentListener {
 		max = 0;
 		range = 0;
 		adaptiveRange = adaptive;
+		viewMode = ViewMode.INSTANT;
+	}
+	
+	public void setViewMode(ViewMode vm) {
+		viewMode = vm;
+		if(viewMode == ViewMode.INSTANT) {
+			historyData = null;
+		} else {
+			historyLength = 4000;
+			historyData = new float[historyLength][extractor.getNumberOfFeatures()];
+			historyIndex = 0;
+		}
 	}
 	
 	public JComponent getComponent() {
@@ -50,12 +71,25 @@ public class FloatArrayPlot implements InterfaceElement, SegmentListener {
 				public void paintComponent(Graphics g) {
 					g.setColor(Color.white);
 					g.fillRect(0, 0, getWidth(), getHeight());
-					if(data != null && range != 0) {
-						float blockWidth = (float)getWidth() / data.length;
-						g.setColor(Color.lightGray);
-						for(int i = 0; i < data.length; i++) {
-							int height = (int)((data[i] - min) / range * getHeight());
-							g.fillRect((int)(i * blockWidth), getHeight() - 1 - height, Math.max(3, (int)blockWidth), height);
+					if(viewMode == ViewMode.INSTANT) {
+						if(instantData != null && range != 0) {
+							float blockWidth = (float)getWidth() / instantData.length;
+							g.setColor(Color.lightGray);
+							for(int i = 0; i < instantData.length; i++) {
+								int height = (int)((instantData[i] - min) / range * getHeight());
+								g.fillRect((int)(i * blockWidth), getHeight() - 1 - height, Math.max(3, (int)blockWidth), height);
+							}
+						}
+					} else {
+						for(int i = 0; i < getWidth(); i++) {	//lazy
+							int index = (int)(i / (float)getWidth() * historyLength);
+							index = (historyIndex + index) % historyLength;
+							for(int j = 0; j < extractor.getNumberOfFeatures(); j++) {
+								int y = getHeight() - (int)(j * getHeight() / extractor.getNumberOfFeatures());
+								float darkness = 1f - Math.max(0f, Math.min(1f, (historyData[index][j] - min) / range));
+								g.setColor(new Color(darkness, darkness, darkness));
+								g.fillRect(i, y, 1, 1);
+							}
 						}
 					}
 					g.setColor(Color.black);
@@ -76,15 +110,23 @@ public class FloatArrayPlot implements InterfaceElement, SegmentListener {
 
 	public void newSegment(TimeStamp start, TimeStamp end) {
 		if(component != null && extractor != null) {
-			data = extractor.getFeatures();
-			if(adaptiveRange && data != null) {
-				for(int i = 0; i < data.length; i++) {
-					if(min > data[i]) min = data[i];
-					if(max < data[i]) max = data[i];
+			float[] f = extractor.getFeatures();
+			if(f != null) {
+				if(viewMode == ViewMode.INSTANT) {
+					instantData = f;
+				} else {
+					historyData[historyIndex] = f.clone();
+					historyIndex = (historyIndex + 1) % historyLength;
 				}
-				range = max - min;
+				if(adaptiveRange) {
+					for(int i = 0; i < f.length; i++) {
+						if(min > instantData[i]) min = f[i];
+						if(max < instantData[i]) max = f[i];
+					}
+					range = max - min;
+				}
+				component.repaint();
 			}
-			component.repaint();
 		}
 	}
 

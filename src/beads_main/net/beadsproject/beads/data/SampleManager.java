@@ -4,7 +4,10 @@
 package net.beadsproject.beads.data;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -488,6 +491,65 @@ public class SampleManager {
 	 */
 	public static void setVerbose(boolean verbose) {
 		SampleManager.verbose = verbose;
+	}
+	
+	/**
+	 * Creates a text file at the specified path containing a list of all of the 
+	 * file names of {@link Sample}s loaded so far. Useful if you need to gather 
+	 * all of your sample data into one place using a script. Puts all file names in
+	 * double quotes.
+	 * 
+	 * @param toFile destination of the file.
+	 */
+	public static void logSamplePaths(String toFile) {
+		try {
+			File f = new File(toFile);
+			PrintWriter out = new PrintWriter(f);
+			for(Sample s : samples.values()) {
+				if(s.getFileName() != null && !s.getFileName().equals("")) {
+					out.println("\"" + s.getFileName() + "\"");
+				}
+			}
+			out.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Takes all of the {@link Sample}s currently stored and attempts to relocate
+	 * them so that their position relative to destRootDir duplicates their position
+	 * relative to sourceRootDir. This only applies to {@link Sample}s that were loaded
+	 * from a position below sourceRootDir.
+	 * @param sourceRootDir root that you want to transfer from
+	 * @param destRootDir place you want to transfer to
+	 * @param force set to true to force overwrite existing files - take care!
+	 */
+	public static void transferSamples(String sourceRootDir, String destRootDir, boolean force) {
+		File srd = new File(sourceRootDir);
+		if(!srd.exists()) return;
+		sourceRootDir = srd.getAbsolutePath();
+		File drd = new File(destRootDir);
+		if(!drd.exists()) drd.mkdir();
+		destRootDir = drd.getAbsolutePath();
+		for(Sample s : samples.values()) {
+			if(s.getFileName() != null && !s.getFileName().equals("")) {
+				String absFileName = s.getFileName();
+				if(absFileName.startsWith(sourceRootDir)) {
+					String destAbsFileName = absFileName.replace(sourceRootDir, destRootDir);
+					if(force || !new File(destAbsFileName).exists()) {
+						try {
+							File parent = new File(destAbsFileName).getParentFile();
+							if(!parent.exists()) parent.mkdirs();
+							s.write(destAbsFileName);
+							System.out.println("Copied file \"" + absFileName + "\" to \"" + destAbsFileName + "\"");
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/**

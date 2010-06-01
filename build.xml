@@ -42,7 +42,6 @@
 			</classpath>
 			<compilerarg value="-Xlint:unchecked" />
 		</javac>
-		<javac srcdir="src/beads_analysis" destdir="${buildmain}" debug="off"></javac>
 		
 		<!-- BUILD THE STANDARD JAVA PACKAGE (ALSO ECLIPSE PROJECT) -->
 		

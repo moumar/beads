@@ -200,6 +200,7 @@ public class JavaSoundAudioIO extends AudioIO {
 	 */
 	private boolean destroy() {
 		sourceDataLine.drain();
+		sourceDataLine.flush();
 		sourceDataLine.stop();
 		sourceDataLine.close();
 		sourceDataLine = null;
@@ -207,6 +208,7 @@ public class JavaSoundAudioIO extends AudioIO {
 			mixer.close();
 			mixer = null;
 		}
+		System.out.println("JavaSoundAudioIO: stopped.");
 		return true;
 	}
 
