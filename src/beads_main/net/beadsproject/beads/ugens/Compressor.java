@@ -17,7 +17,7 @@ import net.beadsproject.beads.data.*;
  * <ul>
  * <li>{@link #setThreshold(float) threshold} - .5</li>
  * <li>{@link #setAttack(float) attack} - 1</li>
- * <li>{@link #setDecay(float) decay} - 1</li>
+ * <li>{@link #setDecay(float) decay} - .5</li>
  * <li>{@link #setKnee(float) knee} - .5</li>
  * <li>{@link #setRatio(float) ratio} - 2</li>
  * <li>{@link #setSideChain(UGen) side-chain} - the input audio</li>
@@ -39,6 +39,7 @@ public class Compressor extends UGen implements DataBeadReceiver {
 
 	private float attack, decay;
 	private float currval = 1, target = 1, delay;
+	private int delaySamps;
 	private int rmsMemorySize = 500;
 	private UGen myInputs;
 	private float[][] myBufIn;
@@ -115,6 +116,7 @@ public class Compressor extends UGen implements DataBeadReceiver {
 		super(context, channels, channels);
 		this.channels = channels;
 		delay = lookAheadDelay;
+		delaySamps = (int) delay;
 		memSize = (int) context.msToSamples(delay) + 1;
 		delayMem = new float[channels][memSize];
 		myBufIn = bufIn;
@@ -133,7 +135,7 @@ public class Compressor extends UGen implements DataBeadReceiver {
 
 		myInputs = new MyInputs(context, channels);
 
-		setSideChain(sideChain).setAttack(1).setDecay(1).setRatio(2)
+		setSideChain(sideChain).setAttack(1).setDecay(.5f).setRatio(2)
 				.setThreshold(.5f).setKnee(.5f);
 	}
 
@@ -172,8 +174,8 @@ public class Compressor extends UGen implements DataBeadReceiver {
 				}
 
 				dm[index] = bi[i];
+				bo[i] = dm[(index + delaySamps) % memSize] * currval;
 				index = (index + 1) % memSize;
-				bo[i] = dm[index] * currval;
 			}
 		} else {
 			for (int i = 0; i < bufferSize; i++) {
@@ -198,11 +200,12 @@ public class Compressor extends UGen implements DataBeadReceiver {
 						currval = target;
 				}
 
+				int delIndex = (index + delaySamps) % memSize;
 				for (int j = 0; j < channels; j++) {
 					delayMem[j][index] = bufIn[j][i];
-					index = (index + 1) % memSize;
-					bufOut[j][i] = delayMem[j][index] * currval;
+					bufOut[j][i] = delayMem[j][delIndex] * currval;
 				}
+				index = (index + 1) % memSize;
 			}
 		}
 
@@ -402,5 +405,15 @@ public class Compressor extends UGen implements DataBeadReceiver {
 		db.put("decay", getDecay());
 		db.put("knee", getKnee());
 		return db;
+	}
+
+	/**
+	 * Gets the current scaling factor - the factor which scales the incoming
+	 * signal, determined by the side chain.
+	 * 
+	 * @return The compression factor.
+	 */
+	public float getCurrentCompression() {
+		return currval;
 	}
 }

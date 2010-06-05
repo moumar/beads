@@ -34,7 +34,7 @@ public class RMS extends UGen {
 	public RMS(AudioContext context, int channels, int memorySize) {
 		super(context, channels, 1);
 		this.channels = channels;
-		channelScale = 1 / channels;
+		channelScale = 1f / channels;
 		rmsMem = new float[memorySize];
 		this.memorySize = memorySize;
 		memScale = 1f / memorySize;
