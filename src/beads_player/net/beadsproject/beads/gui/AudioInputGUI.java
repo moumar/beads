@@ -74,7 +74,7 @@ public class AudioInputGUI extends JPanel {
 		add(Box.createHorizontalStrut(10));
 		
 		FloatArrayPlot fap = new FloatArrayPlot((FeatureExtractor<float[], ?>)anal.getElement(MelSpectrum.class), 0, 100f);
-		fap.setViewMode(FloatArrayPlot.ViewMode.HISTORY);
+		fap.setViewMode(FloatArrayPlot.ViewMode.INSTANT);
 		anal.addSegmentListener(fap);
 		add(fap.getComponent());
 
