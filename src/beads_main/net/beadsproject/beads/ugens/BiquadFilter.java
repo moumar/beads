@@ -142,9 +142,9 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	protected float b1 = 0;
 	protected float b2 = 0;
 
-	private int channels = 2;
+	protected int channels = 1;
 	protected float freq = 100, q = 1, gain = 0;
-	private Type type = null;
+	protected Type type = null;
 	protected float samplingfreq, two_pi_over_sf, pi_over_sf;
 	public static final float SQRT2 = (float) Math.sqrt(2);
 
@@ -153,9 +153,13 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	protected double frReal = 0, frImag = 0;
 
 	// filter memory
-	private float[] bo1m, bo2m, bi1m, bi2m;
-	private float bo1 = 0, bo2 = 0, bi1 = 0, bi2 = 0;
-
+	protected float[] bo1m, bo2m, bi1m, bi2m;
+	protected float bo1 = 0, bo2 = 0, bi1 = 0, bi2 = 0;
+	protected boolean cuedInputMemory = false;
+	protected boolean cuedOutputMemory = false;
+	protected float[] cbo1m, cbo2m, cbi1m, cbi2m;
+	protected float cbo1 = 0, cbo2 = 0, cbi1 = 0, cbi2 = 0;
+	
 	protected ValCalculator vc;
 	protected UGen freqUGen, qUGen, gainUGen;
 	protected boolean isFreqStatic, isQStatic, isGainStatic, areAllStatic;
@@ -331,6 +335,17 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 		float[] bi, bo;
 
 		if (channels == 1) {
+			
+			if(cuedInputMemory) {
+				bi1 = cbi1;
+				bi2 = cbi2;
+				cuedInputMemory = false;
+			}
+			if(cuedOutputMemory) {
+				bo1 = cbo1;
+				bo2 = cbo2;
+				cuedOutputMemory = false;
+			}
 
 			bi = bufIn[0];
 			bo = bufOut[0];
@@ -401,6 +416,22 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 
 		} else {
 			// multi-channel version
+			
+			if(cuedInputMemory) {
+				for(int i = 0; i < channels; i++) {
+					bi1m[i] = cbi1m[i];
+					bi2m[i] = cbi2m[i];
+				}
+				cuedInputMemory = false;
+			}
+			if(cuedOutputMemory) {
+				for(int i = 0; i < channels; i++) {
+					bo1m[i] = cbo1m[i];
+					bo2m[i] = cbo2m[i];
+				}
+				cuedOutputMemory = false;
+			}
+
 
 			if (areAllStatic) {
 
@@ -969,6 +1000,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 * 
 	 * @param ntype
 	 *            The type of filter.
+	 * @deprecated Use {@link #setType(Type)}.
 	 */
 	@Deprecated
 	public BiquadFilter setType(int ntype) {
@@ -1316,7 +1348,80 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 			return gainUGen;
 		}
 	}
+		
+	public BiquadFilter loadMemory(float xm1, float xm2, float ym1, float ym2) {
+		loadInputMemory(xm1, xm2);
+		loadOutputMemory(ym1, ym2);
+		return this;
+	}
+	
+	public BiquadFilter loadMemory(float[] xm1, float[] xm2, float[] ym1, float[] ym2) {
+		loadInputMemory(xm1, xm2);
+		loadOutputMemory(ym1, ym2);
+		return this;
+	}
+	
+	public BiquadFilter loadInputMemory(float xm1, float xm2) {
+		if(channels == 1) {
+			bi1 = xm1;
+			bi2 = xm2;
+		} else {
+			for(int i = 0; i < channels; i++) {
+				bi1m[i] = xm1;
+				bi2m[i] = xm2;
+			}
+		}
+		cuedInputMemory = true;
+		return this;
+	}
+	
+	public BiquadFilter loadInputMemory(float[] xm1, float[] xm2) {
+		int min = Math.min(xm1.length, xm2.length);
+		if(channels == 1 && min > 0) {
+			bi1 = xm1[0];
+			bi2 = xm2[0];
+			cuedInputMemory = true;
+		} else {
+			for(int i = 0; i < Math.min(channels, min); i++) {
+				cbi1m[i] = xm1[i];
+				cbi2m[i] = xm2[i];
+				cuedInputMemory = true;
+			}
+		}
+		return this;
+	}
+	
+	public BiquadFilter loadOutputMemory(float ym1, float ym2) {
+		if(channels == 1) {
+			cbo1 = ym1;
+			cbo2 = ym2;
+		} else {
+			for(int i = 0; i < channels; i++) {
+				cbo1m[i] = ym1;
+				cbo2m[i] = ym2;
+			}
+		}
+		cuedOutputMemory = true;
+		return this;
+	}
 
+	public BiquadFilter loadOutputMemory(float[] ym1, float[] ym2) {
+		int min = Math.min(ym1.length, ym2.length);
+		if(channels == 1 && min > 0) {
+			bo1 = ym1[0];
+			bo2 = ym2[0];
+			cuedOutputMemory = true;
+		} else {
+			for(int i = 0; i < Math.min(channels, min); i++) {
+				bo1m[i] = ym1[i];
+				bo2m[i] = ym2[i];
+				cuedOutputMemory = true;
+			}
+		}
+		return this;
+	}
+
+	
 	/**
 	 * Gets an array of the current filter coefficients: {a0, a1, a2, b0, b1,
 	 * b2}.
