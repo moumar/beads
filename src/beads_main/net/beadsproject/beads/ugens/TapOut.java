@@ -22,24 +22,29 @@ public class TapOut extends UGen {
 	private TapIn ti;
 	private UGen delayUGen;
 	private float delay, sampsPerMS;
-	private int mode, sampDelayInt, sampDelayAPInt;
+	private InterpolationType mode;
+	private int sampDelayInt, sampDelayAPInt;
 	private float lastY = 0, sampDelayFloat, g;
 
 	/**
 	 * The delayed signal will not be interpolated from the memory buffer.
 	 */
-	public static final int NO_INTERP = 0;
+	public static final InterpolationType NO_INTERP = InterpolationType.NO_INTERP;
 
 	/**
 	 * The delayed signal will be derived using linear interpolation.
 	 */
-	public static final int LINEAR = 1;
+	public static final InterpolationType LINEAR = InterpolationType.LINEAR;
 
 	/**
 	 * The delayed signal will be derived using all-pass interpolation
 	 */
-	public static final int ALLPASS = 2;
+	public static final InterpolationType ALLPASS = InterpolationType.ALLPASS;
 
+	public enum InterpolationType {
+		NO_INTERP, LINEAR, ALLPASS
+	}
+	
 	protected TapOut(AudioContext ac, TapIn ti) {
 		super(ac, 0, 1);
 		sampsPerMS = (float) ac.msToSamples(1);
@@ -77,7 +82,7 @@ public class TapOut extends UGen {
 	 */
 	public TapOut(AudioContext ac, TapIn ti, UGen delayUGen) {
 		this(ac, ti);
-		setDelay(delay);
+		setDelay(delayUGen);
 	}
 
 	/**
@@ -89,11 +94,11 @@ public class TapOut extends UGen {
 	 * @param ti
 	 *            The TapIn from which to draw the delayed signal.
 	 * @param mode
-	 *            The delay mode; see {@link #setMode(int)}.
+	 *            The delay mode; see {@link #setMode(InterpolationType)}.
 	 * @param delay
 	 *            The delay time in milliseconds.
 	 */
-	public TapOut(AudioContext ac, TapIn ti, int mode, float delay) {
+	public TapOut(AudioContext ac, TapIn ti, InterpolationType mode, float delay) {
 		this(ac, ti);
 		setDelay(delay).setMode(mode);
 	}
@@ -107,11 +112,11 @@ public class TapOut extends UGen {
 	 * @param ti
 	 *            The TapIn from which to draw the delayed signal.
 	 * @param mode
-	 *            The delay mode; see {@link #setMode(int)}.
+	 *            The delay mode; see {@link #setMode(InterpolationType)}.
 	 * @param delayUGen
 	 *            The UGen specifying the delay time in milliseconds.
 	 */
-	public TapOut(AudioContext ac, TapIn ti, int mode, UGen delayUGen) {
+	public TapOut(AudioContext ac, TapIn ti, InterpolationType mode, UGen delayUGen) {
 		this(ac, ti);
 		setDelay(delay).setMode(mode);
 	}
@@ -224,7 +229,7 @@ public class TapOut extends UGen {
 	 *            The delay mode.
 	 * @return This object instance.
 	 */
-	public TapOut setMode(int mode) {
+	public TapOut setMode(InterpolationType mode) {
 		switch (mode) {
 		case NO_INTERP:
 			this.mode = mode;
@@ -244,7 +249,7 @@ public class TapOut extends UGen {
 	 * 
 	 * @return The delay mode.
 	 */
-	public int getMode() {
+	public InterpolationType getMode() {
 		return mode;
 	}
 

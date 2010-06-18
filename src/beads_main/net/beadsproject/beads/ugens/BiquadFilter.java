@@ -32,7 +32,7 @@ import net.beadsproject.beads.data.*;
  * 
  * @beads.category filter
  * @author Benito Crawford
- * @version 0.9.5.1
+ * @version 0.9.6
  */
 public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 
@@ -41,28 +41,28 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 * given in "Cookbook formulae for audio EQ biquad filter coefficients" by
 	 * Robert Bristow-Johnson.
 	 */
-	public final static int LP = 0;
+	public final static Type LP = Type.LP;
 
 	/**
 	 * Indicates a high-pass filter; coefficients are calculated from equations
 	 * given in "Cookbook formulae for audio EQ biquad filter coefficients" by
 	 * Robert Bristow-Johnson.
 	 */
-	public final static int HP = 1;
+	public final static Type HP = Type.HP;
 
 	/**
 	 * Indicates a band-pass filter with constant skirt gain; coefficients are
 	 * calculated from equations given in "Cookbook formulae for audio EQ biquad
 	 * filter coefficients" by Robert Bristow-Johnson.
 	 */
-	public final static int BP_SKIRT = 2;
+	public final static Type BP_SKIRT = Type.BP_SKIRT;
 
 	/**
 	 * Indicates a band-pass filter with constant peak gain; coefficients are
 	 * calculated from equations given in "Cookbook formulae for audio EQ biquad
 	 * filter coefficients" by Robert Bristow-Johnson.
 	 */
-	public final static int BP_PEAK = 3;
+	public final static Type BP_PEAK = Type.BP_PEAK;
 
 	/**
 	 * Indicates a notch (band-reject) filter; coefficients are calculated from
@@ -70,14 +70,14 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 * "Cookbook formulae for audio EQ biquad filter coefficients" by Robert
 	 * Bristow-Johnson.
 	 */
-	public final static int NOTCH = 4;
+	public final static Type NOTCH = Type.NOTCH;
 
 	/**
 	 * Indicates an all-pass filter; coefficients are calculated from equations
 	 * given in "Cookbook formulae for audio EQ biquad filter coefficients" by
 	 * Robert Bristow-Johnson.
 	 */
-	public final static int AP = 5;
+	public final static Type AP = Type.AP;
 
 	/**
 	 * Indicates a peaking-EQ filter; coefficients are calculated from equations
@@ -86,50 +86,54 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 * 
 	 * <em>untested!</em>
 	 */
-	public final static int PEAKING_EQ = 6;
+	public final static Type PEAKING_EQ = Type.PEAKING_EQ;
 
 	/**
 	 * Indicates a low-shelf filter; coefficients are calculated from equations
 	 * given in "Cookbook formulae for audio EQ biquad filter coefficients" by
 	 * Robert Bristow-Johnson.
 	 */
-	public final static int LOW_SHELF = 7;
+	public final static Type LOW_SHELF = Type.LOW_SHELF;
 
 	/**
 	 * Indicates a high-shelf filter; coefficients are calculated from equations
 	 * given in "Cookbook formulae for audio EQ biquad filter coefficients" by
 	 * Robert Bristow-Johnson.
 	 */
-	public final static int HIGH_SHELF = 8;
+	public final static Type HIGH_SHELF = Type.HIGH_SHELF;
 
 	/**
 	 * Indicates a Butterworth low-pass filter; only the frequency parameter is
 	 * relevant.
 	 */
-	public final static int BUTTERWORTH_LP = 9;
+	public final static Type BUTTERWORTH_LP = Type.BUTTERWORTH_LP;
 
 	/**
 	 * Indicates a Butterworth high-pass filter; only the frequency parameter is
 	 * relevant.
 	 */
-	public final static int BUTTERWORTH_HP = 10;
+	public final static Type BUTTERWORTH_HP = Type.BUTTERWORTH_HP;
 
 	/**
 	 * Indicates a Bessel low-pass filter; only frequency is relevant.
 	 */
-	public final static int BESSEL_LP = 11;
+	public final static Type BESSEL_LP = Type.BESSEL_LP;
 
 	/**
 	 * Indicates a Bessel high-pass filter; only frequency is relevant.
 	 */
-	public final static int BESSEL_HP = 12;
+	public final static Type BESSEL_HP = Type.BESSEL_HP;
 
 	/**
 	 * Indicates a user-defined filter; see
 	 * {@link #setCustomType(CustomCoeffCalculator) setCustomType}. This
 	 * constant is not recognized by {@link #setType(int) setType}.
 	 */
-	public final static int CUSTOM_FILTER = 100;
+	public final static Type CUSTOM_FILTER = Type.CUSTOM_FILTER;
+
+	public enum Type {
+		LP, HP, BP_PEAK, BP_SKIRT, NOTCH, AP, PEAKING_EQ, LOW_SHELF, HIGH_SHELF, BUTTERWORTH_LP, BUTTERWORTH_HP, BESSEL_LP, BESSEL_HP, CUSTOM_FILTER
+	}
 
 	protected float a0 = 1;
 	protected float a1 = 0;
@@ -140,7 +144,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 
 	private int channels = 2;
 	protected float freq = 100, q = 1, gain = 0;
-	private int type = -1;
+	private Type type = null;
 	protected float samplingfreq, two_pi_over_sf, pi_over_sf;
 	public static final float SQRT2 = (float) Math.sqrt(2);
 
@@ -182,7 +186,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 *            The initial filter type, e.g. {@link #LP}, {@link #HP},
 	 *            {@link #BP_SKIRT}, etc.
 	 */
-	public BiquadFilter(AudioContext context, int channels, int itype) {
+	public BiquadFilter(AudioContext context, int channels, Type itype) {
 		super(context, channels, channels);
 		this.channels = super.getOuts();
 		bi1m = new float[this.channels];
@@ -229,7 +233,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 *            A DataBead specifying parameter values; see
 	 *            {@link #setParams(DataBead)}.
 	 */
-	public BiquadFilter(AudioContext context, int channels, int itype,
+	public BiquadFilter(AudioContext context, int channels, Type itype,
 			DataBead params) {
 		this(context, channels, itype);
 		setParams(params);
@@ -770,9 +774,11 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 		if (paramBead != null) {
 			Object o;
 
-			o = paramBead.get("filterType");
+			o = paramBead.get("type");
 			if (o instanceof Number) {
 				setType(((Number) o).intValue());
+			} else if (o instanceof Type) {
+				setType((Type) o);
 			}
 
 			if ((o = paramBead.get("frequency")) != null) {
@@ -845,7 +851,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 			db.put("gain", gainUGen);
 		}
 
-		db.put("filterType", type);
+		db.put("type", type);
 
 		return db;
 	}
@@ -879,15 +885,142 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 * <li>{@link #PEAKING_EQ} - Peaking-EQ filter.</li>
 	 * <li>{@link #LOW_SHELF} - Low-shelf filter.</li>
 	 * <li>{@link #HIGH_SHELF} - High-shelf filter.</li>
+	 * <li>{@link #BUTTERWORTH_LP} - Butterworth low-pass filter.</li>
+	 * <li>{@link #BUTTERWORTH_HP} - Butterworth high-pass filter.</li>
+	 * <li>{@link #BESSEL_LP} - Bessel low-pass filter.</li>
+	 * <li>{@link #BESSEL_HP} - Bessel high-pass filter.</li>
 	 * </ul>
 	 * 
 	 * @param ntype
 	 *            The type of filter.
 	 */
-	public BiquadFilter setType(int ntype) {
+	public BiquadFilter setType(Type ntype) {
 		if (ntype != type || vc == null) {
-			int t = type;
+			Type t = type;
 			type = ntype;
+			switch (type) {
+			case LP:
+				vc = new LPValCalculator();
+				break;
+			case HP:
+				vc = new HPValCalculator();
+				break;
+			case BP_SKIRT:
+				vc = new BPSkirtValCalculator();
+				break;
+			case BP_PEAK:
+				vc = new BPPeakValCalculator();
+				break;
+			case NOTCH:
+				vc = new NotchValCalculator();
+				break;
+			case AP:
+				vc = new APValCalculator();
+				break;
+			case PEAKING_EQ:
+				vc = new PeakingEQValCalculator();
+				break;
+			case LOW_SHELF:
+				vc = new LowShelfValCalculator();
+				break;
+			case HIGH_SHELF:
+				vc = new HighShelfValCalculator();
+				break;
+			case BUTTERWORTH_LP:
+				vc = new ButterworthLPValCalculator();
+				break;
+			case BUTTERWORTH_HP:
+				vc = new ButterworthHPValCalculator();
+				break;
+			case BESSEL_LP:
+				vc = new BesselLPValCalculator();
+				break;
+			case BESSEL_HP:
+				vc = new BesselHPValCalculator();
+				break;
+			default:
+				type = t;
+				break;
+			}
+			vc.calcVals();
+		}
+		return this;
+	}
+
+	/**
+	 * Sets the type of filter with an integer. This method is deprecated and
+	 * has been kept for backwards-compatibility reasons only. {
+	 * {@link #setType(Type)} should be used.
+	 * <ul>
+	 * <li>0 - Low-pass filter.</li>
+	 * <li>1 - High-pass filter.</li>
+	 * <li>2 - Band-pass filter with constant skirt gain.</li>
+	 * <li>3 - Band-pass filter with constant peak gain.</li>
+	 * <li>4 - Notch (band-reject) filter.</li>
+	 * <li>5 - All-pass filter.</li>
+	 * <li>6 - Peaking-EQ filter.</li>
+	 * <li>7 - Low-shelf filter.</li>
+	 * <li>8 - High-shelf filter.</li>
+	 * <li>9 - Butterworth low-pass filter.</li>
+	 * <li>10 - Butterworth high-pass filter.</li>
+	 * <li>11 - Bessel low-pass filter.</li>
+	 * <li>12 - Bessel high-pass filter.</li>
+	 * </ul>
+	 * 
+	 * @param ntype
+	 *            The type of filter.
+	 */
+	@Deprecated
+	public BiquadFilter setType(int ntype) {
+		Type n = null;
+		switch (ntype) {
+		case 0:
+			n = LP;
+			break;
+		case 1:
+			n = HP;
+			break;
+		case 2:
+			n = BP_SKIRT;
+			break;
+		case 3:
+			n = BP_PEAK;
+			break;
+		case 4:
+			n = NOTCH;
+			break;
+		case 5:
+			n = AP;
+			break;
+		case 6:
+			n = PEAKING_EQ;
+			break;
+		case 7:
+			n = LOW_SHELF;
+			break;
+		case 8:
+			n = HIGH_SHELF;
+			break;
+		case 9:
+			n = BUTTERWORTH_LP;
+			break;
+		case 10:
+			n = BUTTERWORTH_HP;
+			break;
+		case 11:
+			n = BESSEL_LP;
+			break;
+		case 12:
+			n = BESSEL_HP;
+			break;
+		case 100:
+			n = CUSTOM_FILTER;
+			break;
+		}
+
+		if (n != type || vc == null) {
+			Type t = type;
+			type = n;
 			switch (type) {
 			case LP:
 				vc = new LPValCalculator();
@@ -941,9 +1074,9 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 * Gets the type of the filter.
 	 * 
 	 * @return The filter type.
-	 * @see #setType(int)
+	 * @see #setType(Type)
 	 */
-	public int getType() {
+	public Type getType() {
 		return type;
 	}
 
