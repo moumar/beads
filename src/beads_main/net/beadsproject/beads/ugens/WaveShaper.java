@@ -40,21 +40,38 @@ public class WaveShaper extends UGen implements DataBeadReceiver {
 
 	protected float[] shape;
 	protected int shapeLen;
+	protected int channels = 1;
 
 	/**
-	 * Constructor that uses a default cosine-based wave shape.
+	 * Constructor for a mono-channel wave shaper that uses a default
+	 * cosine-based wave shape.
 	 * 
 	 * @param context
 	 *            The audio context.
 	 */
 	public WaveShaper(AudioContext context) {
-		super(context, 1, 1);
+		this(context, 1);
+	}
+
+	/**
+	 * Constructor for a multi-channel wave shaper that uses a default
+	 * cosine-based wave shape.
+	 * 
+	 * @param context
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
+	 */
+	public WaveShaper(AudioContext context, int channels) {
+		super(context, channels, channels);
+		this.channels = channels;
 		setPreGain(2).setPostGain(1).setLimit(1).setWetMix(1);
 		setShape(generateCosineShape(1025));
 	}
 
 	/**
-	 * Constructor that uses the provided float array for its wave shape.
+	 * Constructor for a mono-channel wave shaper that uses the provided float
+	 * array for its wave shape.
 	 * 
 	 * @param context
 	 *            The audio context.
@@ -67,7 +84,24 @@ public class WaveShaper extends UGen implements DataBeadReceiver {
 	}
 
 	/**
-	 * Constructor that uses the float array from a Buffer for its wave shape.
+	 * Constructor for a multi-channel wave shaper that uses the provided float
+	 * array for its wave shape.
+	 * 
+	 * @param context
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
+	 * @param shape
+	 *            The float array.
+	 */
+	public WaveShaper(AudioContext context, int channels, float[] shape) {
+		this(context, channels);
+		setShape(shape);
+	}
+
+	/**
+	 * Constructor for a mono-channel wave shaperthat uses the float array from
+	 * a Buffer for its wave shape.
 	 * 
 	 * @param context
 	 *            The audio context.
@@ -76,6 +110,22 @@ public class WaveShaper extends UGen implements DataBeadReceiver {
 	 */
 	public WaveShaper(AudioContext context, Buffer shapeBuffer) {
 		this(context);
+		setShape(shapeBuffer.buf);
+	}
+
+	/**
+	 * Constructor for a multi-channel wave shaper that uses the float array
+	 * from a Buffer for its wave shape.
+	 * 
+	 * @param context
+	 *            The audio context.
+	 * @param channels
+	 *            The number of channels.
+	 * @param shapeBuffer
+	 *            The Buffer from which to get the wave shape.
+	 */
+	public WaveShaper(AudioContext context, int channels, Buffer shapeBuffer) {
+		this(context, channels);
 		setShape(shapeBuffer.buf);
 	}
 
@@ -134,45 +184,86 @@ public class WaveShaper extends UGen implements DataBeadReceiver {
 	}
 
 	public void calculateBuffer() {
-		float[] bi = bufIn[0];
-		float[] bo = bufOut[0];
-
 		preGainUGen.update();
 		postGainUGen.update();
 		limitUGen.update();
 		wetMixUGen.update();
 
-		for (int currsample = 0; currsample < bufferSize; currsample++) {
-			preGain = preGainUGen.getValue(0, currsample);
-			postGain = postGainUGen.getValue(0, currsample);
-			limit = limitUGen.getValue(0, currsample);
-			if (limit < 0)
-				limit = 0;
-			wetMix = wetMixUGen.getValue(0, currsample);
+		if (channels == 1) {
+			float[] bi = bufIn[0];
+			float[] bo = bufOut[0];
 
-			float y, y2;
-			float y1 = (((y = bi[currsample]) * preGain * .5f) + .5f)
-					* shapeLen;
+			for (int currsample = 0; currsample < bufferSize; currsample++) {
+				preGain = preGainUGen.getValue(0, currsample);
+				postGain = postGainUGen.getValue(0, currsample);
+				limit = limitUGen.getValue(0, currsample);
+				if (limit < 0)
+					limit = 0;
+				wetMix = wetMixUGen.getValue(0, currsample);
 
-			if (y1 <= 0) {
-				y2 = shape[0] * postGain;
-			} else if (y1 >= shapeLen) {
-				y2 = shape[shapeLen] * postGain;
-			} else {
-				int ind = (int) y1;
-				float frac = y1 - ind;
-				y2 = (shape[ind] * (1 - frac) + shape[ind + 1] * frac)
-						* postGain;
+				float y, y2;
+				float y1 = (((y = bi[currsample]) * preGain * .5f) + .5f)
+						* shapeLen;
+
+				if (y1 <= 0) {
+					y2 = shape[0] * postGain;
+				} else if (y1 >= shapeLen) {
+					y2 = shape[shapeLen] * postGain;
+				} else {
+					int ind = (int) y1;
+					float frac = y1 - ind;
+					y2 = (shape[ind] * (1 - frac) + shape[ind + 1] * frac)
+							* postGain;
+				}
+				// System.out.println("#1: " + y1 + ", " + y2);
+
+				if (y2 > limit) {
+					y2 = limit;
+				} else if (y2 < -limit) {
+					y2 = -limit;
+				}
+
+				bo[currsample] = y * (1 - wetMix) + y2 * wetMix;
 			}
-			// System.out.println("#1: " + y1 + ", " + y2);
 
-			if (y2 > limit) {
-				y2 = limit;
-			} else if (y2 < -limit) {
-				y2 = -limit;
+		} else {
+
+			// multi-channel version
+
+			for (int currsample = 0; currsample < bufferSize; currsample++) {
+				preGain = preGainUGen.getValue(0, currsample);
+				postGain = postGainUGen.getValue(0, currsample);
+				limit = limitUGen.getValue(0, currsample);
+				if (limit < 0)
+					limit = 0;
+				wetMix = wetMixUGen.getValue(0, currsample);
+
+				float y, y2;
+				for (int currchannel = 0; currchannel < channels; currchannel++) {
+					float y1 = (((y = bufIn[currchannel][currsample]) * preGain * .5f) + .5f)
+							* shapeLen;
+
+					if (y1 <= 0) {
+						y2 = shape[0] * postGain;
+					} else if (y1 >= shapeLen) {
+						y2 = shape[shapeLen] * postGain;
+					} else {
+						int ind = (int) y1;
+						float frac = y1 - ind;
+						y2 = (shape[ind] * (1 - frac) + shape[ind + 1] * frac)
+								* postGain;
+					}
+
+					if (y2 > limit) {
+						y2 = limit;
+					} else if (y2 < -limit) {
+						y2 = -limit;
+					}
+
+					bufOut[currchannel][currsample] = y * (1 - wetMix) + y2
+							* wetMix;
+				}
 			}
-
-			bo[currsample] = y * (1 - wetMix) + y2 * wetMix;
 		}
 
 	}
