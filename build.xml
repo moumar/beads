@@ -28,6 +28,10 @@
          ================================= -->
 	<target name="default" description="combine compile main and doc main" depends="compile main">
 	</target>
+	
+	<!-- ================================= 
+	      target: compile examples              
+	     ================================= -->
 
 	<!-- ================================= 
           target: compile main              

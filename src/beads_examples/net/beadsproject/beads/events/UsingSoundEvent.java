@@ -18,6 +18,10 @@ import net.beadsproject.beads.ugens.WavePlayer;
 
 public class UsingSoundEvent {
 
+	public static void main(String[] args) {
+		Basic.main(args);
+	}
+	
 	public static class Basic {
 		public static void main(String[] args) {
 			/*
