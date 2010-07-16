@@ -3,10 +3,11 @@
  */
 package net.beadsproject.beads.core.io;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.Line;
@@ -14,10 +15,20 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.ListSelectionModel;
 
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.AudioFormat;
 import net.beadsproject.beads.core.AudioIO;
 import net.beadsproject.beads.core.UGen;
+import net.beadsproject.beads.data.Buffer;
+import net.beadsproject.beads.gui.ButtonBox.SelectionMode;
+import net.beadsproject.beads.ugens.WavePlayer;
 
 /**
  * The default {@link AudioIO}, uses JavaSound.
@@ -135,6 +146,108 @@ public class JavaSoundAudioIO extends AudioIO {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Presents a choice of mixers and also audio format options in a GUI.
+	 * Also provides options for reading and writing these settings.
+	 */
+	public AudioContext setUpAudioContextFromGUI() {
+		//gui elements
+		JPanel mainPanel = new JPanel();
+		final JFrame f = new JFrame();
+		//sample rate
+		final JComboBox sampleRateChooser = new JComboBox();
+		sampleRateChooser.addItem(44100f);
+		sampleRateChooser.addItem(48000f);
+		sampleRateChooser.addItem(88200f);
+		sampleRateChooser.addItem(96000f);
+		mainPanel.add(sampleRateChooser);
+		//bit depth
+		final JComboBox bitDepthChooser = new JComboBox();
+		bitDepthChooser.addItem(16);
+		bitDepthChooser.addItem(24);
+		mainPanel.add(bitDepthChooser);
+		//channels
+		final JComboBox channelsChooser = new JComboBox();
+		for(int i = 1; i <= 32; i++) {
+			channelsChooser.addItem(i);
+		}
+		mainPanel.add(channelsChooser);
+		//signed/unsigned
+		final JComboBox signedUnsignedChooser = new JComboBox();
+		signedUnsignedChooser.addItem("Signed");
+		signedUnsignedChooser.addItem("Unsigned");
+		mainPanel.add(signedUnsignedChooser);
+		//big endian
+		final JComboBox bigEndianChooser = new JComboBox();
+		bigEndianChooser.addItem("Big endian");
+		bigEndianChooser.addItem("Litte endian");
+		mainPanel.add(bigEndianChooser);
+		//buffer size
+		final JComboBox bufferSizeChooser = new JComboBox();
+		bufferSizeChooser.addItem(64);
+		bufferSizeChooser.addItem(128);
+		bufferSizeChooser.addItem(512);
+		bufferSizeChooser.addItem(1024);
+		bufferSizeChooser.addItem(2048);
+		bufferSizeChooser.addItem(4096);
+		mainPanel.add(bufferSizeChooser);
+		//list of available devices
+		Mixer.Info[] mixerinfo = AudioSystem.getMixerInfo();
+		final JList mixerList = new JList(mixerinfo);
+		mixerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		mixerList.setSelectedIndex(0);
+		mainPanel.add(mixerList);
+		//confirm button
+		JButton confirmButton = new JButton();
+		mainPanel.add(confirmButton);
+		class AudioContextHandle {
+			AudioContext ac;
+			boolean done;
+		}
+		final AudioContextHandle acHandle = new AudioContextHandle();
+		confirmButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				float sampleRate = (Float)sampleRateChooser.getSelectedItem();
+				int sampleSizeInBits = (Integer)bitDepthChooser.getSelectedItem();
+				int channels = (Integer)channelsChooser.getSelectedItem();
+				boolean signed = ((String)signedUnsignedChooser.getSelectedItem()).equals("Signed");
+				boolean bigEndian = ((String)bigEndianChooser.getSelectedItem()).equals("Big endian");
+				AudioFormat audioFormat = new AudioFormat(sampleRate, sampleSizeInBits, channels, signed, bigEndian);
+				int bufferSize = (Integer)bufferSizeChooser.getSelectedItem();
+				int mixerSelection = mixerList.getSelectedIndex();
+				//OK, we're ready to go
+				//but first we should test the mixer for the given audioFormat
+				selectMixer(mixerSelection);
+				acHandle.ac = new AudioContext(bufferSize, JavaSoundAudioIO.this, audioFormat);
+				acHandle.done = true;
+				f.dispose();
+			}
+		});
+		//finish up and show
+		f.setContentPane(mainPanel);
+		f.pack();
+		f.setResizable(false);
+		f.setVisible(true);
+		while(!acHandle.done) {
+			try {
+				Thread.sleep(10);
+			} catch(InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		return acHandle.ac;
+	}
+	
+	public boolean testMixer(int i, AudioFormat af) {
+		boolean success = false;
+		
+		Mixer.Info[] mixerinfo = AudioSystem.getMixerInfo();
+		Mixer testMixer = AudioSystem.getMixer(mixerinfo[i]);
+		
+		
+		return success;
+	}
 
 	/**
 	 * Select a mixer by index.
@@ -249,6 +362,11 @@ public class JavaSoundAudioIO extends AudioIO {
 		boolean isBigEndian = audioFormat.isBigEndian();
 		int channels = audioFormat.getChannels();
 		bbufOut = new byte[bufferSizeInFrames * audioFormat.getFrameSize()];
+		try {
+			sourceDataLine.open();
+		} catch (LineUnavailableException e) {
+			e.printStackTrace();
+		}
 		sourceDataLine.start();
 		if(hasInput) {
 			bbufIn = new byte[bufferSizeInFrames * context.getInputAudioFormat().getFrameSize()];
@@ -382,7 +500,7 @@ public class JavaSoundAudioIO extends AudioIO {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.olliebown.beads.core.UGen#calculateBuffer()
+		 * @see net.beadsproject.beads.core.UGen#calculateBuffer()
 		 */
 		@Override
 		public void calculateBuffer() {
@@ -411,5 +529,16 @@ public class JavaSoundAudioIO extends AudioIO {
 	}
 
 
+	public static void main(String[] args) {
+		JavaSoundAudioIO jsaio = new JavaSoundAudioIO();
+		AudioContext ac = jsaio.setUpAudioContextFromGUI();
+		if(ac == null) {
+			System.out.println("Failure: AudioContext is NULL!");
+			System.exit(1);
+		}
+		WavePlayer wp = new WavePlayer(ac, 5000, Buffer.SINE);
+		ac.out.addInput(wp);
+		ac.start();
+	}
 
 }

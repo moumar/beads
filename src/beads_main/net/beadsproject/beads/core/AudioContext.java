@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
-import javax.sound.sampled.AudioFormat;
 import net.beadsproject.beads.core.io.JavaSoundAudioIO;
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.events.AudioContextStopTrigger;

@@ -20,4 +20,8 @@ public class AudioFormat extends javax.sound.sampled.AudioFormat {
 			float arg5, boolean arg6) {
 		super(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
 	}
+	
+	public AudioFormat(float sampleRate, int sampleSizeInBits, int channels, boolean signed, boolean bigEndian) {
+		super(sampleRate, sampleSizeInBits, channels, signed, bigEndian);
+	}
 }
