@@ -17,8 +17,10 @@ import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 
@@ -166,12 +168,19 @@ public class JavaSoundAudioIO extends AudioIO {
 		bitDepthChooser.addItem(16);
 		bitDepthChooser.addItem(24);
 		mainPanel.add(bitDepthChooser);
-		//channels
-		final JComboBox channelsChooser = new JComboBox();
-		for(int i = 1; i <= 32; i++) {
-			channelsChooser.addItem(i);
+		//input channels
+		final JComboBox inputChannelsChooser = new JComboBox();
+		for(int i = 0; i <= 32; i++) {
+			inputChannelsChooser.addItem(i);
 		}
-		mainPanel.add(channelsChooser);
+		mainPanel.add(inputChannelsChooser);
+		//output channels
+		final JComboBox outputChannelsChooser = new JComboBox();
+		for(int i = 1; i <= 32; i++) {
+			outputChannelsChooser.addItem(i);
+		}
+		outputChannelsChooser.setSelectedIndex(1);
+		mainPanel.add(outputChannelsChooser);
 		//signed/unsigned
 		final JComboBox signedUnsignedChooser = new JComboBox();
 		signedUnsignedChooser.addItem("Signed");
@@ -207,18 +216,27 @@ public class JavaSoundAudioIO extends AudioIO {
 		final AudioContextHandle acHandle = new AudioContextHandle();
 		confirmButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				int mixerSelection = 0;
+				AudioFormat inputAudioFormat = null, outputAudioFormat = null;
 				float sampleRate = (Float)sampleRateChooser.getSelectedItem();
 				int sampleSizeInBits = (Integer)bitDepthChooser.getSelectedItem();
-				int channels = (Integer)channelsChooser.getSelectedItem();
+				int inputChannels = (Integer)inputChannelsChooser.getSelectedItem();
+				int outputChannels = (Integer)outputChannelsChooser.getSelectedItem();
 				boolean signed = ((String)signedUnsignedChooser.getSelectedItem()).equals("Signed");
 				boolean bigEndian = ((String)bigEndianChooser.getSelectedItem()).equals("Big endian");
-				AudioFormat audioFormat = new AudioFormat(sampleRate, sampleSizeInBits, channels, signed, bigEndian);
-				int bufferSize = (Integer)bufferSizeChooser.getSelectedItem();
-				int mixerSelection = mixerList.getSelectedIndex();
+				inputAudioFormat = new AudioFormat(sampleRate, sampleSizeInBits, inputChannels, signed, bigEndian);
+				outputAudioFormat = new AudioFormat(sampleRate, sampleSizeInBits, outputChannels, signed, bigEndian);
+				mixerSelection = mixerList.getSelectedIndex();
 				//OK, we're ready to go
 				//but first we should test the mixer for the given audioFormat
+				if(!testMixer(mixerSelection, inputAudioFormat, outputAudioFormat)) {
+					JOptionPane.showMessageDialog(f, "The chosen mixer doesn't work with the given settings.");
+					return;
+				}
+				int bufferSize = (Integer)bufferSizeChooser.getSelectedItem();
 				selectMixer(mixerSelection);
-				acHandle.ac = new AudioContext(bufferSize, JavaSoundAudioIO.this, audioFormat);
+				acHandle.ac = new AudioContext(bufferSize, JavaSoundAudioIO.this, outputAudioFormat);
+				acHandle.ac.setInputAudioFormat(inputAudioFormat);
 				acHandle.done = true;
 				f.dispose();
 			}
@@ -238,13 +256,28 @@ public class JavaSoundAudioIO extends AudioIO {
 		return acHandle.ac;
 	}
 	
-	public boolean testMixer(int i, AudioFormat af) {
+	public boolean testMixer(int i, AudioFormat inputAudioFormat, AudioFormat outputAudioFormat) {
 		boolean success = false;
-		
 		Mixer.Info[] mixerinfo = AudioSystem.getMixerInfo();
 		Mixer testMixer = AudioSystem.getMixer(mixerinfo[i]);
-		
-		
+		DataLine.Info outputInfo = new DataLine.Info(SourceDataLine.class, outputAudioFormat);
+		DataLine.Info inputInfo = new DataLine.Info(TargetDataLine.class, inputAudioFormat);
+		try {
+			if(outputAudioFormat.getChannels() > 0) {
+				SourceDataLine testSourceDataLine = (SourceDataLine) testMixer.getLine(outputInfo);
+				testSourceDataLine.open(outputAudioFormat);
+				testSourceDataLine.close();
+			}
+			if(inputAudioFormat.getChannels() > 0) {
+				TargetDataLine testTargetDataLine = (TargetDataLine) testMixer.getLine(inputInfo);
+				testTargetDataLine.open(inputAudioFormat);
+				testTargetDataLine.close();
+			}
+			success = true;
+		} catch(Exception e) {
+			success = false;
+			e.printStackTrace();
+		}
 		return success;
 	}
 
