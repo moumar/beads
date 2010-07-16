@@ -27,7 +27,6 @@ import net.beadsproject.beads.core.AudioFormat;
 import net.beadsproject.beads.core.AudioIO;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
-import net.beadsproject.beads.gui.ButtonBox.SelectionMode;
 import net.beadsproject.beads.ugens.WavePlayer;
 
 /**
