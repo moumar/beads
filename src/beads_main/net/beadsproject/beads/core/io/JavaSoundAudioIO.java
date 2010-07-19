@@ -199,6 +199,7 @@ public class JavaSoundAudioIO extends AudioIO {
 		bufferSizeChooser.addItem(1024);
 		bufferSizeChooser.addItem(2048);
 		bufferSizeChooser.addItem(4096);
+		bufferSizeChooser.setSelectedIndex(2);
 		mainPanel.add(bufferSizeChooser);
 		//list of available devices
 		Mixer.Info[] mixerinfo = AudioSystem.getMixerInfo();
