@@ -9,6 +9,7 @@ import net.beadsproject.beads.ugens.DelayTrigger;
 import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.Noise;
 import net.beadsproject.beads.ugens.RecordToFile;
+import net.beadsproject.beads.ugens.Reverb;
 
 public class UsingAudioContext {
 
@@ -66,14 +67,20 @@ public class UsingAudioContext {
 	public static class AudioInput {
 		public static void main(String[] args) {
 			//using the default AudioIO (JavaSoundAudioIO)
-			AudioContext ac = new AudioContext();
-			ac.out.setGain(0.1f);
+			AudioContext ac = new AudioContext(64);
+			ac.out.setGain(1f);
 			/*
 			 * Now get an audio input.
 			 * 
-			 * The array specifies which inpDut channels you want access to.
+			 * The array specifies which input channels you want access to.
 			 */
 			UGen input = ac.getAudioInput(new int[] {0});
+			/*
+			 * Let's just do something simple to the input so that you can hear it.
+			 * In this case, put it through a Reverb.
+			 */
+			Reverb rb = new Reverb(ac);
+			rb.addInput(input);
 			ac.out.addInput(input);
 			//go
 			ac.start();
