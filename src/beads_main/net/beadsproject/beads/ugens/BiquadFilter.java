@@ -259,7 +259,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 */
 	public BiquadFilter(AudioContext context, Type itype, float ifreq,
 			float iqval) {
-		super(context, 1, 1);
+		this(context, 1, itype);
 		setFrequency(ifreq).setQ(iqval);
 	}
 
@@ -278,7 +278,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 *            The initial Q-value.
 	 */
 	public BiquadFilter(AudioContext context, Type itype, UGen ifreq, float iqval) {
-		super(context, 1, 1);
+		this(context, 1, itype);
 		setFrequency(ifreq).setQ(iqval);
 	}
 
@@ -297,7 +297,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 *            The Q-value UGen.
 	 */
 	public BiquadFilter(AudioContext context, Type itype, float ifreq, UGen iqval) {
-		super(context, 1, 1);
+		this(context, 1, itype);
 		setFrequency(ifreq).setQ(iqval);
 	}
 
@@ -316,7 +316,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 	 *            The Q-value UGen.
 	 */
 	public BiquadFilter(AudioContext context, Type itype, UGen ifreq, UGen iqval) {
-		super(context, 1, 1);
+		this(context, 1, itype);
 		setFrequency(ifreq).setQ(iqval);
 	}
 
