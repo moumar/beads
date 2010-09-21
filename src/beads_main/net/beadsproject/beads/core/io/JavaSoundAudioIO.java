@@ -423,6 +423,7 @@ public class JavaSoundAudioIO extends AudioIO {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		int i,j, counter;
 		
 		while (context.isRunning()) {
 			
@@ -459,8 +460,8 @@ public class JavaSoundAudioIO extends AudioIO {
 			/////// OUTPUT ///////
 			
 			if (isBigEndian) {
-				for (int i = 0, counter = 0; i < bufferSizeInFrames; ++i) {
-					for (int j = 0; j < channels; ++j) {
+				for (i = 0, counter = 0; i < bufferSizeInFrames; ++i) {
+					for (j = 0; j < channels; ++j) {
 						short y = (short) (32767. * Math.min(Math.max(
 								context.out.getValue(j, i), -1.0f), 1.0f));
 						bbufOut[counter++] = (byte) ((y >> 8) & 0xFF);
@@ -468,8 +469,8 @@ public class JavaSoundAudioIO extends AudioIO {
 					}
 				}
 			} else {
-				for (int i = 0, counter = 0; i < bufferSizeInFrames; ++i) {
-					for (int j = 0; j < channels; ++j) {
+				for (i = 0, counter = 0; i < bufferSizeInFrames; ++i) {
+					for (j = 0; j < channels; ++j) {
 						short y = (short) (32767. * Math.min(Math.max(
 								context.out.getValue(j, i), -1.0f), 1.0f));
 						bbufOut[counter++] = (byte) (y & 0xFF);

@@ -4,7 +4,6 @@
 package net.beadsproject.beads.core;
 
 import net.beadsproject.beads.core.io.JavaSoundAudioIO;
-import net.beadsproject.beads.data.audiofile.AudioFile;
 
 /**
  * AudioIO is the abstract base class for setting up interaction between {@link AudioContext} and the world. It is 

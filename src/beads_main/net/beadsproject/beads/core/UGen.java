@@ -7,7 +7,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -551,7 +550,7 @@ public abstract class UGen extends Bead {
 			try {
 				envelopes.put(s, (UGen)m.invoke(this, new Object[] {}));
 			} catch (Exception e) {
-				e.printStackTrace();
+//				e.printStackTrace();		//
 			}
 		}
 		return envelopes;
