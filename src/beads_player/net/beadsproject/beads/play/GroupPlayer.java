@@ -56,7 +56,7 @@ public class GroupPlayer {
 	}
 	
 	private void doPlayGroupNow(SongGroup newGroup) {
-		System.out.println("Play group");
+//		System.out.println("Play group");
 		if(currentGroup != null) {
 			ArrayList<SongPart> incoming = new ArrayList<SongPart>();
 			ArrayList<SongPart> outgoing = new ArrayList<SongPart>();

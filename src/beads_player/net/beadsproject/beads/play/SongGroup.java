@@ -2,11 +2,6 @@ package net.beadsproject.beads.play;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.ListIterator;
-import javax.swing.JPanel;
-import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.core.Bead;
-import net.beadsproject.beads.ugens.Gain;
 
 
 // TODO: Auto-generated Javadoc
