@@ -46,7 +46,7 @@ public abstract class SongPart extends Gain implements InterfaceElement {
 	private BeadsKeys.KeyboardListener kl;
 	
 	public SongPart(String name, Environment environment) {
-		this(name, environment, environment.ac.getAudioFormat().getChannels(), 2);
+		this(name, environment, environment.ac.getAudioFormat().outputs, 2);
 	}
 	
 	/**

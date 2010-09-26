@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
+import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.Line;
@@ -25,7 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 
 import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.core.AudioFormat;
+import net.beadsproject.beads.core.IOAudioFormat;
 import net.beadsproject.beads.core.AudioIO;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
@@ -90,16 +91,17 @@ public class JavaSoundAudioIO extends AudioIO {
 	 * @return true, if successful
 	 */
 	private boolean setupOutputJavaSound() {
-		AudioFormat audioFormat = getContext().getAudioFormat();
+		IOAudioFormat baf = getContext().getAudioFormat();
+		AudioFormat jsaf = new AudioFormat(baf.sampleRate, baf.bitDepth, baf.outputs, baf.signed, baf.bigEndian);
 		DataLine.Info info = new DataLine.Info(SourceDataLine.class,
-				audioFormat);
+				jsaf);
 		try {
-			int inputBufferSize = systemBufferSizeInFrames * audioFormat.getFrameSize();
+			int inputBufferSize = systemBufferSizeInFrames * jsaf.getFrameSize();
 			sourceDataLine = (SourceDataLine) mixer.getLine(info);
 			if (systemBufferSizeInFrames < 0)
-				sourceDataLine.open(audioFormat);
+				sourceDataLine.open(jsaf);
 			else
-				sourceDataLine.open(audioFormat, inputBufferSize);
+				sourceDataLine.open(jsaf, inputBufferSize);
 			System.out.println("JavaSoundAudioIO: Chosen output is "
 					+ sourceDataLine.getLineInfo()
 					+ ", buffer size in bytes: " + inputBufferSize);
@@ -114,14 +116,15 @@ public class JavaSoundAudioIO extends AudioIO {
 	 * Setup input java sound.
 	 */
 	private void setupInputJavaSound() {
-		AudioFormat audioFormat = context.getInputAudioFormat();
+		IOAudioFormat baf = getContext().getAudioFormat();
+		AudioFormat jsaf = new AudioFormat(baf.sampleRate, baf.bitDepth, baf.inputs, baf.signed, baf.bigEndian);
 		DataLine.Info info = new DataLine.Info(TargetDataLine.class,
-				audioFormat);
+				jsaf);
 		try {
 			//hackety hack
-			int inputBufferSize = 2 * systemBufferSizeInFrames * audioFormat.getFrameSize();
+			int inputBufferSize = 2 * systemBufferSizeInFrames * jsaf.getFrameSize();
 			targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
-			targetDataLine.open(audioFormat, inputBufferSize);
+			targetDataLine.open(jsaf, inputBufferSize);
 			if (targetDataLine == null)
 				System.out.println("no line");
 			else
@@ -218,26 +221,27 @@ public class JavaSoundAudioIO extends AudioIO {
 		confirmButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int mixerSelection = 0;
-				AudioFormat inputAudioFormat = null, outputAudioFormat = null;
+				IOAudioFormat audioFormat = null;
 				float sampleRate = (Float)sampleRateChooser.getSelectedItem();
 				int sampleSizeInBits = (Integer)bitDepthChooser.getSelectedItem();
 				int inputChannels = (Integer)inputChannelsChooser.getSelectedItem();
 				int outputChannels = (Integer)outputChannelsChooser.getSelectedItem();
 				boolean signed = ((String)signedUnsignedChooser.getSelectedItem()).equals("Signed");
 				boolean bigEndian = ((String)bigEndianChooser.getSelectedItem()).equals("Big endian");
-				inputAudioFormat = new AudioFormat(sampleRate, sampleSizeInBits, inputChannels, signed, bigEndian);
-				outputAudioFormat = new AudioFormat(sampleRate, sampleSizeInBits, outputChannels, signed, bigEndian);
+				audioFormat = new IOAudioFormat(sampleRate, sampleSizeInBits, inputChannels, outputChannels, signed, bigEndian);
 				mixerSelection = mixerList.getSelectedIndex();
 				//OK, we're ready to go
+				AudioFormat jsafIn = new AudioFormat(audioFormat.sampleRate, audioFormat.bitDepth, audioFormat.inputs, audioFormat.signed, audioFormat.bigEndian);
+				AudioFormat jsafOut = new AudioFormat(audioFormat.sampleRate, audioFormat.bitDepth, audioFormat.outputs, audioFormat.signed, audioFormat.bigEndian);
+				
 				//but first we should test the mixer for the given audioFormat
-				if(!testMixer(mixerSelection, inputAudioFormat, outputAudioFormat)) {
+				if(!testMixer(mixerSelection, jsafIn, jsafOut)) {
 					JOptionPane.showMessageDialog(f, "The chosen mixer doesn't work with the given settings.");
 					return;
 				}
 				int bufferSize = (Integer)bufferSizeChooser.getSelectedItem();
 				selectMixer(mixerSelection);
-				acHandle.ac = new AudioContext(bufferSize, JavaSoundAudioIO.this, outputAudioFormat);
-				acHandle.ac.setInputAudioFormat(inputAudioFormat);
+				acHandle.ac = new AudioContext(bufferSize, JavaSoundAudioIO.this, audioFormat);
 				acHandle.done = true;
 				f.dispose();
 			}
@@ -390,11 +394,11 @@ public class JavaSoundAudioIO extends AudioIO {
 	/** Update loop called from within audio thread (created in start() method). */
 	private void runRealTime() {
 		AudioContext context = getContext();
-		AudioFormat audioFormat = context.getAudioFormat();
+		IOAudioFormat audioFormat = context.getAudioFormat();
 		int bufferSizeInFrames = context.getBufferSize();
-		boolean isBigEndian = audioFormat.isBigEndian();
-		int channels = audioFormat.getChannels();
-		bbufOut = new byte[bufferSizeInFrames * audioFormat.getFrameSize()];
+		boolean isBigEndian = audioFormat.bigEndian;
+		int channels = audioFormat.outputs;
+		bbufOut = new byte[bufferSizeInFrames * audioFormat.bitDepth * 8];
 		try {
 			sourceDataLine.open();
 		} catch (LineUnavailableException e) {
@@ -402,7 +406,7 @@ public class JavaSoundAudioIO extends AudioIO {
 		}
 		sourceDataLine.start();
 		if(hasInput) {
-			bbufIn = new byte[bufferSizeInFrames * context.getInputAudioFormat().getFrameSize()];
+			bbufIn = new byte[bufferSizeInFrames * audioFormat.bitDepth * 8];
 			targetDataLine.start();
 		}
 		//time check
@@ -504,7 +508,7 @@ public class JavaSoundAudioIO extends AudioIO {
 			if(context.isRunning()) {
 				setupInputJavaSound();
 				targetDataLine.start();
-				bbufIn = new byte[context.getBufferSize() * context.getInputAudioFormat().getFrameSize()];
+				bbufIn = new byte[context.getBufferSize() * context.getAudioFormat().bitDepth * 8];
 			} else {
 			}
 		}
@@ -540,13 +544,13 @@ public class JavaSoundAudioIO extends AudioIO {
 		public void calculateBuffer() {
 			int ib;
 			int offset = 0;
-			if (context.getInputAudioFormat().isBigEndian()) {
+			if (context.getAudioFormat().bigEndian) {
 				for (int i = 0; i < bufferSize; i++) {
 					for (int j = 0; j < channelsToServe.length; j++) {
 						ib = (channelsToServe[j] + offset) * 2;
 						bufOut[j][i] = ((bbufIn[ib] << 8) | (bbufIn[ib + 1] & 0xFF)) / 32768.0F;
 					}
-					offset += context.getInputAudioFormat().getChannels();
+					offset += context.getAudioFormat().inputs;
 				}
 			} else {
 				for (int i = 0; i < bufferSize; i++) {
@@ -554,7 +558,7 @@ public class JavaSoundAudioIO extends AudioIO {
 						ib = (channelsToServe[j] + offset) * 2;
 						bufOut[j][i] = ((bbufIn[ib] & 0xFF) | (bbufIn[ib + 1] << 8)) / 32768.0F;
 					}
-					offset += context.getInputAudioFormat().getChannels();
+					offset += context.getAudioFormat().inputs;
 				}
 			}
 

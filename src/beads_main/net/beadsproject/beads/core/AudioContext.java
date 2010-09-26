@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Set;
 import net.beadsproject.beads.core.io.JavaSoundAudioIO;
 import net.beadsproject.beads.data.Sample;
+import net.beadsproject.beads.data.SampleAudioFormat;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
 import net.beadsproject.beads.ugens.DelayTrigger;
 import net.beadsproject.beads.ugens.Gain;
@@ -18,7 +19,7 @@ import net.beadsproject.beads.ugens.RecordToSample;
 
 /**
  * AudioContext provides the core audio set up for running audio in a Beads
- * project. An AudioContext determines the JavaSound {@link AudioFormat} used,
+ * project. An AudioContext determines the JavaSound {@link IOAudioFormat} used,
  * the IO device, the audio buffer size and the system IO buffer size. An
  * AudioContext also provides a {@link UGen} called {@link #out}, which is
  * the output point for networks of UGens in a Beads project.
@@ -33,11 +34,8 @@ public class AudioContext {
 	/** The audio IO device. */
 	private AudioIO audioIO;
 
-	/** The output audio format. */
-	private AudioFormat outputAudioFormat;
-	
-	/** The input audio format. */
-	private AudioFormat inputAudioFormat;
+	/** The Beads audio format. */
+	private IOAudioFormat audioFormat;
 
 	/** The stop flag. */
 	private boolean stopped;
@@ -93,7 +91,7 @@ public class AudioContext {
 	 * @param ioSystem the AudioIO system.
 	 */
 	public AudioContext(AudioIO ioSystem) {
-		this(DEFAULT_BUFFER_SIZE, ioSystem, defaultAudioFormat(2));
+		this(DEFAULT_BUFFER_SIZE, ioSystem, defaultAudioFormat(2, 2));
 	}
 	
 	/**
@@ -107,7 +105,7 @@ public class AudioContext {
 	 */
 	public AudioContext(int bufferSizeInFrames, AudioIO ioSystem) {
 		// use almost entirely default settings
-		this(bufferSizeInFrames, ioSystem, defaultAudioFormat(2));
+		this(bufferSizeInFrames, ioSystem, defaultAudioFormat(2, 2));
 	}
 
 	/**
@@ -120,7 +118,7 @@ public class AudioContext {
 	 *            the audio format, which specifies sample rate, bit depth,
 	 *            number of channels, signedness and byte order.
 	 */
-	public AudioContext(int bufferSizeInFrames, AudioFormat audioFormat) {
+	public AudioContext(int bufferSizeInFrames, IOAudioFormat audioFormat) {
 		this(bufferSizeInFrames, defaultAudioIO(), audioFormat);
 	}
 
@@ -132,7 +130,7 @@ public class AudioContext {
 	 *            the audio format, which specifies sample rate, bit depth,
 	 *            number of channels, signedness and byte order.
 	 */
-	public AudioContext(AudioFormat audioFormat) {
+	public AudioContext(IOAudioFormat audioFormat) {
 		this(DEFAULT_BUFFER_SIZE, defaultAudioIO(), audioFormat);
 	}
 
@@ -147,18 +145,17 @@ public class AudioContext {
 	 *            number of channels, signedness and byte order.
 	 */
 	public AudioContext(int bufferSizeInFrames, AudioIO ioSystem,
-			AudioFormat audioFormat) {
+			IOAudioFormat audioFormat) {
 		// set up basic stuff
 		logTime = false;
 		maxReserveBufs = 50;
 		stopped = true;
 		// set audio format
-		this.outputAudioFormat = audioFormat;
-		this.inputAudioFormat = audioFormat;
+		this.audioFormat = audioFormat;
 		// set buffer size
 		setBufferSize(bufferSizeInFrames);
 		// set up the default root UGen
-		out = new Gain(this, audioFormat.getChannels());
+		out = new Gain(this, audioFormat.outputs);
 		// bind to AudioIO
 		this.audioIO = ioSystem;
 		this.audioIO.context = this;
@@ -186,7 +183,7 @@ public class AudioContext {
 	 * @return a UGen which can be used to access audio input.
 	 */
 	public UGen getAudioInput() {
-		int[] chans = new int[inputAudioFormat.getChannels()];
+		int[] chans = new int[audioFormat.inputs];
 		for(int i = 0; i < chans.length; i++) {
 			chans[i] = i;
 		}
@@ -337,7 +334,7 @@ public class AudioContext {
 	 * @return sample rate in samples per second.
 	 */
 	public float getSampleRate() {
-		return outputAudioFormat.getSampleRate();
+		return audioFormat.sampleRate;
 	}
 
 	/**
@@ -345,28 +342,10 @@ public class AudioContext {
 	 * 
 	 * @return AudioFormat used by this AudioContext.
 	 */
-	public AudioFormat getAudioFormat() {
-		return outputAudioFormat;
+	public IOAudioFormat getAudioFormat() {
+		return audioFormat;
 	}
 	
-	/**
-	 * Gets the input AudioFormat for this AudioContext.
-	 * 
-	 * @return AudioFormat used by this AudioContext for input.
-	 */
-	public AudioFormat getInputAudioFormat() {
-		return inputAudioFormat;
-	}
-	
-	/**
-	 * Set the input AudioFormat for this AudioContext.
-	 * 
-	 * @param inputAudioFormat AudioFormat used by this AudioContext for input.
-	 */
-	public void setInputAudioFormat(AudioFormat inputAudioFormat) {
-		this.inputAudioFormat = inputAudioFormat;
-	}
-
 	/**
 	 * Generates a new AudioFormat with the same everything as the
 	 * AudioContext's AudioFormat except for the number of channels.
@@ -376,16 +355,13 @@ public class AudioContext {
 	 * @return a new AudioFormat with the given number of channels, all other
 	 *         properties coming from the original AudioFormat.
 	 */
-	public AudioFormat getAudioFormat(int numChannels) {
-		AudioFormat newFormat = new AudioFormat(outputAudioFormat.getEncoding(),
-				outputAudioFormat.getSampleRate(), outputAudioFormat.getSampleSizeInBits(),
-				numChannels, outputAudioFormat.getFrameSize(), outputAudioFormat
-						.getFrameRate(), outputAudioFormat.isBigEndian());
+	public IOAudioFormat getAudioFormat(int inputs, int outputs) {
+		IOAudioFormat newFormat = new IOAudioFormat(audioFormat.sampleRate, audioFormat.bitDepth, inputs, outputs);
 		return newFormat;
 	}
 
 	/**
-	 * Generates the default {@link AudioFormat} for AudioContext, with the
+	 * Generates the default {@link IOAudioFormat} for AudioContext, with the
 	 * given number of channels. The default values are: sampleRate=44100,
 	 * sampleSizeInBits=16, signed=true, bigEndian=true.
 	 * 
@@ -393,20 +369,20 @@ public class AudioContext {
 	 *            the number of channels to use.
 	 * @return the generated AudioFormat.
 	 */
-	public static AudioFormat defaultAudioFormat(int numChannels) {
-		return new AudioFormat(44100, 16, numChannels, true, true);
+	public static IOAudioFormat defaultAudioFormat(int inputs, int outputs) {
+		return new IOAudioFormat(44100, 16, inputs, outputs, true, true);
 	}
 
 	/**
 	 * Prints AudioFormat information to System.out.
 	 */
 	public void postAudioFormatInfo() {
-		System.out.println("Sample Rate: " + outputAudioFormat.getSampleRate());
-		System.out.println("Channels: " + outputAudioFormat.getChannels());
-		System.out
-				.println("Frame size in Bytes: " + outputAudioFormat.getFrameSize());
-		System.out.println("Encoding: " + outputAudioFormat.getEncoding());
-		System.out.println("Big Endian: " + outputAudioFormat.isBigEndian());
+		System.out.println("Sample Rate: " + audioFormat.sampleRate);
+		System.out.println("Inputs: " + audioFormat.inputs);
+		System.out.println("Outputs: " + audioFormat.outputs);
+		System.out.println("Bit Depth: " + audioFormat.bitDepth);
+		System.out.println("Big Endian: " + audioFormat.bigEndian);
+		System.out.println("Signed: " + audioFormat.signed);
 	}
 
 	/**
@@ -446,7 +422,7 @@ public class AudioContext {
 	 * @return number of samples.
 	 */
 	public double msToSamples(double msTime) {
-		return msTime * (outputAudioFormat.getSampleRate() / 1000.0);
+		return msTime * (audioFormat.sampleRate / 1000.0);
 	}
 
 	/**
@@ -458,7 +434,7 @@ public class AudioContext {
 	 * @return duration in milliseconds.
 	 */
 	public double samplesToMs(double sampleTime) {
-		return (sampleTime / outputAudioFormat.getSampleRate()) * 1000.0;
+		return (sampleTime / audioFormat.sampleRate) * 1000.0;
 	}
 
 	/**
@@ -520,7 +496,8 @@ public class AudioContext {
 	 * @see Sample sample
 	 **/
 	public void record(double timeMS, String filename) throws IOException {
-		Sample s = new Sample(getAudioFormat(), (int) timeMS);
+		SampleAudioFormat saf = new SampleAudioFormat(audioFormat.sampleRate, audioFormat.bitDepth, audioFormat.outputs);
+		Sample s = new Sample(saf, (int)timeMS);
 		RecordToSample r;
 		try {
 			r = new RecordToSample(this, s);
@@ -554,7 +531,7 @@ public class AudioContext {
 	public void start() {
 		if (stopped) {
 			// calibration test stuff
-			nanoLeap = (long) (1000000000 * ((float) bufferSizeInFrames / outputAudioFormat.getSampleRate()));
+			nanoLeap = (long) (1000000000 * ((float) bufferSizeInFrames / audioFormat.sampleRate));
 			lastFrameGood = true;
 			// reset time step
 			timeStep = 0;

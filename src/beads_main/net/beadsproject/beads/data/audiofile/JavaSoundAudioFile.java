@@ -10,16 +10,18 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.sound.sampled.AudioFileFormat;
+import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-import org.tritonus.share.sampled.file.TAudioFileFormat;
-
-import net.beadsproject.beads.core.AudioFormat;
 import net.beadsproject.beads.core.AudioUtils;
 import net.beadsproject.beads.data.Sample;
+import net.beadsproject.beads.data.SampleAudioFormat;
+
+import org.tritonus.share.sampled.file.TAudioFileFormat;
 
 /**
  * Uses javasound to load audio files located on disk or via a URL. 
@@ -193,7 +195,7 @@ public class JavaSoundAudioFile extends AudioFile {
 	 * Note: this function skips frames, not bytes.
 	 * Doesn't work for vbr!
 	 * 
-	 * TODO: Known issue, MP3 seeking is not precise. Why?
+	 * Known issue: MP3 seeking is not precise. Why?
 	 *
 	 * @param frames Number of frames to skip
 	 */
@@ -530,7 +532,7 @@ public class JavaSoundAudioFile extends AudioFile {
 	  * THIS CODE IS FROM jlGui PlayerUI.java.
 	  * jlGui can be obtained at: http://www.javazoom.net/jlgui/jlgui.html
 	  */
-    @SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public long getTimeLengthEstimation(Map properties)
     {
         long milliseconds = -1;
@@ -582,9 +584,10 @@ public class JavaSoundAudioFile extends AudioFile {
         return milliseconds;
     }
     
-    static public AudioFormat convertJavasoundAudioFormatToBeadsAudioFormat(javax.sound.sampled.AudioFormat af)
+    static public SampleAudioFormat convertJavasoundAudioFormatToBeadsAudioFormat(javax.sound.sampled.AudioFormat af)
     {
-    	AudioFormat newaf = new AudioFormat(af.getEncoding(), af.getSampleRate(), af.getSampleSizeInBits(), af.getChannels(), af.getFrameSize(), af.getFrameRate(), af.isBigEndian());
+    	boolean signed = af.getEncoding() == AudioFormat.Encoding.PCM_SIGNED; //?
+    	SampleAudioFormat newaf = new SampleAudioFormat(af.getSampleRate(), af.getSampleSizeInBits(), af.getChannels(), signed, af.isBigEndian());
     	return newaf;
     }
 }

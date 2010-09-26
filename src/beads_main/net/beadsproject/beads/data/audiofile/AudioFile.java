@@ -8,9 +8,10 @@ import java.util.Map;
 
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-import net.beadsproject.beads.core.AudioFormat;
+import net.beadsproject.beads.core.IOAudioFormat;
 import net.beadsproject.beads.core.AudioIO;
 import net.beadsproject.beads.data.Sample;
+import net.beadsproject.beads.data.SampleAudioFormat;
 
 /**
  * An AudioFile provides a handle to an audio file located either on disk or online. 
@@ -34,7 +35,7 @@ public abstract class AudioFile {
 	/**
 	 * The format of the decoded audio data. 
 	 */
-	protected AudioFormat audioFormat;	
+	protected SampleAudioFormat audioFormat;	
 		
 	/** 
 	 * The total number of frames.
@@ -150,7 +151,7 @@ public abstract class AudioFile {
 			str += "Channels: " + getNumChannels() + "\n";
 			str += "Frames: " + getNumFrames() + "\n";
 			str += "Length: " + getLength()+ "ms\n";			
-			str += "Frame Size: " + getFrameSize() + "b\n";
+			str += "Bit Depth: " + getBitDepth() + "b\n";
 			
 			if (!audioInfo.isEmpty())
 			{			
@@ -187,7 +188,7 @@ public abstract class AudioFile {
 	/**
 	 * @return The AudioFormat of this AudioFile. If the file is encoded, the AudioFormat is of the decoded data.
 	 */
-	public AudioFormat getFormat()
+	public SampleAudioFormat getFormat()
 	{
 		return audioFormat;
 	}
@@ -228,7 +229,7 @@ public abstract class AudioFile {
 	 * @return The number of channels of audio data.
 	 */
 	public int getNumChannels() {
-		return audioFormat.getChannels();
+		return audioFormat.channels;
 	}
 
 	protected void setNumFrames(long nFrames) {
@@ -254,10 +255,17 @@ public abstract class AudioFile {
 	}
 	
 	/**
-	 * @return The size of each frame in bytes
+	 * @return The size of each sample in bits.
+	 */
+	public int getBitDepth() {
+		return audioFormat.bitDepth;		
+	}
+
+	/**
+	 * @return The size of each frame in bytes.
 	 */
 	public int getFrameSize() {
-		return audioFormat.getFrameSize();		
+		return audioFormat.bitDepth / 8;		
 	}
     
 	/**

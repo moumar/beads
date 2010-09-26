@@ -23,6 +23,9 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import net.beadsproject.beads.core.AudioUtils;
+import net.beadsproject.beads.core.IOAudioFormat;
+import net.beadsproject.beads.data.Sample.Regime;
+import net.beadsproject.beads.data.Sample.TotalRegime;
 import net.beadsproject.beads.data.audiofile.AudioFile;
 
 /**
@@ -47,7 +50,7 @@ import net.beadsproject.beads.data.audiofile.AudioFile;
  * {@link #putFrame(int, float[]) putFrame} or
  * {@link #putFrames(int, float[][]) putFrames}. <i>However</i> you can only
  * write into a sample if the sample {@link #isWriteable()}, which occurs if the buffering regime
- * is a {@link TotalRegime Total Regime} or has been created with the {@link #Sample(AudioFormat, double) empty sample constructor}.
+ * is a {@link TotalRegime Total Regime} or has been created with the {@link #Sample(IOAudioFormat, double) empty sample constructor}.
  * </p>
  * 
  * <p>
@@ -291,7 +294,7 @@ public class Sample implements Runnable {
 	// Sample stuff
 	private Regime bufferingRegime;
 	private AudioFile audioFile;
-	private AudioFormat audioFormat;
+	private SampleAudioFormat audioFormat;
 	private int nChannels;
 	private long nFrames;
 	private float length; // length in ms
@@ -329,6 +332,7 @@ public class Sample implements Runnable {
 		
 		private float[] current, next; //used as temp buffers whilst calculating interpolation
 
+		
 	/**
 	 * Instantiates a new writeable Sample with the specified audio format and
 	 * length;
@@ -338,10 +342,10 @@ public class Sample implements Runnable {
 	 * @param audioFormat the audio format.
 	 * @param length The length of the sample in ms.
 	 */
-	public Sample(AudioFormat audioFormat, double length) {
+	public Sample(SampleAudioFormat audioFormat, double length) {
 		this();
 		this.audioFormat = audioFormat;
-		nChannels = audioFormat.getChannels();
+		nChannels = audioFormat.channels;
 		current = new float[nChannels];
 		next = new float[nChannels];
 		nFrames = (long) msToSamples(length);
@@ -353,14 +357,14 @@ public class Sample implements Runnable {
 		{
 			f_sampleData = new float[nChannels][(int)nFrames];			
 		}
-		this.length = 1000f * nFrames / audioFormat.getSampleRate();
+		this.length = 1000f * nFrames / audioFormat.sampleRate;
 	}
 	
-	public Sample(AudioFormat audioFormat, double length, Regime br) {
+	public Sample(SampleAudioFormat audioFormat, double length, Regime br) {
 		this();
 		bufferingRegime = br;
 		this.audioFormat = audioFormat;
-		nChannels = audioFormat.getChannels();
+		nChannels = audioFormat.channels;
 		current = new float[nChannels];
 		next = new float[nChannels];
 		nFrames = (long) msToSamples(length);
@@ -372,7 +376,7 @@ public class Sample implements Runnable {
 		{
 			f_sampleData = new float[nChannels][(int)nFrames];			
 		}
-		this.length = 1000f * nFrames / audioFormat.getSampleRate();
+		this.length = 1000f * nFrames / audioFormat.sampleRate;
 	}
 
 	/**
@@ -555,8 +559,6 @@ public class Sample implements Runnable {
 					}
 				}
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				// e.printStackTrace();
 				Arrays.fill(frameData,0.f);		
 				return;
 			}
@@ -933,7 +935,8 @@ public class Sample implements Runnable {
 			if (bufferingRegime.storeInNativeBitDepth)
 			{			
 				ByteArrayInputStream bais = new ByteArrayInputStream(sampleData);
-				AudioInputStream aos = new AudioInputStream(bais, audioFormat, nFrames);
+				AudioFormat jsaf = new AudioFormat(audioFormat.sampleRate, audioFormat.bitDepth, audioFormat.channels, audioFormat.signed, audioFormat.bigEndian);
+				AudioInputStream aos = new AudioInputStream(bais, jsaf, nFrames);
 				AudioSystem.write(aos, type, new File(fn));
 			}
 			else
@@ -947,8 +950,8 @@ public class Sample implements Runnable {
 				
 				byte bytes[] = new byte[(int) (getNumChannels()*getNumFrames()*2)];
 				AudioUtils.floatToByte(bytes, interleaved, isBigEndian);
-				
-				AudioSystem.write(new AudioInputStream(new ByteArrayInputStream(bytes),audioFormat,nFrames), type, new File(fn));
+				AudioFormat jsaf = new AudioFormat(audioFormat.sampleRate, audioFormat.bitDepth, audioFormat.channels, audioFormat.signed, audioFormat.bigEndian);
+				AudioSystem.write(new AudioInputStream(new ByteArrayInputStream(bytes),jsaf,nFrames), type, new File(fn));
 			}
 		}
 		else // bufferingRegime==BufferingRegime.TIMED
@@ -1066,11 +1069,10 @@ public class Sample implements Runnable {
 	 * Prints audio format info to System.out.
 	 */
 	public void printAudioFormatInfo() {
-		System.out.println("Sample Rate: " + audioFormat.getSampleRate());
+		System.out.println("Sample Rate: " + audioFormat.sampleRate);
 		System.out.println("Channels: " + nChannels);
-		System.out.println("Frame size in Bytes: " + audioFormat.getFrameSize());
-		System.out.println("Encoding: " + audioFormat.getEncoding());
-		System.out.println("Big Endian: " + audioFormat.isBigEndian());
+		System.out.println("Big Endian: " + audioFormat.bigEndian);
+		System.out.println("Signed: " + audioFormat.signed);
 	}
 
 	/**
@@ -1081,7 +1083,7 @@ public class Sample implements Runnable {
 	 * @return the time in samples.
 	 */
 	public double msToSamples(double msTime) {
-		return msTime * audioFormat.getSampleRate() / 1000.0f;
+		return msTime * audioFormat.sampleRate / 1000.0f;
 	}
 
 	/**
@@ -1092,7 +1094,7 @@ public class Sample implements Runnable {
 	 * @return the time in milliseconds.
 	 */
 	public double samplesToMs(double sampleTime) {
-		return sampleTime / audioFormat.getSampleRate() * 1000.0f;
+		return sampleTime / audioFormat.sampleRate * 1000.0f;
 	}
 
 	/* (non-Javadoc)
@@ -1140,7 +1142,7 @@ public class Sample implements Runnable {
 	}
 
 
-	public AudioFormat getAudioFormat() {
+	public SampleAudioFormat getAudioFormat() {
 		return audioFormat;
 	}
 
@@ -1173,7 +1175,7 @@ public class Sample implements Runnable {
 	}
 
 	public float getSampleRate() {
-		return audioFormat.getSampleRate();
+		return audioFormat.sampleRate;
 	}
 
 	/**
@@ -1254,7 +1256,7 @@ public class Sample implements Runnable {
 		current = new float[nChannels];
 		next = new float[nChannels];
 		length = audioFile.getLength();
-		isBigEndian = audioFile.getFormat().isBigEndian();
+		isBigEndian = audioFile.getFormat().bigEndian;
 	
 		init();
 	}
@@ -1296,7 +1298,7 @@ public class Sample implements Runnable {
 				
 				// if region size is greated than audio length then we clip the region size...
 				// but we still keep it as a timed regime, with 0 lookback and 0 lookahead
-				r_regionSize = (int)Math.ceil(((tr.regionSize/1000.) * audioFile.getFormat().getSampleRate()));
+				r_regionSize = (int)Math.ceil(((tr.regionSize/1000.) * audioFile.getFormat().sampleRate));
 				if (r_regionSize>nFrames)
 				{
 					r_regionSize = (int) nFrames;
@@ -1764,7 +1766,7 @@ public class Sample implements Runnable {
 		}
 	
 		this.nFrames = sampleBufferSize / (2*nChannels);
-		this.length = 1000f * nFrames / audioFormat.getSampleRate();
+		this.length = 1000f * nFrames / audioFormat.sampleRate;
 	
 		if (!bufferingRegime.storeInNativeBitDepth)
 		{

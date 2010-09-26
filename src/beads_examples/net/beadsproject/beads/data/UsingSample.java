@@ -20,7 +20,7 @@ public class UsingSample {
 			 * Or create a new empty sample.
 			 */
 			AudioContext ac = new AudioContext();
-			s = new Sample(ac.getAudioFormat(), 1000);
+			s = new Sample(new SampleAudioFormat(44100, 16, 2), 1000);
 			System.out.println("Created new Sample");
 			System.out.println("Name " + s.getFileName());
 			System.out.println("Known to friends as " + s.getSimpleFileName());
