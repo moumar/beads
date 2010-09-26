@@ -398,7 +398,7 @@ public class JavaSoundAudioIO extends AudioIO {
 		int bufferSizeInFrames = context.getBufferSize();
 		boolean isBigEndian = audioFormat.bigEndian;
 		int channels = audioFormat.outputs;
-		bbufOut = new byte[bufferSizeInFrames * audioFormat.bitDepth * 8];
+		bbufOut = new byte[bufferSizeInFrames * audioFormat.bitDepth / 8 * audioFormat.outputs];
 		try {
 			sourceDataLine.open();
 		} catch (LineUnavailableException e) {
@@ -406,7 +406,7 @@ public class JavaSoundAudioIO extends AudioIO {
 		}
 		sourceDataLine.start();
 		if(hasInput) {
-			bbufIn = new byte[bufferSizeInFrames * audioFormat.bitDepth * 8];
+			bbufIn = new byte[bufferSizeInFrames * audioFormat.bitDepth / 8 * audioFormat.inputs];
 			targetDataLine.start();
 		}
 		//time check
@@ -508,7 +508,7 @@ public class JavaSoundAudioIO extends AudioIO {
 			if(context.isRunning()) {
 				setupInputJavaSound();
 				targetDataLine.start();
-				bbufIn = new byte[context.getBufferSize() * context.getAudioFormat().bitDepth * 8];
+				bbufIn = new byte[context.getBufferSize() * context.getAudioFormat().bitDepth * context.getAudioFormat().inputs / 8];
 			} else {
 			}
 		}

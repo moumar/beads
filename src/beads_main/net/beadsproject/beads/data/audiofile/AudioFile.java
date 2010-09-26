@@ -265,7 +265,7 @@ public abstract class AudioFile {
 	 * @return The size of each frame in bytes.
 	 */
 	public int getFrameSize() {
-		return audioFormat.bitDepth / 8;		
+		return audioFormat.bitDepth * audioFormat.channels / 8;		
 	}
     
 	/**
