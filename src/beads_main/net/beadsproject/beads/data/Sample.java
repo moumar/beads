@@ -332,6 +332,14 @@ public class Sample implements Runnable {
 		
 		private float[] current, next; //used as temp buffers whilst calculating interpolation
 
+		/**
+		 * Instantiates a new writable sample with specified length and default audio format: 44.1KHz, 16 bit, stereo.
+		 * 
+		 * @param length the length in ms.
+		 */
+		public Sample(double length) {
+			this(new SampleAudioFormat(44100, 16, 2), length);
+		}
 		
 	/**
 	 * Instantiates a new writeable Sample with the specified audio format and
