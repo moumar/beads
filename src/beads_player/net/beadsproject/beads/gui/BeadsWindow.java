@@ -20,7 +20,7 @@ public class BeadsWindow extends JFrame {
 		content.emptyBorder();
 		getContentPane().add(content);
 		addKeyListener(BeadsKeys.singleton);
-		setAntiAlias(true);
+		setAntiAlias(false);
 	}
 	
 	public Component add(Component c) {
