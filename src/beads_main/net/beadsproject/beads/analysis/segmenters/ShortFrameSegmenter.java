@@ -36,7 +36,7 @@ public class ShortFrameSegmenter extends AudioSegmenter {
 	/** The previous TimeStamp. */
 	private TimeStamp lastTimeStamp;
 	
-	/** The TimeStamp of the AudioContext at t=0. */
+	/** The TimeStamp of this AudioSegmenter when the AudioContext is at t=0. */
 	private TimeStamp beginningTimeStamp;
 	
 	/** The window function used to scale the chunks. */
@@ -130,10 +130,10 @@ public class ShortFrameSegmenter extends AudioSegmenter {
 			}
 			count++;
 			if(count % hopSize == 0) {
-				TimeStamp nextTimeStamp = context.generateTimeStamp(i);
+				TimeStamp nextTimeStamp = TimeStamp.add(context, context.generateTimeStamp(i), beginningTimeStamp);
 				int chunkIndex = count / hopSize - 1;
-				segment(TimeStamp.subtract(context, lastTimeStamp, beginningTimeStamp), 
-						TimeStamp.subtract(context, nextTimeStamp, beginningTimeStamp), 
+				segment(lastTimeStamp, 
+						nextTimeStamp, 
 						chunks[chunkIndex]);
 				lastTimeStamp = nextTimeStamp;
 			}
@@ -144,6 +144,17 @@ public class ShortFrameSegmenter extends AudioSegmenter {
 	public void resetTimeStamp() {
 		lastTimeStamp = context.generateTimeStamp(0);
 		beginningTimeStamp = context.generateTimeStamp(0);
+		count = 0;
+	}
+	
+	public void setLastTimeStamp(TimeStamp ts) {
+		lastTimeStamp = ts;
+		count = 0;
+	}
+
+	public void setBeginningTimeStamp(TimeStamp ts) {
+		beginningTimeStamp = ts;
+		count = 0;
 	}
 	
 //	/* (non-Javadoc)

@@ -278,6 +278,7 @@ public class AudioContext {
 	public void runNonRealTime() {
 		if (stopped) {
 			stopped = false;
+			reset();
 			while (out != null && !stopped) {
 				bufStoreIndex = 0;
 				Arrays.fill(zeroBuf, 0f);
@@ -300,7 +301,7 @@ public class AudioContext {
 	 * @param n
 	 *            number of milliseconds.
 	 */
-	public void runForNMillisecondsNonRealTime(float n) {
+	public void runForNMillisecondsNonRealTime(double n) {
 		// time the playback to n seconds
 		DelayTrigger dt = new DelayTrigger(this, n,
 				new AudioContextStopTrigger(this));
@@ -534,11 +535,18 @@ public class AudioContext {
 			nanoLeap = (long) (1000000000 * ((float) bufferSizeInFrames / audioFormat.sampleRate));
 			lastFrameGood = true;
 			// reset time step
-			timeStep = 0;
+			reset();
 			stopped = false;
 			// the AudioIO is where the thread actually runs.
 			audioIO.start();
 		}
+	}
+	
+	/**
+	 * Simply resets the timeStep to zero.
+	 */
+	public void reset() {
+		timeStep = 0;
 	}
 
 	/**

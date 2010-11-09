@@ -62,7 +62,9 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 	}
 	
 	/**
-	 * Adds the specified FeatureFrame.
+	 * Adds the specified FeatureFrame. Note that this will not add the frame
+	 * if there is already a frame with the same start time. Use removeRange to
+	 * make space available.
 	 * 
 	 * @param ff the FeatureFrame.
 	 */
@@ -103,6 +105,28 @@ public class FeatureTrack implements Serializable, Iterable<FeatureFrame>, Segme
 				frameSet = framesInBlocks.get(i);
 				frameSet.remove(ff);
 			}
+		}
+	}
+	
+	/**
+	 * Remove all feature frames in the given range.
+	 * @param startRangeMS the beginning of the range.
+	 * @param endRangeMS the end of the range.
+	 */
+	public void removeRange(double startRangeMS, double endRangeMS) {
+		ArrayList<FeatureFrame> toRemove = new ArrayList<FeatureFrame>();
+		FeatureFrame startFrame = getFrameAt(startRangeMS);
+		if(startFrame == null) return;
+		toRemove.add(startFrame);
+		for(FeatureFrame ff : frames.tailSet(startFrame)) {
+			if(ff.getStartTimeMS() < endRangeMS) {
+				toRemove.add(ff);
+			} else {
+				break;
+			}
+		}
+		for(FeatureFrame ff : toRemove) {
+			remove(ff);
 		}
 	}
 	

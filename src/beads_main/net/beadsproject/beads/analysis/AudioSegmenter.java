@@ -81,6 +81,24 @@ public abstract class AudioSegmenter extends UGen implements SegmentMaker {
 		}
 	}
 	
+
+	/**
+	 * Reset both beginning and last time stamps to zero.
+	 */
+	public abstract void resetTimeStamp();	
+	
+	/** Set the TimeStamp of this AudioSegmenter when the AudioContext is at t=0. 
+	 * @param ts
+	 */
+	public abstract void setBeginningTimeStamp(TimeStamp ts);
+	
+	/** Set the last TimeStamp of this AudioSegmenter. The next time a segment is 
+	 * produced, the start time of the segment will be this value. The counter is
+	 * reset with this operation.
+	 * @param ts
+	 */
+	public abstract void setLastTimeStamp(TimeStamp ts);
+	
 	/* (non-Javadoc)
 	 * @see net.beadsproject.beads.core.Bead#toString()
 	 */

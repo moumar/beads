@@ -100,5 +100,9 @@ public class TimeStamp {
 	public static TimeStamp subtract(AudioContext ac, TimeStamp a, TimeStamp b) {
 		return new TimeStamp(ac, a.getTimeSamples() - b.getTimeSamples());
 	}
+	
+	public static TimeStamp add(AudioContext ac, TimeStamp a, TimeStamp b) {
+		return new TimeStamp(ac, a.getTimeSamples() + b.getTimeSamples());
+	}
 
 }
