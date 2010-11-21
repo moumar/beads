@@ -873,6 +873,7 @@ public class Sample implements Runnable {
 		}
 		else
 		{
+			//TODO in loop record this falls over
 			for(int i=0;i<nChannels;i++)
 			{
 				System.arraycopy(frameData[i], 0, f_sampleData[i], frame, numFrames);
