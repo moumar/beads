@@ -994,6 +994,30 @@ public class Sample implements Runnable {
 			 */
 		}
 	}
+	
+	/**
+	 * Simple utility if you just want to write some floats to a sample file.
+	 * @param sampleData the floating point sample data, [channels][frames].
+	 * @param fileName where to write
+	 * @param saf the format
+	 */
+	public static void write(float[][] sampleData, String fileName, SampleAudioFormat saf) {
+		// convert de-interleaved data to interleaved bytes...
+		int nChannels = sampleData.length;
+		int nFrames = sampleData[0].length;
+		float interleaved[] = new float[(int) (nFrames*nChannels)];
+		AudioUtils.interleave(sampleData, nChannels, (int) nFrames, 0, interleaved);
+		
+		byte bytes[] = new byte[(int) (nChannels*nFrames*saf.bitDepth/8)];	//!! this is fixed at 2
+		AudioUtils.floatToByte(bytes, interleaved, saf.bigEndian);
+		AudioFormat jsaf = new AudioFormat(saf.sampleRate, saf.bitDepth, saf.channels, saf.signed, saf.bigEndian);
+		try {
+			AudioSystem.write(new AudioInputStream(new ByteArrayInputStream(bytes),jsaf,nFrames), AudioFileFormat.Type.WAVE, new File(fileName));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	
+	}
 
 	/**
 	 * <b>Advanced</b>
