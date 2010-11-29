@@ -396,14 +396,15 @@ public class JavaSoundAudioIO extends AudioIO {
 		AudioContext context = getContext();
 		IOAudioFormat audioFormat = context.getAudioFormat();
 		int bufferSizeInFrames = context.getBufferSize();
+//		AudioFormat jsOutputAudioFormat = new AudioFormat(audioFormat.sampleRate, audioFormat.bitDepth, audioFormat.outputs, audioFormat.signed, audioFormat.bigEndian);
 		boolean isBigEndian = audioFormat.bigEndian;
 		int channels = audioFormat.outputs;
 		bbufOut = new byte[bufferSizeInFrames * audioFormat.bitDepth / 8 * audioFormat.outputs];
-		try {
-			sourceDataLine.open();
-		} catch (LineUnavailableException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			sourceDataLine.open(jsOutputAudioFormat);
+//		} catch (LineUnavailableException e) {
+//			e.printStackTrace();
+//		}
 		sourceDataLine.start();
 		if(hasInput) {
 			bbufIn = new byte[bufferSizeInFrames * audioFormat.bitDepth / 8 * audioFormat.inputs];
