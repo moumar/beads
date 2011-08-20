@@ -134,6 +134,7 @@ public class JavaSoundAudioIO extends AudioIO {
 		} catch (LineUnavailableException ex) {
 			System.out.println(getClass().getName()
 					+ " : Error getting line\n");
+			ex.printStackTrace();
 		}
 	}
 	
