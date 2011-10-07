@@ -41,6 +41,18 @@ public class Analyzer implements SegmentMaker {
 		
 		/** The chunk size. */
 		int chunkSize;
+
+		public AnalysisSettings(int hopSize, int chunkSize) {
+			super();
+			this.hopSize = hopSize;
+			this.chunkSize = chunkSize;
+		}
+
+		public AnalysisSettings() {
+			super();
+		}
+		
+		
 	}
 	
 	/** The default settings. */
