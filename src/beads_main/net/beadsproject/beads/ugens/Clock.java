@@ -20,7 +20,7 @@ public class Clock extends UGen implements IntegerBead {
     /** The interval envelope. */
     private UGen intervalEnvelope;
     
-    /** The current point in time of the Clock. */
+    /** The current point in time of the Clock in ticks. */
     private double point;
     
     /** The current tick count of the clock. */
