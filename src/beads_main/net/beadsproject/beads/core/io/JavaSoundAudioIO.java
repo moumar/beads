@@ -18,7 +18,6 @@ import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -26,8 +25,8 @@ import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 
 import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.core.IOAudioFormat;
 import net.beadsproject.beads.core.AudioIO;
+import net.beadsproject.beads.core.IOAudioFormat;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.WavePlayer;
@@ -40,8 +39,9 @@ public class JavaSoundAudioIO extends AudioIO {
 	/** The default system buffer size. */
 	public static final int DEFAULT_OUTPUT_BUFFER_SIZE = 2000;
 
-	/** The mixer. */
-	private Mixer mixer;
+	/** The mixers. */
+	private Mixer outputMixer;
+	private Mixer inputMixer;
 
 	/** The source data line. */
 	private SourceDataLine sourceDataLine;
@@ -97,7 +97,7 @@ public class JavaSoundAudioIO extends AudioIO {
 				jsaf);
 		try {
 			int inputBufferSize = systemBufferSizeInFrames * jsaf.getFrameSize();
-			sourceDataLine = (SourceDataLine) mixer.getLine(info);
+			sourceDataLine = (SourceDataLine) outputMixer.getLine(info);
 			if (systemBufferSizeInFrames < 0)
 				sourceDataLine.open(jsaf);
 			else
@@ -123,6 +123,7 @@ public class JavaSoundAudioIO extends AudioIO {
 		try {
 			//hackety hack
 			int inputBufferSize = 2 * systemBufferSizeInFrames * jsaf.getFrameSize();
+//			targetDataLine = (TargetDataLine) inputMixer.getLine(info);
 			targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
 			targetDataLine.open(jsaf, inputBufferSize);
 			if (targetDataLine == null)
@@ -141,12 +142,27 @@ public class JavaSoundAudioIO extends AudioIO {
 	/**
 	 * Presents a choice of mixers on the commandline.
 	 */
-	public void chooseMixerCommandLine() {
-		System.out.println("Choose a mixer...");
+	public void chooseOutputMixerCommandLine() {
+		System.out.println("Choose an output mixer...");
 		printMixerInfo();
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		try {
-			selectMixer(Integer.parseInt(br.readLine()) - 1);
+			selectOutputMixer(Integer.parseInt(br.readLine()) - 1);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	/**
+	 * Presents a choice of mixers on the commandline.
+	 */
+	public void chooseInputMixerCommandLine() {
+		System.out.println("Choose an input mixer...");
+		printMixerInfo();
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		try {
+			selectInputMixer(Integer.parseInt(br.readLine()) - 1);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -241,7 +257,7 @@ public class JavaSoundAudioIO extends AudioIO {
 					return;
 				}
 				int bufferSize = (Integer)bufferSizeChooser.getSelectedItem();
-				selectMixer(mixerSelection);
+				selectOutputMixer(mixerSelection);
 				acHandle.ac = new AudioContext(bufferSize, JavaSoundAudioIO.this, audioFormat);
 				acHandle.done = true;
 				f.dispose();
@@ -288,17 +304,34 @@ public class JavaSoundAudioIO extends AudioIO {
 	}
 
 	/**
-	 * Select a mixer by index.
+	 * Select an output mixer by index.
 	 * 
 	 * @param i
 	 *            the index of the selected mixer.
 	 */
-	public void selectMixer(int i) {
+	public void selectOutputMixer(int i) {
 		Mixer.Info[] mixerinfo = AudioSystem.getMixerInfo();
-		mixer = AudioSystem.getMixer(mixerinfo[i]);
-		if (mixer != null) {
-			System.out.print("JavaSoundAudioIO: Chosen mixer is ");
-			System.out.println(mixer.getMixerInfo().getName() + ".");
+		outputMixer = AudioSystem.getMixer(mixerinfo[i]);
+		if (outputMixer != null) {
+			System.out.print("JavaSoundAudioIO: Chosen output mixer is ");
+			System.out.println(outputMixer.getMixerInfo().getName() + ".");
+		} else {
+			System.out.println("JavaSoundAudioIO: Failed to get mixer.");
+		}
+	}
+	
+	/**
+	 * Select an input mixer by index.
+	 * 
+	 * @param i
+	 *            the index of the selected mixer.
+	 */
+	public void selectInputMixer(int i) {
+		Mixer.Info[] mixerinfo = AudioSystem.getMixerInfo();
+		inputMixer = AudioSystem.getMixer(mixerinfo[i]);
+		if (inputMixer != null) {
+			System.out.print("JavaSoundAudioIO: Chosen input mixer is ");
+			System.out.println(inputMixer.getMixerInfo().getName() + ".");
 		} else {
 			System.out.println("JavaSoundAudioIO: Failed to get mixer.");
 		}
@@ -355,9 +388,9 @@ public class JavaSoundAudioIO extends AudioIO {
 		sourceDataLine.stop();
 		sourceDataLine.close();
 		sourceDataLine = null;
-		if(mixer != null) {
-			mixer.close();
-			mixer = null;
+		if(outputMixer != null) {
+			outputMixer.close();
+			outputMixer = null;
 		}
 		System.out.println("JavaSoundAudioIO: stopped.");
 		return true;
@@ -373,8 +406,8 @@ public class JavaSoundAudioIO extends AudioIO {
 		audioThread = new Thread(new Runnable() {
 			public void run() {
 				// create JavaSound stuff only when needed
-				if(mixer == null) {
-					selectMixer(0);
+				if(outputMixer == null) {
+					selectOutputMixer(0);
 				}
 				setupOutputJavaSound();
 				if(hasInput && targetDataLine == null) {

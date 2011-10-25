@@ -860,9 +860,10 @@ public class Sample implements Runnable {
 	 */
 	public void putFrames(int frame, float[][] frameData)
 	{	
-		if(frame < 0) return;	//no need to fail or report error if out of range
 		
 		int numFrames = Math.min(frameData[0].length,(int)(nFrames-frame));
+
+		if(frame < 0) return;
 		
 		if (bufferingRegime.storeInNativeBitDepth)
 		{

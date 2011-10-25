@@ -33,6 +33,8 @@ public class BeadsGui {
 	private Slider tempoSlider;
 	private Clock clock;
 	
+	private Slider2D generic2DControl;	//experimental, aim is to allow arbitrary binding of this to any other slider
+	
 	public BeadsGui() {
 		Environment env = null;
 		try {
@@ -133,6 +135,14 @@ public class BeadsGui {
 			public void keyReleased(int keyCode) {}
 		});
 		ci.add(tg.getComponent());
+//		//add the generic control
+//		Slider genericX = new Slider(env.ac, "x", 0, 1, 0.5f);
+//		Slider genericY = new Slider(env.ac, "y", 0, 1, 0.5f);
+//		//now what to do with generic x and generic y?
+//		//make a button that waits for a connection from xy to some parametric element elsewhere, work on binding
+//		generic2DControl = new Slider2D(genericX, genericY);
+//		ci.add(generic2DControl.getComponent());
+		//and the beat readout
 		final Readout r = new Readout("time", "");
 		clock.addMessageListener(new Bead() {
 			public void messageReceived(Bead message) {
@@ -151,7 +161,7 @@ public class BeadsGui {
 		environmentFrame.setResizable(true);
 		environmentFrame.setVisible(true);
 		environmentFrame.pack();
-		//try to set up  rendering
+		//try to set up  rendering for all
 		Graphics2D graphics = (Graphics2D)environmentFrame.getGraphics();
 		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 	}
