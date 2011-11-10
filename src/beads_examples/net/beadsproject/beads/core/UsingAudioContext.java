@@ -3,6 +3,8 @@ package net.beadsproject.beads.core;
 import java.io.File;
 import java.io.IOException;
 
+import org.jaudiolibs.beads.AudioServerIO;
+
 import net.beadsproject.beads.core.io.NonrealtimeIO;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
 import net.beadsproject.beads.ugens.DelayTrigger;
@@ -20,7 +22,9 @@ public class UsingAudioContext {
 			 * the buffer size, IO and AudioFormat.
 			 * This gives you the default AudioContext, using JavaSound.
 			 */
-			AudioContext ac = new AudioContext();
+			
+			
+			AudioContext ac = new AudioContext(128, AudioServerIO.createJackIO(), new IOAudioFormat(44100, 16, 2, 2));
 			//make some sound
 			Noise n = new Noise(ac);
 			Gain g = new Gain(ac, 1, 0.05f);

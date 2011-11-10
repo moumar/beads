@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
-import net.beadsproject.beads.core.io.JavaSoundAudioIO;
+
+import org.jaudiolibs.beads.AudioServerIO;
+
 import net.beadsproject.beads.data.Sample;
 import net.beadsproject.beads.data.SampleAudioFormat;
 import net.beadsproject.beads.events.AudioContextStopTrigger;
@@ -197,7 +199,7 @@ public class AudioContext {
 	 * @return a new JavaSoundAudioIO with noargs constructor.
 	 */
 	public static AudioIO defaultAudioIO() {
-		return new JavaSoundAudioIO();
+		return AudioServerIO.createJavaSoundIO();
 	}
 
 	/**

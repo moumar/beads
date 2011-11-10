@@ -48,11 +48,5 @@ public class Noise extends UGen {
 			}
 		}
 	}
-	
-	public static void main(String[] args) {
-		AudioContext ac = new AudioContext();
-		ac.out.addInput(new Noise(ac));
-		ac.start();
-	}
 
 }

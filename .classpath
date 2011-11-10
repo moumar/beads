@@ -10,5 +10,11 @@
 	<classpathentry kind="lib" path="dependencies/jl1.0.1.jar"/>
 	<classpathentry kind="lib" path="dependencies/tools.jar"/>
 	<classpathentry kind="lib" path="dependencies/tritonus_aos-0.3.6.jar"/>
+	<classpathentry kind="lib" path="dependencies/jarjar-1.0.jar"/>
+	<classpathentry kind="lib" path="dependencies/jna-3.2.7.jar"/>
+	<classpathentry kind="lib" path="dependencies/org-jaudiolibs-audioservers-jack.jar"/>
+	<classpathentry kind="lib" path="dependencies/org-jaudiolibs-audioservers-javasound.jar"/>
+	<classpathentry kind="lib" path="dependencies/org-jaudiolibs-audioservers.jar"/>
+	<classpathentry kind="lib" path="dependencies/org-jaudiolibs-jnajack.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

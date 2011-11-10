@@ -3,11 +3,9 @@ package net.beadsproject.beads.events;
 import java.util.Hashtable;
 import java.util.Map;
 
-
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.UGen;
-import net.beadsproject.beads.core.io.JavaSoundAudioIO;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
 import net.beadsproject.beads.ugens.Clock;
@@ -85,8 +83,7 @@ public class UsingSoundEvent {
 				}
 			};
 			//Now we have a SoundEvent, do something with it
-			JavaSoundAudioIO jsaio = new JavaSoundAudioIO();
-			AudioContext ac = jsaio.setUpAudioContextFromGUI();
+			AudioContext ac = new AudioContext();
 			//set up parameters with "mod", see above how this is used
 			final Map<String, Object> params = new Hashtable<String, Object>();
 			params.put("mod", new WavePlayer(ac, 100, Buffer.TRIANGLE));
