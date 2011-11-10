@@ -22,9 +22,9 @@ public class UsingAudioContext {
 			 * the buffer size, IO and AudioFormat.
 			 * This gives you the default AudioContext, using JavaSound.
 			 */
-			
-			
-			AudioContext ac = new AudioContext(128, AudioServerIO.createJackIO(), new IOAudioFormat(44100, 16, 2, 2));
+			AudioContext ac = new AudioContext();
+			//when you've got the hang of Beads check out some of the complexity of creating different AudioIOs
+//			AudioContext ac = new AudioContext(128, AudioServerIO.createJackIO(), new IOAudioFormat(44100, 16, 2, 2));
 			//make some sound
 			Noise n = new Noise(ac);
 			Gain g = new Gain(ac, 1, 0.05f);
@@ -70,21 +70,24 @@ public class UsingAudioContext {
 	
 	public static class AudioInput {
 		public static void main(String[] args) {
-			//using the default AudioIO (JavaSoundAudioIO)
-			AudioContext ac = new AudioContext(64);
+			//using the default AudioIO - this may require you to set up an aggregate device on Mac OS X
+			AudioContext ac = new AudioContext(128);
+			//using jack audio IO (requires configuring jack)
+//			AudioContext ac = new AudioContext(128, AudioServerIO.createJackIO(), new IOAudioFormat(44100, 16, 2, 2));
 			ac.out.setGain(1f);
 			/*
 			 * Now get an audio input.
 			 * 
 			 * The array specifies which input channels you want access to.
 			 */
-			UGen input = ac.getAudioInput(new int[] {0});
+			UGen input = ac.getAudioInput(new int[] {1});
 			/*
 			 * Let's just do something simple to the input so that you can hear it.
 			 * In this case, put it through a Reverb.
 			 */
 			Reverb rb = new Reverb(ac);
 			rb.addInput(input);
+//			ac.out.addInput(rb);	//choose to hear through reverb
 			ac.out.addInput(input);
 			//go
 			ac.start();
@@ -93,13 +96,13 @@ public class UsingAudioContext {
 	
 	public static class AudioInputRecord {
 		public static void main(String[] args) throws IOException {
-			//using the default AudioIO (JavaSoundAudioIO)
+			//using the default AudioIO
 			final AudioContext ac = new AudioContext();
 			//a little recorder tool which streams straight to a file.
 			//this must be killed in order for the raw audio file to get wav header.
 			final RecordToFile rtf1 = new RecordToFile(ac, 1, new File("audio/temp.wav"));
 			//the audio input. The array specified which input channels you want.
-			UGen input = ac.getAudioInput(new int[] {0});
+			UGen input = ac.getAudioInput(new int[] {1});
 			rtf1.addInput(input);
 			ac.out.addDependent(rtf1);
 			DelayTrigger dt = new DelayTrigger(ac, 5000f, new Bead() {

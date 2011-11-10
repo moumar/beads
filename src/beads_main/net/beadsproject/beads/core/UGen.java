@@ -283,7 +283,7 @@ public abstract class UGen extends Bead {
 				dependent.update();
 			}
 		}
-		
+		//dependents done, now actual inputs
 		if (!noInputs) {
 			noInputs = true;
 			for (int i = 0; i < inputsAtChannel.length; i++) {

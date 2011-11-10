@@ -111,9 +111,14 @@ public class AudioServerIO extends AudioIO implements AudioClient {
 
 		@Override
 		public void calculateBuffer() {
-			for (int i=0; i < channels.length; i++) {
-                            inputs.get(channels[i]).get(bufOut[i]);
-                        }
+//			try {
+				for (int i=0; i < channels.length; i++) {
+					FloatBuffer fbuf = inputs.get(channels[i] - 1);		//OB correction to code here, assumption is that initialising channels array starts from 1, not 0.
+		            fbuf.get(bufOut[i]);								//OB this line is reporting java.nio.BufferUnderflowException sometimes (not clear exactly when
+		        }														//furthermore somewhere in the call chain these exceptions are getting snuffed
+//			} catch(Exception e) {
+//				e.printStackTrace();
+//			}
 		}
 		
 	}
