@@ -88,6 +88,7 @@ public class BeadsGui {
 		tempoSlider.storeValue(87.5f);
 		tempoSlider.storeValue(116.66666f);
 		tempoSlider.storeValue(-175f);
+		env.elements.put("bpm", tempoSlider);
 		UGen tempoToInterval = new UGen(clock.getContext(), 1, 1) {
 			@Override
 			public void calculateBuffer() {
